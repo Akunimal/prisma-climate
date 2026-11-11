@@ -350,12 +350,13 @@ Si una fase no pasa su puerta, se documenta el resultado negativo: también es u
 2. **Stack de la app:** Flutter.
 3. **Nombre:** PRISMA (repo `prisma-climate`).
 4. **Fuentes:** registro en `configs/sources.yaml`; SMN es núcleo y Tier 1; orden de integración por tiers.
+5. **Repo en GitHub:** `Akunimal/prisma-climate`, público, creado el 2026-11-11 con CI (lint + tests) en verde.
+6. **Umbral X de la hipótesis (sección 2):** 60 % de estaciones, fijado en `EVALUATION_PROTOCOL.md` §2 antes de cualquier calibración.
+7. **Acceso a SMN:** verificado el 2026-11-11 — datos abiertos en `ssl.smn.gob.ar` sin desafío; registrado en `configs/sources.yaml` y `docs/DATA_SOURCES.md`.
 
 **Pendientes:**
 
-1. Nombre definitivo del repo en GitHub.
-2. Umbral X de la hipótesis de la sección 2 (se fija en `EVALUATION_PROTOCOL.md` antes de calibrar).
-3. Acceso y licencia de SMN: verificar método real y registrar en el YAML antes de implementar el conector.
+1. Licencia SMN: leer `PAD_legales.pdf`, registrar `day_convention` y recién entonces mover la fuente a `status: active` e implementar el conector (Fase 1).
 
 ---
 
