@@ -1,12 +1,8 @@
 {
-  "last_run": "2026-11-11T15:44:55",
+  "last_run": "2026-11-11T16:27:24",
   "region": "argentina",
   "rows": {
-    "openmeteo-ensemble": 74784,
-    "openmeteo-era5": 642219,
-    "ghcn-daily": 363323,
-    "noaa-oni": 921,
-    "noaa-sam": 564
+    "openmeteo-ensemble": 74784
   },
   "failures": [],
   "status": "ok"
