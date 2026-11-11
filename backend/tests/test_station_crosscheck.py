@@ -46,6 +46,28 @@ def test_parse_smn_estaciones_signs_and_fields(tmp_path: Path) -> None:
     assert salta["smn_name"] == "SALTA AERO"
 
 
+def test_parse_smn_estaciones_row_with_single_space_and_junk_line(
+    tmp_path: Path,
+) -> None:
+    # Two real rows run name and province together with a single space, and
+    # the file carries orphan fragment lines that are not stations.
+    text = "\n".join(
+        [
+            "NOMBRE  PROVINCIA  LATITUD  LONGITUD  ALTURA  NRO  NroOACI",
+            "PRESIDENCIA ROQUE SAENZ PENA A CHACO  -26  44  -60  29  93  87148 SARS",
+            "ERO",
+            "",
+        ]
+    )
+    table = parse_smn_estaciones(_write_catalogue(tmp_path, text))
+    assert len(table) == 1
+    row = table.iloc[0]
+    assert row["smn_nro"] == 87148
+    assert row["smn_elevation_m"] == 93
+    assert row["smn_lat"] == pytest.approx(-(26 + 44 / 60))
+    assert row["smn_lon"] == pytest.approx(-(60 + 29 / 60))
+
+
 def test_crosscheck_region_flags_coordinate_offset(tmp_path: Path) -> None:
     catalogue = parse_smn_estaciones(_write_catalogue(tmp_path))
     region = {

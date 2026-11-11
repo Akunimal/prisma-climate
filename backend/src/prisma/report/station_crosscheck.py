@@ -24,42 +24,47 @@ from ..ingest.base import find_repo_root, load_region, utc_now
 LAT_FLAG_DEG = 0.05
 ELEV_FLAG_M = 50
 
+# Numeric tail of a data row: lat gr/min, lon gr/min, elevation, NRO, OACI.
+# Anchored at the end so rows whose name and province run together with a
+# single space (two rows in the real file) still parse.
+_TAIL_RE = re.compile(
+    r"(?P<lat_gr>-?\d+)\s+(?P<lat_min>\d+)\s+"
+    r"(?P<lon_gr>-?\d+)\s+(?P<lon_min>\d+)\s+"
+    r"(?P<elev>-?\d+)\s+(?P<nro>\d+)(?:\s+(?P<oaci>\S+))?\s*$"
+)
+
 
 def parse_smn_estaciones(path: Path) -> pd.DataFrame:
-    """Parse estaciones_smn.txt (whitespace-delimited fixed columns).
+    """Parse estaciones_smn.txt (aligned columns, two-or-more-space heads).
 
-    In the real file the NRO and OACI columns are separated by a single
-    space, so the NRO token may arrive as ``"87047 SASA"``.
+    In the real file NRO and OACI are separated by a single space, and two
+    station rows carry only one space between name and province, so the
+    numeric tail is matched from the end of the line instead of by a fixed
+    split. Orphan fragment lines (``ERO``, ``RO``) never match and are
+    skipped.
     """
     records: list[dict[str, Any]] = []
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         if not line.strip():
             continue
-        parts = re.split(r"\s{2,}", line.strip())
-        if len(parts) < 8:
-            continue
-        nro_match = re.match(r"(\d+)", parts[7])
-        try:
-            lat_gr = float(parts[2])
-            lat_min = float(parts[3])
-            lon_gr = float(parts[4])
-            lon_min = float(parts[5])
-            elevation = float(parts[6])
-        except ValueError:
-            continue  # header / units lines
-        if nro_match is None:
-            continue
-        nro = int(nro_match.group(1))
-        lat = (1 if lat_gr >= 0 else -1) * (abs(lat_gr) + lat_min / 60.0)
-        lon = (1 if lon_gr >= 0 else -1) * (abs(lon_gr) + lon_min / 60.0)
+        match = _TAIL_RE.search(line)
+        if match is None:
+            continue  # header / units / orphan fragment lines
+        head_parts = re.split(r"\s{2,}", line[: match.start()].strip())
+        lat = (1 if int(match["lat_gr"]) >= 0 else -1) * (
+            abs(int(match["lat_gr"])) + int(match["lat_min"]) / 60.0
+        )
+        lon = (1 if int(match["lon_gr"]) >= 0 else -1) * (
+            abs(int(match["lon_gr"])) + int(match["lon_min"]) / 60.0
+        )
         records.append(
             {
-                "smn_name": parts[0],
-                "smn_province": parts[1],
+                "smn_name": head_parts[0] if head_parts else "",
+                "smn_province": head_parts[1] if len(head_parts) > 1 else "",
                 "smn_lat": lat,
                 "smn_lon": lon,
-                "smn_elevation_m": elevation,
-                "smn_nro": nro,
+                "smn_elevation_m": float(match["elev"]),
+                "smn_nro": int(match["nro"]),
             }
         )
     if not records:
