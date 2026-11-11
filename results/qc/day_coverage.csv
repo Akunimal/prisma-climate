@@ -1,0 +1,115 @@
+source,location,variable,ok_days
+ghcn-daily,Bahia Blanca Aero,precip,4324
+ghcn-daily,Bahia Blanca Aero,t2m_max,6780
+ghcn-daily,Bahia Blanca Aero,t2m_min,9687
+ghcn-daily,Buenos Aires Observatorio,precip,2237
+ghcn-daily,Buenos Aires Observatorio,t2m_max,5659
+ghcn-daily,Buenos Aires Observatorio,t2m_min,7853
+ghcn-daily,Comodoro Rivadavia,precip,4287
+ghcn-daily,Comodoro Rivadavia,t2m_max,7136
+ghcn-daily,Comodoro Rivadavia,t2m_min,9581
+ghcn-daily,Cordoba Aero,precip,4468
+ghcn-daily,Cordoba Aero,t2m_max,6602
+ghcn-daily,Cordoba Aero,t2m_min,8821
+ghcn-daily,Formosa,precip,4808
+ghcn-daily,Formosa,t2m_max,4408
+ghcn-daily,Formosa,t2m_min,7940
+ghcn-daily,La Quiaca Observatorio,precip,1862
+ghcn-daily,La Quiaca Observatorio,t2m_max,6698
+ghcn-daily,La Quiaca Observatorio,t2m_min,8281
+ghcn-daily,Malargue,precip,3385
+ghcn-daily,Malargue,t2m_max,5520
+ghcn-daily,Malargue,t2m_min,9824
+ghcn-daily,Mar del Plata Aero,precip,4865
+ghcn-daily,Mar del Plata Aero,t2m_max,7004
+ghcn-daily,Mar del Plata Aero,t2m_min,9650
+ghcn-daily,Mendoza Aero,precip,3571
+ghcn-daily,Mendoza Aero,t2m_max,6595
+ghcn-daily,Mendoza Aero,t2m_min,9810
+ghcn-daily,Posadas,precip,5197
+ghcn-daily,Posadas,t2m_max,4588
+ghcn-daily,Posadas,t2m_min,8366
+ghcn-daily,Resistencia Aero,precip,4989
+ghcn-daily,Resistencia Aero,t2m_max,6448
+ghcn-daily,Resistencia Aero,t2m_min,8676
+ghcn-daily,Rosario,precip,4066
+ghcn-daily,Rosario,t2m_max,4844
+ghcn-daily,Rosario,t2m_min,8417
+ghcn-daily,Salta Aero,precip,4035
+ghcn-daily,Salta Aero,t2m_max,6233
+ghcn-daily,Salta Aero,t2m_min,8644
+ghcn-daily,San Carlos de Bariloche,precip,4750
+ghcn-daily,San Carlos de Bariloche,t2m_max,5610
+ghcn-daily,San Carlos de Bariloche,t2m_min,8880
+ghcn-daily,San Juan,precip,2570
+ghcn-daily,San Juan,t2m_max,5259
+ghcn-daily,San Juan,t2m_min,9812
+ghcn-daily,Santa Rosa Aero,precip,4397
+ghcn-daily,Santa Rosa Aero,t2m_max,7125
+ghcn-daily,Santa Rosa Aero,t2m_min,10521
+ghcn-daily,Trelew Aero,precip,3858
+ghcn-daily,Trelew Aero,t2m_max,6959
+ghcn-daily,Trelew Aero,t2m_min,10234
+ghcn-daily,Tucuman (Teniente Benjamin Matienzo),precip,4514
+ghcn-daily,Tucuman (Teniente Benjamin Matienzo),t2m_max,4528
+ghcn-daily,Tucuman (Teniente Benjamin Matienzo),t2m_min,8279
+ghcn-daily,Ushuaia Malvinas Argentinas,precip,7490
+ghcn-daily,Ushuaia Malvinas Argentinas,t2m_max,5353
+ghcn-daily,Ushuaia Malvinas Argentinas,t2m_min,6997
+openmeteo-era5,Bahia Blanca Aero,precip,11267
+openmeteo-era5,Bahia Blanca Aero,t2m_max,11267
+openmeteo-era5,Bahia Blanca Aero,t2m_min,11267
+openmeteo-era5,Buenos Aires Observatorio,precip,11267
+openmeteo-era5,Buenos Aires Observatorio,t2m_max,11267
+openmeteo-era5,Buenos Aires Observatorio,t2m_min,11267
+openmeteo-era5,Comodoro Rivadavia,precip,11267
+openmeteo-era5,Comodoro Rivadavia,t2m_max,11267
+openmeteo-era5,Comodoro Rivadavia,t2m_min,11267
+openmeteo-era5,Cordoba Aero,precip,11267
+openmeteo-era5,Cordoba Aero,t2m_max,11267
+openmeteo-era5,Cordoba Aero,t2m_min,11267
+openmeteo-era5,Formosa,precip,11267
+openmeteo-era5,Formosa,t2m_max,11267
+openmeteo-era5,Formosa,t2m_min,11267
+openmeteo-era5,La Quiaca Observatorio,precip,11267
+openmeteo-era5,La Quiaca Observatorio,t2m_max,11267
+openmeteo-era5,La Quiaca Observatorio,t2m_min,11267
+openmeteo-era5,Malargue,precip,11267
+openmeteo-era5,Malargue,t2m_max,11267
+openmeteo-era5,Malargue,t2m_min,11267
+openmeteo-era5,Mar del Plata Aero,precip,11267
+openmeteo-era5,Mar del Plata Aero,t2m_max,11267
+openmeteo-era5,Mar del Plata Aero,t2m_min,11267
+openmeteo-era5,Mendoza Aero,precip,11267
+openmeteo-era5,Mendoza Aero,t2m_max,11267
+openmeteo-era5,Mendoza Aero,t2m_min,11267
+openmeteo-era5,Posadas,precip,11267
+openmeteo-era5,Posadas,t2m_max,11267
+openmeteo-era5,Posadas,t2m_min,11267
+openmeteo-era5,Resistencia Aero,precip,11267
+openmeteo-era5,Resistencia Aero,t2m_max,11267
+openmeteo-era5,Resistencia Aero,t2m_min,11267
+openmeteo-era5,Rosario,precip,11267
+openmeteo-era5,Rosario,t2m_max,11267
+openmeteo-era5,Rosario,t2m_min,11267
+openmeteo-era5,Salta Aero,precip,11267
+openmeteo-era5,Salta Aero,t2m_max,11267
+openmeteo-era5,Salta Aero,t2m_min,11267
+openmeteo-era5,San Carlos de Bariloche,precip,11267
+openmeteo-era5,San Carlos de Bariloche,t2m_max,11267
+openmeteo-era5,San Carlos de Bariloche,t2m_min,11267
+openmeteo-era5,San Juan,precip,11267
+openmeteo-era5,San Juan,t2m_max,11267
+openmeteo-era5,San Juan,t2m_min,11267
+openmeteo-era5,Santa Rosa Aero,precip,11267
+openmeteo-era5,Santa Rosa Aero,t2m_max,11267
+openmeteo-era5,Santa Rosa Aero,t2m_min,11267
+openmeteo-era5,Trelew Aero,precip,11267
+openmeteo-era5,Trelew Aero,t2m_max,11267
+openmeteo-era5,Trelew Aero,t2m_min,11267
+openmeteo-era5,Tucuman (Teniente Benjamin Matienzo),precip,11267
+openmeteo-era5,Tucuman (Teniente Benjamin Matienzo),t2m_max,11267
+openmeteo-era5,Tucuman (Teniente Benjamin Matienzo),t2m_min,11267
+openmeteo-era5,Ushuaia Malvinas Argentinas,precip,11267
+openmeteo-era5,Ushuaia Malvinas Argentinas,t2m_max,11267
+openmeteo-era5,Ushuaia Malvinas Argentinas,t2m_min,11267
