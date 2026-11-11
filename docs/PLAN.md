@@ -353,10 +353,9 @@ Si una fase no pasa su puerta, se documenta el resultado negativo: también es u
 5. **Repo en GitHub:** `Akunimal/prisma-climate`, público, creado el 2026-11-11 con CI (lint + tests) en verde.
 6. **Umbral X de la hipótesis (sección 2):** 60 % de estaciones, fijado en `EVALUATION_PROTOCOL.md` §2 antes de cualquier calibración.
 7. **Acceso a SMN:** verificado el 2026-11-11 — datos abiertos en `ssl.smn.gob.ar` sin desafío; registrado en `configs/sources.yaml` y `docs/DATA_SOURCES.md`.
+8. **Licencia y convención de día SMN (2026-11-11):** `PAD_legales.pdf` + Infoleg disp25.pdf confirman CC BY 2.5 AR con atribución sobre datos crudos/observacionales → `redistributable: yes`; `day_convention: local_calendar` verificado desde los payloads (`datohorario` FECHA+HORA [HOA] 0–23, `observaciones` un TMAX/TMIN por día local; el parámetro `fecha` se ignora). Conector `ingest/smn.py` implementado → `status: active`.
 
-**Pendientes:**
-
-1. Licencia SMN: leer `PAD_legales.pdf`, registrar `day_convention` y recién entonces mover la fuente a `status: active` e implementar el conector (Fase 1).
+**Pendientes:** ninguno de la Fase 1 previo al conector.
 
 ---
 

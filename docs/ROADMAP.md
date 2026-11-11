@@ -19,16 +19,17 @@ Done:
 - Connectors: Open-Meteo (ERA5 + ensemble), GHCN-Daily, NOAA ONI/SAM; QC pass; Parquet storage.
 - Region config for 19 stations across Argentina's climate zones with selection criteria documented.
 - Daily ingest workflow with Hugging Face upload and Release fallback; status heartbeat commit.
-- SMN access re-verified (open-data endpoints reachable); PAD licence read (CC BY 2.5 AR); payloads probed.
+- SMN access re-verified (open-data endpoints reachable); PAD licence + Infoleg data policy read (CC BY 2.5 AR with attribution, covers raw observational data); payloads probed; `day_convention: local_calendar` verified from `datohorario`/`observaciones`.
+- SMN connector (`ingest/smn.py`): catalogue → NRO → observaciones match, daily TMAX/TMIN merged into `data/raw/smn-argentina.parquet`; source `status: active`.
 - ERA5 vs GHCN discrepancy report with t2m_max bias decomposition and precip orography check.
 - Verification metrics module + unit tests (`backend/src/prisma/verify/metrics.py`); leaderboard gated until archive ≥ 15 issue dates.
 
-Not started (by design): leaderboard numbers, calibration, API, Flutter app, SMN connector.
+Not started (by design): leaderboard numbers, calibration, API, Flutter app.
 
 ## Phase 1 checklist
 
-- [ ] Parse `ssl.smn.gob.ar` payloads; record day convention and licence terms; connector → `active`.
-- [ ] Cross-check configured stations against the SMN station list; replace mismatches.
+- [x] Parse `ssl.smn.gob.ar` payloads; record day convention and licence terms; connector → `active`.
+- [x] Cross-check configured stations against the SMN station list; replace mismatches.
 - [x] Source-discrepancy report script (ERA5 vs GHCN) → `results/discrepancies/`.
 - [ ] SMN leg of the discrepancy report, once its connector lands.
 - [x] Verification metrics (CRPS, Brier, reliability) per `EVALUATION_PROTOCOL.md` (code + tests; no numbers published yet).

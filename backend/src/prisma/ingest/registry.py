@@ -8,6 +8,7 @@ from .base import Connector, is_valid_day_convention, load_yaml
 from .ghcn import GhcnDaily
 from .indices import NoaaOni, NoaaSam
 from .openmeteo import OpenMeteoEnsemble, OpenMeteoEra5
+from .smn import SmnObservations
 
 CONNECTORS: dict[str, type[Connector]] = {
     "openmeteo.OpenMeteoEra5": OpenMeteoEra5,
@@ -15,6 +16,7 @@ CONNECTORS: dict[str, type[Connector]] = {
     "ghcn.GhcnDaily": GhcnDaily,
     "indices.NoaaOni": NoaaOni,
     "indices.NoaaSam": NoaaSam,
+    "smn.SmnObservations": SmnObservations,
 }
 
 

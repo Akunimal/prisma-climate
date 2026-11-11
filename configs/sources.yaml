@@ -121,26 +121,32 @@ sources:
 
   - id: smn-argentina
     name: "Servicio Meteorologico Nacional (Argentina)"
-    day_convention: unknown
+    day_convention: local_calendar
     connector: "smn.SmnObservations"
     tier: 1
-    status: planned
-    variables: [t2m, t2m_max, t2m_min, precip, humidity, wind]
+    status: active
+    variables: [t2m_max, t2m_min]
     access: "Open data on ssl.smn.gob.ar (no auth); www.smn.gob.ar serves a Cloudflare JS challenge to plain clients"
-    endpoint: "https://ssl.smn.gob.ar/dpd/zipopendata.php?dato=estaciones"
+    endpoint: "https://ssl.smn.gob.ar/dpd/zipopendata.php?dato=observaciones"
     coverage: Argentina
-    latency: "minutes to hours"
-    update_frequency: hourly
-    license: "CC BY 2.5 AR (site content); distribution terms at http://www3.smn.gob.ar/dpd/PAD_legales.pdf"
-    redistributable: unknown
+    latency: "hours"
+    update_frequency: daily
+    license: "CC BY 2.5 AR; attribution to SMN required (PAD_legales.pdf, Infoleg disp25.pdf)"
+    redistributable: yes
     verified_on: "2026-11-11"
     notes: >-
       Core source. Access re-verified 2026-11-11: ssl.smn.gob.ar/dpd/zipopendata.php?dato={estaciones,
       observaciones, tiepre, datohorario, regtemp, radsolar, pron5d} returns 200 with no challenge.
-      www.smn.gob.ar is a Cloudflare managed JS challenge (do not scrape around it); api.smn.gob.ar
-      origin is down (522); apidatos.smn.gob.ar no longer resolves. Catalogue: datos.gob.ar CKAN
-      org servicio-meteorologico-nacional. Read PAD_legales.pdf and set day_convention before
-      status: active; connector not written yet (verification-before-connector).
+      Licence terms read 2026-11-11: PAD_legales.pdf (Propiedad Intelectual) licenses "todos sus
+      contenidos" under CC BY 2.5 AR; Infoleg disp25.pdf (Política de Datos del SMN) puts raw
+      observational data in category A "Datos Abiertos" under the same licence with attribution.
+      day_convention local_calendar verified from the payload: datohorario carries FECHA DDMMYYYY
+      plus HORA in [HOA] covering the local day 0-23, and observaciones is one TMAX/TMIN row per
+      local calendar day (the fecha query parameter is ignored, so only the latest completed day
+      is served). Connector ingests observaciones -> t2m_max/t2m_min and merges each new day into
+      data/raw/smn-argentina.parquet. Catalogue reconciliation: 124 physical lines = 2 blank +
+      header + units + 118 station rows + 2 name-wrap fragments (ERO, RO); 118 stations parse and
+      118 appear in observaciones.
     options: {}
 
   # ---------------------------------------------------------------------------

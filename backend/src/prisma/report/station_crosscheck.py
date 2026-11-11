@@ -14,98 +14,32 @@ Produced only by this script; output lands under results/stations/.
 from __future__ import annotations
 
 import argparse
-import re
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
 from ..ingest.base import find_repo_root, load_region, utc_now
+from ..ingest.smn import candidate_nros, parse_estaciones
 
 LAT_FLAG_DEG = 0.05
 ELEV_FLAG_M = 50
 
-# Numeric tail of a data row: lat gr/min, lon gr/min, elevation, NRO, OACI.
-# Anchored at the end so rows whose name and province run together with a
-# single space (two rows in the real file) still parse.
-_TAIL_RE = re.compile(
-    r"(?P<lat_gr>-?\d+)\s+(?P<lat_min>\d+)\s+"
-    r"(?P<lon_gr>-?\d+)\s+(?P<lon_min>\d+)\s+"
-    r"(?P<elev>-?\d+)\s+(?P<nro>\d+)(?:\s+(?P<oaci>\S+))?\s*$"
-)
-
 
 def parse_smn_estaciones(path: Path) -> pd.DataFrame:
-    """Parse estaciones_smn.txt (aligned columns, two-or-more-space heads).
+    """Parse the local estaciones_smn.txt probe file.
 
-    In the real file NRO and OACI are separated by a single space, and two
-    station rows carry only one space between name and province, so the
-    numeric tail is matched from the end of the line instead of by a fixed
-    split. Orphan fragment lines (``ERO``, ``RO``) never match and are
-    skipped.
+    Parsing lives in the SMN connector (``prisma.ingest.smn``); this wrapper
+    reads the file with the same single-byte encoding the connector uses for
+    the live payload. Orphan fragment lines (``ERO``, ``RO``) never match and
+    are skipped.
     """
-    records: list[dict[str, Any]] = []
-    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
-        if not line.strip():
-            continue
-        match = _TAIL_RE.search(line)
-        if match is None:
-            continue  # header / units / orphan fragment lines
-        head_parts = re.split(r"\s{2,}", line[: match.start()].strip())
-        lat = (1 if int(match["lat_gr"]) >= 0 else -1) * (
-            abs(int(match["lat_gr"])) + int(match["lat_min"]) / 60.0
-        )
-        lon = (1 if int(match["lon_gr"]) >= 0 else -1) * (
-            abs(int(match["lon_gr"])) + int(match["lon_min"]) / 60.0
-        )
-        records.append(
-            {
-                "smn_name": head_parts[0] if head_parts else "",
-                "smn_province": head_parts[1] if len(head_parts) > 1 else "",
-                "smn_lat": lat,
-                "smn_lon": lon,
-                "smn_elevation_m": float(match["elev"]),
-                "smn_nro": int(match["nro"]),
-            }
-        )
-    if not records:
-        raise ValueError(f"no stations parsed from {path}")
-    return pd.DataFrame.from_records(records)
+    return parse_estaciones(path.read_text(encoding="latin-1"))
 
 
 def _nearest(lat: float, lon: float, catalogue: pd.DataFrame) -> pd.Series:
     distance = (catalogue["smn_lat"] - lat).abs() + (catalogue["smn_lon"] - lon).abs()
     return catalogue.loc[distance.idxmin()]
-
-
-def _candidate_nros(ghcn_id: Any) -> list[int]:
-    """Deterministic WMO readings of a GHCN-Daily id (readme section IV).
-
-    The id is ``FIPS(2) + network(1) + station(8)``. Network ``M`` stores the
-    WMO number in the last five characters (``ARM00087938`` → 87938). Network
-    ``0`` pads it either as ``000`` + WMO (``AR000087007`` → 87007) or as two
-    leading zeros + WMO + trailing zero (``AR000870470`` → 87047). Only these
-    three readings are tried — no sliding 5-digit window scan.
-    """
-    ghcn_id = str(ghcn_id or "")
-    if len(ghcn_id) != 11:
-        return []
-    network, station = ghcn_id[2], ghcn_id[3:]
-    readings: list[str] = []
-    if network == "M":
-        readings.append(station[-5:])
-    elif network == "0":
-        if station.startswith("000"):
-            readings.append(station[3:])
-        elif station.endswith("0"):
-            readings.append(station[2:7])
-    candidates: list[int] = []
-    for reading in readings:
-        if len(reading) == 5 and reading.isdigit():
-            value = int(reading)
-            if value not in candidates:
-                candidates.append(value)
-    return candidates
 
 
 def crosscheck_region(
@@ -118,7 +52,7 @@ def crosscheck_region(
         nro = next(
             (
                 candidate
-                for candidate in _candidate_nros(station.get("ghcn_id"))
+                for candidate in candidate_nros(station.get("ghcn_id"))
                 if (catalogue["smn_nro"] == candidate).any()
             ),
             None,
