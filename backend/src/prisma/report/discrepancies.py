@@ -129,6 +129,23 @@ def _ok_series(frame: pd.DataFrame, variable: str, location: str) -> pd.Series:
     return series[~series.index.duplicated(keep="last")]
 
 
+WATER_CELL_EXCLUSION = (
+    "elevation=nan returned grid-cell elevation 0.0 m: the selected ERA5 cell is "
+    "water-masked (open-meteo/open-meteo#1155 documents that grid cells with more "
+    "than 50 % water coverage store no elevation and report 0), so this raw series "
+    "comes from a different, water-dominated cell than the land-preferred cell the "
+    "downscaled track uses; with elevation=nan the cell_selection parameter does "
+    "not change the selected cell (land/nearest/sea all return the same cell)"
+)
+
+
+def _track_status(series_label: str, source_elevation_m: float | None) -> tuple[str, str]:
+    """Water-masked raw cells are excluded from track means, with the reason kept."""
+    if series_label == "raw_grid" and source_elevation_m == 0.0:
+        return "excluded", WATER_CELL_EXCLUSION
+    return "ok", ""
+
+
 def collect_t2m_max_decomposition(
     era5: pd.DataFrame,
     ghcn: pd.DataFrame,
@@ -208,12 +225,16 @@ def collect_t2m_max_decomposition(
             record["dem_elevation_m"] = dem_el
             record["grid_elevation_m"] = grid_el
             record["sample_window"] = window
+            status, reason = _track_status(series_label, source_el)
+            record["status"] = status
+            record["exclusion_reason"] = reason
             records.append(record)
         time.sleep(pause_seconds)
 
     columns = [
         "series",
         "location",
+        "status",
         "n_days",
         "bias_raw",
         "bias_after_elevation",
@@ -227,6 +248,7 @@ def collect_t2m_max_decomposition(
         "elevation_diff_m",
         "sampling_correction_c",
         "sample_window",
+        "exclusion_reason",
     ]
     if not records:
         return pd.DataFrame(columns=columns)
@@ -285,10 +307,83 @@ def collect_precip_orography(
     return pd.DataFrame.from_records(records)[columns]
 
 
+def _included(track: pd.DataFrame) -> pd.DataFrame:
+    """Rows contributing to track means (``status`` column, when present)."""
+    if "status" in track.columns:
+        return track.loc[track["status"].eq("ok")]
+    return track
+
+
+def _excluded_track_lines(t2m_table: pd.DataFrame) -> list[str]:
+    """Excluded tracks with their recorded reason, computed from the table."""
+    if "status" not in t2m_table.columns:
+        return []
+    excluded = t2m_table.loc[t2m_table["status"].ne("ok")]
+    if excluded.empty:
+        return []
+    lines = ["", "Excluded from track means:", ""]
+    for row in excluded.itertuples(index=False):
+        final = row.bias_after_day_convention
+        final_text = f"{final:+.2f}" if final is not None and final == final else "n/a"
+        lines.append(
+            f"- `{row.series}` @ {row.location}: final residual {final_text} °C, "
+            f"grid-cell elevation {row.source_elevation_m:g} m — excluded, reason: "
+            f"{row.exclusion_reason}."
+        )
+    return lines
+
+
+def _convergence_lines(t2m_table: pd.DataFrame) -> list[str]:
+    """Track-agreement statement over included pairs, with exceptions spelled out."""
+    final = "bias_after_day_convention"
+    has_status = "status" in t2m_table.columns
+
+    def by_location(series_label: str, included_only: bool) -> pd.Series:
+        track = t2m_table.loc[t2m_table["series"].eq(series_label)]
+        if included_only and has_status:
+            track = track.loc[track["status"].eq("ok")]
+        return track.set_index("location")[final].astype(float)
+
+    downscaled = by_location("downscaled", True)
+    raw = by_location("raw_grid", True)
+    common = downscaled.index.intersection(raw.index)
+    lines: list[str] = []
+    if len(common):
+        delta = (raw.loc[common] - downscaled.loc[common]).abs()
+        lines.append(
+            f"- Track convergence: at all {len(common)} location(s) with both tracks "
+            f"included, the final residual agrees within {delta.max():.3f} °C "
+            f"(mean |Δ| {delta.mean():.3f} °C)."
+        )
+    if not has_status:
+        return lines
+    excluded = t2m_table.loc[t2m_table["status"].ne("ok")]
+    for row in excluded.itertuples(index=False):
+        if row.series != "raw_grid":
+            continue
+        pair = downscaled.get(row.location)
+        if pair is None:
+            lines.append(
+                f"- Exception: raw_grid excluded at {row.location} (no included "
+                "downscaled pair to compare)."
+            )
+            continue
+        delta = float(row.bias_after_day_convention) - pair
+        lines.append(
+            f"- Exception: raw_grid at {row.location} is NOT part of that agreement "
+            f"(final {row.bias_after_day_convention:+.2f} °C vs {pair:+.2f} °C "
+            f"downscaled, Δ {delta:+.2f} °C); its grid cell is water-masked "
+            f"({row.source_elevation_m:g} m) so the tracks read different cells. "
+            "It is excluded from the raw_grid mean above, not averaged in."
+        )
+    return lines
+
+
 def render_decomposition_section(
     t2m_table: pd.DataFrame,
     precip_table: pd.DataFrame,
     crosscheck: pd.DataFrame | None = None,
+    freshness: dict[str, pd.Timestamp] | None = None,
 ) -> str:
     """Markdown section with residual bias after each adjustment step."""
     lines = [
@@ -320,6 +415,8 @@ def render_decomposition_section(
         lines.append("_No overlapping t2m_max rows; decomposition skipped._")
     else:
         display = t2m_table.copy()
+        if "exclusion_reason" in display.columns:
+            display = display.drop(columns=["exclusion_reason"])
         for column in (
             "bias_raw",
             "bias_after_elevation",
@@ -339,6 +436,7 @@ def render_decomposition_section(
             lag = pd.to_numeric(display["best_day_lag"], errors="coerce").astype("Int64")
             display["best_day_lag"] = lag
         lines.append(_markdown_table(display))
+        lines += _excluded_track_lines(t2m_table)
 
     lines += [
         "",
@@ -364,7 +462,7 @@ def render_decomposition_section(
         lines.append(_markdown_table(display))
 
     lines += _crosscheck_section(crosscheck)
-    lines.append(render_honest_reading(t2m_table, crosscheck))
+    lines.append(render_honest_reading(t2m_table, crosscheck, freshness=freshness))
     return "\n".join(lines)
 
 
@@ -412,9 +510,30 @@ def _crosscheck_section(crosscheck: pd.DataFrame | None) -> list[str]:
     return lines
 
 
+def _freshness_line(freshness: dict[str, pd.Timestamp]) -> str:
+    era5_last = freshness["era5_last"]
+    ghcn_last = freshness["ghcn_last"]
+    refreshed = freshness["refreshed"]
+    as_of = freshness["as_of"]
+    era5_days = int((as_of.normalize() - era5_last.normalize()).days)
+    ghcn_days = int((as_of.normalize() - ghcn_last.normalize()).days)
+    months = round(ghcn_days / 30.44)
+    return (
+        f"- Data freshness (ok rows, as of {as_of.date()}): ERA5 through "
+        f"{era5_last.date()} ({era5_days} d old); GHCN through "
+        f"{ghcn_last.date()} ({ghcn_days} d ≈ {months} months old) although "
+        f"both stores were refreshed {refreshed.date()} — the gap is on the "
+        "GHCN side, not a stale local cache. The overlap above ends at the "
+        "GHCN end date, so recent-forecast verification in Phase 1 depends on "
+        "the SMN Argentina connector until GHCN-Daily updates "
+        "(audit: `results/qc/freshness.md`)."
+    )
+
+
 def render_honest_reading(
     t2m_table: pd.DataFrame,
     crosscheck: pd.DataFrame | None = None,
+    freshness: dict[str, pd.Timestamp] | None = None,
 ) -> str:
     """Honest reading computed from the decomposition table (never hand-edited)."""
     lines = [
@@ -428,6 +547,8 @@ def render_honest_reading(
         "signal. This report uses `elevation=nan` requests for real "
         "grid-cell heights.",
     ]
+    if freshness:
+        lines.append(_freshness_line(freshness))
     if crosscheck is not None and not crosscheck.empty:
         if "flags" in crosscheck:
             flagged = crosscheck.loc[~crosscheck["flags"].eq("")]
@@ -459,17 +580,26 @@ def render_honest_reading(
         track = t2m_table.loc[t2m_table["series"].eq(label)]
         if track.empty:
             continue
-        raw_mean = float(track["bias_raw"].mean())
-        elev_mean = float(track["bias_after_elevation"].mean())
-        final_mean = float(track["bias_after_day_convention"].mean())
-        n = len(track)
+        included = _included(track)
+        excluded_n = len(track) - len(included)
+        if included.empty:
+            lines.append(f"- **{label}**: all {len(track)} track rows excluded; no mean reported.")
+            continue
+        raw_mean = float(included["bias_raw"].mean())
+        elev_mean = float(included["bias_after_elevation"].mean())
+        final_mean = float(included["bias_after_day_convention"].mean())
+        note = f"; {excluded_n} excluded" if excluded_n else ""
         lines.append(
-            f"- **{label}** (n={n} stations): mean bias raw {raw_mean:+.2f} °C → "
-            f"after elevation {elev_mean:+.2f} °C → after sampling + day "
-            f"convention {final_mean:+.2f} °C."
+            f"- **{label}** (n={len(included)} stations{note}): mean bias raw "
+            f"{raw_mean:+.2f} °C → after elevation {elev_mean:+.2f} °C → after "
+            f"sampling + day convention {final_mean:+.2f} °C."
         )
 
-    finals = pd.to_numeric(t2m_table["bias_after_day_convention"], errors="coerce")
+    lines += _convergence_lines(t2m_table)
+
+    finals = pd.to_numeric(
+        _included(t2m_table)["bias_after_day_convention"], errors="coerce"
+    )
     if finals.notna().any() and float(finals.mean()) < -0.5:
         lines.append(
             "- The residual cold bias persists on both series after all three "
@@ -628,12 +758,26 @@ def main(argv: list[str] | None = None) -> int:
 
     decomposition_section = ""
     if not args.skip_decomposition:
+        era5_last = era5.loc[era5["quality_flag"].eq("ok"), "time"].max()
+        ghcn_last = ghcn.loc[ghcn["quality_flag"].eq("ok"), "time"].max()
+        refreshed = max(
+            pd.to_datetime(era5["retrieved_at"]).max(),
+            pd.to_datetime(ghcn["retrieved_at"]).max(),
+        )
+        freshness: dict[str, pd.Timestamp] | None = None
+        if pd.notna(era5_last) and pd.notna(ghcn_last) and pd.notna(refreshed):
+            freshness = {
+                "era5_last": era5_last,
+                "ghcn_last": ghcn_last,
+                "refreshed": refreshed,
+                "as_of": utc_now(),
+            }
         print("collecting t2m_max bias decomposition (network)…")
         t2m_table = collect_t2m_max_decomposition(era5, ghcn, region)
         print("collecting precip orography check (network)…")
         precip_table = collect_precip_orography(era5, ghcn, region)
         decomposition_section = render_decomposition_section(
-            t2m_table, precip_table, crosscheck
+            t2m_table, precip_table, crosscheck, freshness=freshness
         )
         if not t2m_table.empty:
             t2m_table.to_csv(args.out_dir / "era5_vs_ghcn_t2m_max_decomposition.csv", index=False)
