@@ -7,6 +7,7 @@ measurements, which is why observations come from GHCN-Daily instead.
 from __future__ import annotations
 
 import time
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -84,11 +85,23 @@ def parse_daily(payload: dict[str, Any], station: dict[str, Any], model: str) ->
 
 
 class OpenMeteoEra5(Connector):
-    """Daily ERA5 aggregates from the Open-Meteo archive API."""
+    """Daily ERA5 aggregates from the Open-Meteo archive API.
+
+    Fetches are incremental: when the output Parquet already exists, only the
+    days missing per station are requested, so routine runs stay inside the
+    free-tier quota instead of re-downloading 1996→today every time.
+    """
 
     source = "openmeteo-era5"
     tier = 1
     day_convention = "local_calendar"
+
+    @staticmethod
+    def _last_date_by_location(existing: pd.DataFrame | None) -> dict[str, pd.Timestamp]:
+        if existing is None or existing.empty:
+            return {}
+        times = existing.loc[existing["variable"].eq("t2m_max")].groupby("location")["time"].max()
+        return {str(loc): pd.Timestamp(ts) for loc, ts in times.items()}
 
     def fetch(
         self,
@@ -97,23 +110,34 @@ class OpenMeteoEra5(Connector):
         end: str | None = None,
         models: tuple[str, ...] | list[str] = ("era5",),
         pause_seconds: float = PAUSE_SECONDS,
+        incremental: bool = True,
+        existing: pd.DataFrame | None = None,
         **_options: Any,
     ) -> pd.DataFrame:
         retrieved = utc_now()
-        start = start or region.get("history_start", "1996-01-01")
+        default_start = region.get("history_start", "1996-01-01")
         if end is None:
             # ERA5 through Open-Meteo lags real time by about five days.
             end = (utc_now().normalize() - pd.Timedelta(days=6)).date().isoformat()
 
+        covered = self._last_date_by_location(existing) if incremental else {}
+
         frames: list[pd.DataFrame] = []
         for station in region["stations"]:
+            station_start = start or default_start
+            last = covered.get(station["name"])
+            if last is not None:
+                next_day = (last + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+                if next_day > end:
+                    continue
+                station_start = max(station_start, next_day)
             for model in models:
                 payload = _request(
                     ARCHIVE_URL,
                     {
                         "latitude": station["lat"],
                         "longitude": station["lon"],
-                        "start_date": start,
+                        "start_date": station_start,
                         "end_date": end,
                         "daily": ",".join(DAILY_VARIABLES),
                         "timezone": station.get("timezone", region["timezone"]),
@@ -123,9 +147,55 @@ class OpenMeteoEra5(Connector):
                 frames.append(parse_daily(payload, station, model))
                 time.sleep(pause_seconds)
 
+        if not frames:
+            return pd.DataFrame(
+                columns=[
+                    "variable",
+                    "time",
+                    "value",
+                    "member",
+                    "location",
+                    "lat",
+                    "lon",
+                    "model",
+                    "retrieved_at",
+                ]
+            )
+
         out = pd.concat(frames, ignore_index=True)
         out["retrieved_at"] = retrieved
         return out
+
+    def run(
+        self,
+        region: dict[str, Any],
+        out_dir: Path,
+        day_convention: str | None = None,
+        **options: Any,
+    ) -> Path:
+        out_dir = Path(out_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        path = out_dir / f"{self.source}.parquet"
+
+        incremental = bool(options.get("incremental", True))
+        existing: pd.DataFrame | None = None
+        if incremental and path.exists():
+            existing = pd.read_parquet(path)
+
+        options["existing"] = existing
+        frame = self.fetch_normalized(region, day_convention=day_convention, **options)
+
+        if existing is not None and not frame.empty:
+            keys = ["source", "location", "variable", "time", "member", "model"]
+            merged = pd.concat([existing, frame], ignore_index=True)
+            merged = merged.drop_duplicates(subset=keys, keep="last")
+            merged = merged.sort_values(["location", "variable", "time"]).reset_index(drop=True)
+            frame = merged
+        elif existing is not None and frame.empty:
+            frame = existing
+
+        frame.to_parquet(path, index=False)
+        return path
 
 
 class OpenMeteoEnsemble(Connector):

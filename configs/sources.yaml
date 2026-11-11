@@ -65,6 +65,7 @@ sources:
     options:
       models: [era5]
       pause_seconds: 7
+      incremental: true
 
   - id: ghcn-daily
     name: "NOAA GHCN-Daily"
