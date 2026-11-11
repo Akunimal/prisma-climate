@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "PRISMA: open climate forecast verification, starting with Argentina"
+type: software
+authors:
+  - name: "PRISMA contributors"
+license: Apache-2.0
+abstract: >-
+  Open cross-platform project that ingests open weather and climate data,
+  verifies forecasts against observations, and shows calibrated
+  probabilities instead of single numbers. Starting with Argentina,
+  designed to scale globally.
+keywords:
+  - weather
+  - climate
+  - forecast verification
+  - ensemble
+  - open data

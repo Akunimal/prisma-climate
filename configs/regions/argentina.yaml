@@ -1,0 +1,187 @@
+# Deployment region: Argentina.
+#
+# Argentina is the first instance of a system designed to scale globally.
+# Adding a country must only require a new file in this directory, never a code
+# change. Station identifiers are NOAA GHCN-Daily IDs; no country-specific logic
+# is allowed outside a connector module.
+#
+# Phase 0 uses gridded reanalysis (ERA5 via Open-Meteo) at these coordinates and
+# station observations from GHCN-Daily. SMN Argentina is a core source of the
+# project (registered in configs/sources.yaml); its open-data endpoints on
+# ssl.smn.gob.ar were verified reachable on 2026-11-11, and the connector lands
+# in Phase 1 once payload formats and licence terms are recorded.
+#
+# Station selection criteria (Phase 0, verified 2026-11-11):
+#   1. Prefer stations present in BOTH GHCN-Daily and SMN Argentina with
+#      recent data. GHCN presence and recency were checked against
+#      ghcnd-inventory.txt: every station below reports TMAX, TMIN and PRCP
+#      through 2025 (the inventory file lags real time by months).
+#   2. SMN membership is not claimed yet: the SMN station list endpoint
+#      (ssl.smn.gob.ar/dpd/zipopendata.php?dato=estaciones) is reachable but
+#      has not been parsed and matched against these GHCN IDs. The cross-check
+#      happens in Phase 1; a station missing from SMN will be replaced then.
+#   3. Coverage: at least one station per climate zone (NOA/Puna, NEA/Chaco,
+#      Cuyo, Pampa, Atlantic coast, Patagonia), spanning latitude and
+#      elevation, so no zone of the country is unrepresented.
+#   4. Stations without recent GHCN data: none as of 2026-11-11. If a
+#      station's GHCN record stops before the last two years, flag it in the
+#      station entry with a comment; keep it only if zone coverage needs it.
+
+id: argentina
+name: Argentina
+description: "Starting with Argentina, designed to scale globally."
+timezone: America/Argentina/Cordoba
+history_start: "1996-01-01"
+
+stations:
+  - id: la_quiaca
+    name: "La Quiaca Observatorio"
+    zone: "NOA / Puna"
+    lat: -22.100
+    lon: -65.600
+    elevation_m: 3479
+    ghcn_id: AR000087007
+
+  - id: salta
+    name: "Salta Aero"
+    zone: "NOA / Puna"
+    lat: -24.850
+    lon: -65.483
+    elevation_m: 1246
+    ghcn_id: AR000870470
+
+  - id: tucuman
+    name: "Tucuman (Teniente Benjamin Matienzo)"
+    zone: "NOA / Puna"
+    lat: -26.841
+    lon: -65.105
+    elevation_m: 456
+    ghcn_id: ARM00087121
+
+  - id: formosa
+    name: "Formosa"
+    zone: "NEA / Chaco"
+    lat: -26.213
+    lon: -58.228
+    elevation_m: 59
+    ghcn_id: ARM00087162
+
+  - id: resistencia
+    name: "Resistencia Aero"
+    zone: "NEA / Chaco"
+    lat: -27.450
+    lon: -59.050
+    elevation_m: 53
+    ghcn_id: AR000087155
+
+  - id: posadas
+    name: "Posadas"
+    zone: "NEA / Chaco"
+    lat: -27.386
+    lon: -55.971
+    elevation_m: 131
+    ghcn_id: ARM00087178
+
+  - id: mendoza
+    name: "Mendoza Aero"
+    zone: "Cuyo"
+    lat: -32.833
+    lon: -68.783
+    elevation_m: 704
+    ghcn_id: AR000087418
+
+  - id: san_juan
+    name: "San Juan"
+    zone: "Cuyo"
+    lat: -31.571
+    lon: -68.418
+    elevation_m: 597
+    ghcn_id: ARM00087311
+
+  - id: malargue
+    name: "Malargue"
+    zone: "Cuyo"
+    lat: -35.494
+    lon: -69.574
+    elevation_m: 1430
+    ghcn_id: ARM00087506
+
+  - id: cordoba
+    name: "Cordoba Aero"
+    zone: "Pampa"
+    lat: -31.317
+    lon: -64.217
+    elevation_m: 489
+    ghcn_id: AR000087344
+
+  - id: rosario
+    name: "Rosario"
+    zone: "Pampa"
+    lat: -32.904
+    lon: -60.785
+    elevation_m: 26
+    ghcn_id: ARM00087480
+
+  - id: buenos_aires
+    name: "Buenos Aires Observatorio"
+    zone: "Pampa"
+    lat: -34.583
+    lon: -58.483
+    elevation_m: 25
+    ghcn_id: AR000875850
+
+  - id: santa_rosa
+    name: "Santa Rosa Aero"
+    zone: "Pampa"
+    lat: -36.567
+    lon: -64.266
+    elevation_m: 192
+    ghcn_id: AR000087623
+
+  - id: mar_del_plata
+    name: "Mar del Plata Aero"
+    zone: "Atlantic coast"
+    lat: -37.933
+    lon: -57.583
+    elevation_m: 22
+    ghcn_id: AR000087692
+
+  - id: bahia_blanca
+    name: "Bahia Blanca Aero"
+    zone: "Atlantic coast"
+    lat: -38.733
+    lon: -62.167
+    elevation_m: 75
+    ghcn_id: AR000877500
+
+  - id: comodoro_rivadavia
+    name: "Comodoro Rivadavia"
+    zone: "Atlantic coast"
+    lat: -45.783
+    lon: -67.500
+    elevation_m: 58
+    ghcn_id: AR000087860
+
+  - id: bariloche
+    name: "San Carlos de Bariloche"
+    zone: "Patagonia"
+    lat: -41.151
+    lon: -71.158
+    elevation_m: 846
+    ghcn_id: ARM00087765
+
+  - id: trelew
+    name: "Trelew Aero"
+    zone: "Patagonia"
+    lat: -43.200
+    lon: -65.266
+    elevation_m: 43
+    ghcn_id: AR000087828
+
+  - id: ushuaia
+    name: "Ushuaia Malvinas Argentinas"
+    zone: "Patagonia"
+    lat: -54.843
+    lon: -68.296
+    elevation_m: 22
+    ghcn_id: ARM00087938

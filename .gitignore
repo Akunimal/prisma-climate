@@ -1,0 +1,32 @@
+# Data: downloaded by scripts, never committed
+data/raw/
+data/processed/
+data/cache/
+!data/.gitkeep
+*.parquet
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+.uv/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Local environment
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

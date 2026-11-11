@@ -1,0 +1,373 @@
+# Source registry.
+#
+# Every connector lives under backend/src/prisma/ingest/ and implements the same
+# interface: fetch -> normalize to the common schema (variable, unit, lat, lon,
+# time, source, quality_flag) -> store as Parquet. Adding a source must require
+# changes only in its connector module and this file.
+#
+# status:  active   -> implemented and used by the pipeline
+#          planned  -> registered, connector not implemented yet
+#          blocked  -> access verified as unavailable from this environment
+#
+# redistributable: yes | no | derived_only | unknown
+#
+# day_convention: how the source aggregates a value into a day; recorded per
+#   source here and carried in every stored row. See docs/DATA_SOURCES.md.
+#     utc            -> timestamped and aggregated in UTC
+#     local_calendar -> aggregated over the local calendar day at the location
+#     obs_hour_XX    -> value taken at a fixed observation hour (XX, 0-23 UTC)
+#     unknown        -> not verified yet; must be resolved before status: active
+#
+# Integration order follows the project plan: Tier 1 first.
+
+version: 1
+
+sources:
+  # ---------------------------------------------------------------------------
+  # Tier 1
+  # ---------------------------------------------------------------------------
+  - id: openmeteo-ensemble
+    name: "Open-Meteo Ensemble API"
+    day_convention: local_calendar
+    connector: "openmeteo.OpenMeteoEnsemble"
+    tier: 1
+    status: active
+    variables: [t2m_max, t2m_min, precip]
+    access: "REST API, no key"
+    endpoint: "https://ensemble-api.open-meteo.com/v1/ensemble"
+    coverage: global
+    latency: "hours"
+    update_frequency: "6 hours"
+    license: "Open-Meteo CC BY 4.0; free tier is non-commercial only"
+    redistributable: derived_only
+    verified_on: "2026-11-11"
+    notes: "GFS ensemble has 30 members, ECMWF IFS 0.25 has 50."
+    options:
+      models: [gfs_seamless, ecmwf_ifs025]
+      forecast_days: 16
+
+  - id: openmeteo-era5
+    name: "Open-Meteo Historical Weather API (ERA5)"
+    day_convention: local_calendar
+    connector: "openmeteo.OpenMeteoEra5"
+    tier: 1
+    status: active
+    variables: [t2m_max, t2m_min, precip]
+    access: "REST API, no key"
+    endpoint: "https://archive-api.open-meteo.com/v1/archive"
+    coverage: global
+    latency: "about 5 days behind real time"
+    update_frequency: daily
+    license: "Open-Meteo CC BY 4.0; underlying ERA5 under the Copernicus licence"
+    redistributable: derived_only
+    verified_on: "2026-11-11"
+    notes: "Gridded reanalysis, not a station measurement. Values are the grid cell nearest each station."
+    options:
+      models: [era5]
+      pause_seconds: 7
+
+  - id: ghcn-daily
+    name: "NOAA GHCN-Daily"
+    day_convention: local_calendar
+    connector: "ghcn.GhcnDaily"
+    tier: 1
+    status: active
+    variables: [t2m_max, t2m_min, precip]
+    access: "HTTPS fixed-width files, no key"
+    endpoint: "https://www.ncei.noaa.gov/pub/data/ghcn/daily/all/{station_id}.dly"
+    coverage: global
+    latency: "days"
+    update_frequency: daily
+    license: "Public domain (NOAA/NCEI, U.S. Government)"
+    redistributable: yes
+    verified_on: "2026-11-11"
+    notes: "Primary observation source. Station IDs are declared per region in configs/regions/."
+    options:
+      min_year: 1996
+
+  - id: noaa-oni
+    name: "NOAA ONI (Oceanic Nino Index)"
+    day_convention: utc
+    connector: "indices.NoaaOni"
+    tier: 1
+    status: active
+    variables: [oni]
+    access: "HTTPS ASCII, no key"
+    endpoint: "https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt"
+    coverage: "Nino 3.4 region"
+    latency: "weeks"
+    update_frequency: monthly
+    license: "Public domain (NOAA/NWS, U.S. Government)"
+    redistributable: yes
+    verified_on: "2026-11-11"
+    notes: "3-month running means; mapped to the centre month of each season."
+
+  - id: noaa-sam
+    name: "NOAA CPC Antarctic Oscillation (SAM) index"
+    day_convention: utc
+    connector: "indices.NoaaSam"
+    tier: 1
+    status: active
+    variables: [sam]
+    access: "HTTPS ASCII table, no key"
+    endpoint: "https://www.cpc.ncep.noaa.gov/products/precip/CWlink/daily_ao_index/aao/monthly.aao.index.b79.current.ascii.table"
+    coverage: "Southern hemisphere extratropics"
+    latency: "weeks"
+    update_frequency: monthly
+    license: "Public domain (NOAA/NWS, U.S. Government)"
+    redistributable: yes
+    verified_on: "2026-11-11"
+
+  - id: smn-argentina
+    name: "Servicio Meteorologico Nacional (Argentina)"
+    day_convention: unknown
+    connector: "smn.SmnObservations"
+    tier: 1
+    status: planned
+    variables: [t2m, t2m_max, t2m_min, precip, humidity, wind]
+    access: "Open data on ssl.smn.gob.ar (no auth); www.smn.gob.ar serves a Cloudflare JS challenge to plain clients"
+    endpoint: "https://ssl.smn.gob.ar/dpd/zipopendata.php?dato=estaciones"
+    coverage: Argentina
+    latency: "minutes to hours"
+    update_frequency: hourly
+    license: "CC BY 2.5 AR (site content); distribution terms at http://www3.smn.gob.ar/dpd/PAD_legales.pdf"
+    redistributable: unknown
+    verified_on: "2026-11-11"
+    notes: >-
+      Core source. Access re-verified 2026-11-11: ssl.smn.gob.ar/dpd/zipopendata.php?dato={estaciones,
+      observaciones, tiepre, datohorario, regtemp, radsolar, pron5d} returns 200 with no challenge.
+      www.smn.gob.ar is a Cloudflare managed JS challenge (do not scrape around it); api.smn.gob.ar
+      origin is down (522); apidatos.smn.gob.ar no longer resolves. Catalogue: datos.gob.ar CKAN
+      org servicio-meteorologico-nacional. Read PAD_legales.pdf and set day_convention before
+      status: active; connector not written yet (verification-before-connector).
+    options: {}
+
+  # ---------------------------------------------------------------------------
+  # Tier 2
+  # ---------------------------------------------------------------------------
+  - id: inta
+    name: "INTA (Argentina) agrometeorology"
+    day_convention: unknown
+    connector: "inta.IntaStations"
+    tier: 2
+    status: planned
+    variables: [t2m_max, t2m_min, precip, soil_moisture]
+    access: "to verify"
+    endpoint: null
+    coverage: Argentina
+    latency: unknown
+    update_frequency: unknown
+    license: "to verify"
+    redistributable: unknown
+    verified_on: null
+
+  - id: imerg
+    name: "NASA IMERG (GPM precipitation)"
+    day_convention: unknown
+    connector: "imerg.Imerg"
+    tier: 2
+    status: planned
+    variables: [precip]
+    access: "NASA Earthdata login, OPeNDAP or HTTPS granules"
+    endpoint: "https://gpm.nasa.gov/data/directory"
+    coverage: "60N-60S"
+    latency: "hours"
+    update_frequency: "30 minutes (Early run)"
+    license: "NASA open data policy, attribution requested"
+    redistributable: yes
+    verified_on: null
+
+  - id: chirps
+    name: "CHIRPS (UCSB Climate Hazards Center)"
+    day_convention: unknown
+    connector: "chirps.Chirps"
+    tier: 2
+    status: planned
+    variables: [precip]
+    access: "HTTPS GeoTIFF / NetCDF"
+    endpoint: "https://www.chc.ucsb.edu/data/chirps"
+    coverage: "50S-50N"
+    latency: "weeks"
+    update_frequency: daily to monthly
+    license: "CC BY 4.0 (UCSB CHC)"
+    redistributable: yes
+    verified_on: null
+
+  - id: noaa-oisst
+    name: "NOAA OISST v2.1 sea surface temperature"
+    day_convention: unknown
+    connector: "oisst.Oisst"
+    tier: 2
+    status: planned
+    variables: [sst]
+    access: "HTTPS NetCDF"
+    endpoint: "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/"
+    coverage: global ocean
+    latency: "days"
+    update_frequency: daily
+    license: "Public domain (NOAA/NCEI)"
+    redistributable: yes
+    verified_on: null
+
+  - id: gefs-open
+    name: "NOAA GEFS operational ensemble"
+    day_convention: unknown
+    connector: "gefs.Gefs"
+    tier: 2
+    status: planned
+    variables: [t2m, precip, wind]
+    access: "NOMADS / AWS Open Data"
+    endpoint: "https://nomads.ncep.noaa.gov/"
+    coverage: global
+    latency: "hours"
+    update_frequency: "6 hours"
+    license: "Public domain (NOAA/NCEP)"
+    redistributable: yes
+    verified_on: null
+
+  - id: ecmwf-open
+    name: "ECMWF open data (IFS)"
+    day_convention: unknown
+    connector: "ecmwf_open.EcmwfOpen"
+    tier: 2
+    status: planned
+    variables: [t2m, precip, wind]
+    access: "ECMWF open data server, no key"
+    endpoint: "https://data.ecmwf.int/forecasts/"
+    coverage: global
+    latency: "hours"
+    update_frequency: "6 to 12 hours"
+    license: "CC BY 4.0"
+    redistributable: yes
+    verified_on: null
+
+  - id: isd
+    name: "NOAA Integrated Surface Database"
+    day_convention: unknown
+    connector: "isd.Isd"
+    tier: 2
+    status: planned
+    variables: [t2m, wind, humidity, pressure]
+    access: "HTTPS station files"
+    endpoint: "https://www.ncei.noaa.gov/pub/data/noaa/"
+    coverage: global
+    latency: "days"
+    update_frequency: daily
+    license: "Public domain (NOAA/NCEI)"
+    redistributable: yes
+    verified_on: null
+
+  # ---------------------------------------------------------------------------
+  # Tier 3
+  # ---------------------------------------------------------------------------
+  - id: ina
+    name: "INA (Instituto Nacional del Agua, Argentina)"
+    day_convention: unknown
+    connector: "ina.Ina"
+    tier: 3
+    status: planned
+    variables: [river_level, river_discharge]
+    access: "to verify"
+    endpoint: null
+    coverage: Argentina
+    latency: unknown
+    update_frequency: unknown
+    license: "to verify"
+    redistributable: unknown
+    verified_on: null
+
+  - id: hidrografia-naval
+    name: "Servicio de Hidrografia Naval (Argentina)"
+    day_convention: unknown
+    connector: "hidrografia_naval.HidrografiaNaval"
+    tier: 3
+    status: planned
+    variables: [sea_level, tide]
+    access: "to verify"
+    endpoint: null
+    coverage: "Argentine coast"
+    latency: unknown
+    update_frequency: unknown
+    license: "to verify"
+    redistributable: unknown
+    verified_on: null
+
+  - id: firms
+    name: "NASA FIRMS active fire detections"
+    day_convention: unknown
+    connector: "firms.Firms"
+    tier: 3
+    status: planned
+    variables: [fire_radiative_power]
+    access: "NASA Earthdata / API key (free)"
+    endpoint: "https://firms.modaps.eosdis.nasa.gov/"
+    coverage: global
+    latency: "hours"
+    update_frequency: "3 hours"
+    license: "NASA open data policy, attribution requested"
+    redistributable: yes
+    verified_on: null
+
+  - id: smap
+    name: "NASA SMAP soil moisture"
+    day_convention: unknown
+    connector: "smap.Smap"
+    tier: 3
+    status: planned
+    variables: [soil_moisture]
+    access: "NASA Earthdata login"
+    endpoint: "https://smap.jpl.nasa.gov/data/"
+    coverage: global
+    latency: "days"
+    update_frequency: daily
+    license: "NASA open data policy"
+    redistributable: yes
+    verified_on: null
+
+  - id: goes-19
+    name: "GOES-19 ABI"
+    day_convention: unknown
+    connector: "goes.Goes"
+    tier: 3
+    status: planned
+    variables: [brightness_temperature, cloud_cover]
+    access: "NOAA Open Data on AWS (S3, no key for public bucket)"
+    endpoint: "https://registry.opendata.aws/noaa-goes/"
+    coverage: "Americas"
+    latency: "minutes"
+    update_frequency: "10 to 15 minutes"
+    license: "Public domain (NOAA)"
+    redistributable: yes
+    verified_on: null
+
+  - id: cammesa
+    name: "CAMMESA electricity demand (Argentina)"
+    day_convention: unknown
+    connector: "cammesa.Cammesa"
+    tier: 3
+    status: planned
+    variables: [electricity_demand]
+    access: "to verify"
+    endpoint: null
+    coverage: Argentina
+    latency: unknown
+    update_frequency: unknown
+    license: "to verify"
+    redistributable: unknown
+    verified_on: null
+
+  - id: openaq-cams
+    name: "OpenAQ and CAMS air quality"
+    day_convention: unknown
+    connector: "airquality.AirQuality"
+    tier: 3
+    status: planned
+    variables: [pm25, no2, ozone]
+    access: "OpenAQ API key (free); CAMS via Copernicus ADS"
+    endpoint: "https://openaq.org/"
+    coverage: global
+    latency: "hours"
+    update_frequency: hourly
+    license: "OpenAQ CC BY 4.0; CAMS under the Copernicus licence"
+    redistributable: derived_only
+    verified_on: null

@@ -1,0 +1,14 @@
+# Phase 0: the backend only. The FastAPI service arrives in Phase 2
+# (docs/PLAN.md section 7); there is no API to run yet.
+#
+#   docker compose run --rm ingest
+#
+# downloads the configured sources into data/raw/ (gitignored).
+
+services:
+  ingest:
+    image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: uv run --project backend python -m prisma.ingest

@@ -1,0 +1,31 @@
+# Lint and tests for the Python backend.
+#
+# The Flutter app job is added in Phase 2 (docs/PLAN.md section 7); until then
+# the app directory only holds a .gitkeep.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install project
+        run: uv sync --project backend
+
+      - name: Lint
+        run: uv run --project backend ruff check backend/src backend/tests scripts
+
+      - name: Test
+        run: uv run --project backend pytest

@@ -1,0 +1,110 @@
+# Daily forecast archive.
+#
+# Past ensemble forecasts are not retrievable from the provider: every missed
+# day is lost verification data. This workflow therefore runs daily, stores the
+# forecast with its issue time, and uploads the archive outside git.
+#
+# Storage policy:
+#   - Raw/archived data is NEVER committed to this repository.
+#   - GitHub Actions artifacts are NOT used as storage (they expire).
+#   - Primary store: a public Hugging Face Dataset (secrets.HF_TOKEN plus
+#     vars.HF_DATASET_REPO). Fallback while that is not configured: attach the
+#     daily Parquet to a GitHub Release.
+#   - The only committed file is results/ingest_status.json (last run, rows per
+#     source, failures), so scheduled workflows are not disabled for inactivity.
+#
+# Runners: standard ubuntu-latest only.
+
+name: Daily forecast archive
+
+on:
+  schedule:
+    - cron: "47 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: forecast-archive
+  cancel-in-progress: false
+
+env:
+  HF_TOKEN: ${{ secrets.HF_TOKEN }}
+  HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install project
+        run: uv sync --project backend
+
+      - name: Fetch ensemble forecast for every region location
+        id: ingest
+        continue-on-error: true
+        run: >
+          uv run --project backend python -m prisma.ingest
+          --region argentina
+          --sources openmeteo-ensemble
+          --out data/raw
+
+      - name: Stage issue-dated archive file
+        if: hashFiles('data/raw/openmeteo-ensemble.parquet') != ''
+        run: |
+          ISSUE_DATE=$(date -u +%F)
+          mkdir -p data/archive
+          cp data/raw/openmeteo-ensemble.parquet \
+            "data/archive/openmeteo-ensemble_${ISSUE_DATE}.parquet"
+          echo "ISSUE_DATE=${ISSUE_DATE}" >> "$GITHUB_ENV"
+          echo "Staged forecast archive for ${ISSUE_DATE}"
+
+      - name: Upload archive to Hugging Face dataset
+        if: env.HF_TOKEN != '' && env.HF_DATASET_REPO != '' && env.ISSUE_DATE != ''
+        run: >
+          uv run --project backend --with huggingface_hub
+          python scripts/upload_forecast.py
+          --archive-dir data/archive
+          --issue-date "$ISSUE_DATE"
+
+      - name: Attach archive to a GitHub Release (fallback)
+        if: (env.HF_TOKEN == '' || env.HF_DATASET_REPO == '') && env.ISSUE_DATE != ''
+        run: |
+          TAG="forecast-${ISSUE_DATE}"
+          FILE="data/archive/openmeteo-ensemble_${ISSUE_DATE}.parquet"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$FILE" --clobber
+          else
+            gh release create "$TAG" "$FILE" \
+              --title "Forecast archive ${ISSUE_DATE}" \
+              --notes "Daily Open-Meteo ensemble forecast archive (${ISSUE_DATE}, UTC). Fallback storage while the Hugging Face dataset is not configured."
+          fi
+          echo "Attached ${FILE} to release ${TAG}"
+
+      - name: Commit ingest status heartbeat
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/ingest_status.json || true
+          if git diff --cached --quiet; then
+            echo "ingest status unchanged"
+          else
+            git commit -m "chore: ingest status ${ISSUE_DATE:-$(date -u +%F)} [skip ci]"
+            git push
+          fi
+
+      - name: Fail the job if ingest failed
+        if: steps.ingest.outcome == 'failure'
+        run: |
+          echo "Ingest failed; see results/ingest_status.json for the recorded failure."
+          exit 1
