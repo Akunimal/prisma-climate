@@ -8,8 +8,12 @@
 #   - Raw/archived data is NEVER committed to this repository.
 #   - GitHub Actions artifacts are NOT used as storage (they expire).
 #   - Primary store: a public Hugging Face Dataset (secrets.HF_TOKEN plus
-#     vars.HF_DATASET_REPO). Fallback while that is not configured: attach the
-#     daily Parquet to a GitHub Release.
+#     vars.HF_DATASET_REPO). The archive key is the forecast issue_time date
+#     read from the parquet, never the wall clock, and an existing target is
+#     skipped so the first archive of an issue date stays canonical.
+#   - GitHub Release fallback: used when HF is unconfigured OR the HF upload
+#     step fails, so a transient Hugging Face error never loses a day. The
+#     Release is kept as provenance even after a successful HF upload.
 #   - The only committed file is results/ingest_status.json (last run, rows per
 #     source, failures), so scheduled workflows are not disabled for inactivity.
 #
@@ -60,16 +64,24 @@ jobs:
 
       - name: Stage issue-dated archive file
         if: hashFiles('data/raw/openmeteo-ensemble.parquet') != ''
+        # The issue date comes from the parquet's issue_time, not from the
+        # runner clock: a re-run of an already archived cycle resolves to the
+        # same target path instead of creating a duplicate.
         run: |
-          ISSUE_DATE=$(date -u +%F)
+          ISSUE_DATE=$(uv run --project backend python scripts/upload_forecast.py \
+            --print-issue-date data/raw/openmeteo-ensemble.parquet)
           mkdir -p data/archive
           cp data/raw/openmeteo-ensemble.parquet \
             "data/archive/openmeteo-ensemble_${ISSUE_DATE}.parquet"
           echo "ISSUE_DATE=${ISSUE_DATE}" >> "$GITHUB_ENV"
-          echo "Staged forecast archive for ${ISSUE_DATE}"
+          echo "Staged forecast archive for ${ISSUE_DATE} (from issue_time)"
 
       - name: Upload archive to Hugging Face dataset
+        id: hf
         if: env.HF_TOKEN != '' && env.HF_DATASET_REPO != '' && env.ISSUE_DATE != ''
+        # A transient Hugging Face error must not lose the day: the Release
+        # fallback below picks it up, so the job stays green with a warning.
+        continue-on-error: true
         run: >
           uv run --project backend --with huggingface_hub
           python scripts/upload_forecast.py
@@ -77,8 +89,11 @@ jobs:
           --issue-date "$ISSUE_DATE"
 
       - name: Attach archive to a GitHub Release (fallback)
-        if: (env.HF_TOKEN == '' || env.HF_DATASET_REPO == '') && env.ISSUE_DATE != ''
+        if: (steps.hf.outcome == 'failure' || env.HF_TOKEN == '' || env.HF_DATASET_REPO == '') && env.ISSUE_DATE != ''
         run: |
+          if [ "${{ steps.hf.outcome }}" = "failure" ]; then
+            echo "::warning title=Hugging Face upload failed::archiving to the GitHub Release instead"
+          fi
           TAG="forecast-${ISSUE_DATE}"
           FILE="data/archive/openmeteo-ensemble_${ISSUE_DATE}.parquet"
           if gh release view "$TAG" >/dev/null 2>&1; then
