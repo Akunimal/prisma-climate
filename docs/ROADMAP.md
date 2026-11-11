@@ -27,7 +27,8 @@ Not started (by design): verification metrics, calibration, API, Flutter app, SM
 
 - [ ] Parse `ssl.smn.gob.ar` payloads; record day convention and licence terms; connector → `active`.
 - [ ] Cross-check configured stations against the SMN station list; replace mismatches.
-- [ ] Source-discrepancy report script (ERA5 vs GHCN vs SMN where overlapping).
+- [x] Source-discrepancy report script (ERA5 vs GHCN) → `results/discrepancies/`.
+- [ ] SMN leg of the discrepancy report, once its connector lands.
 - [ ] Verification metrics (CRPS, Brier, reliability) per `EVALUATION_PROTOCOL.md`.
 - [ ] Leaderboard generated into `results/` by script.
 - [ ] 30 consecutive days of unattended daily ingest.

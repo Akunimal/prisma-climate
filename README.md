@@ -13,6 +13,7 @@ Early-stage independent research. Be precise about what exists today:
 - Ingest of Open-Meteo (ERA5 history + multi-model ensemble forecast), NOAA GHCN-Daily station observations, and NOAA ONI/SAM indices into normalized Parquet.
 - A quality-control pass (physical limits, spikes, duplicate rows) and a source registry with licenses in [`configs/sources.yaml`](configs/sources.yaml).
 - Notebook 01 generating real figures for 19 stations across Argentina's climate zones.
+- A source-discrepancy report (ERA5 vs GHCN-Daily per station and day, with bias/correlation flags) written to `results/discrepancies/` by script.
 - A daily GitHub Actions workflow that archives the ensemble forecast (past forecasts are not retrievable; every missed day is lost verification data).
 
 **Does not exist yet:** forecast verification metrics, calibration, the API, the Flutter app, and the SMN Argentina connector (its open-data endpoints are reachable but unparsed; see [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)). Nothing in `results/` was produced by anything other than a script in this repository.

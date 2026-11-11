@@ -11,7 +11,7 @@ Ingest + QC (physical limits, spikes, stale stations, duplicates)
         ▼
 Storage (Parquet under data/ — gitignored; Zarr only for grids, Phase 2)
         │
-        ├──► source-discrepancy report ──► results/          (Phase 1)
+        ├──► source-discrepancy report ──► results/
         ▼
 Verification (CRPS, Brier, reliability) ──► calibration (EMOS / quantile mapping)
         │                                         │
@@ -42,6 +42,7 @@ Verification (CRPS, Brier, reliability) ──► calibration (EMOS / quantile m
 | `backend/src/prisma/ingest/registry.py` | Load `configs/sources.yaml`, select sources, build connectors |
 | `backend/src/prisma/ingest/runner.py` | Run a selection, write `_manifest.json` and `results/ingest_status.json` |
 | `backend/src/prisma/qc/rules.py` | Physical limits, 7-day spike flag, duplicate handling |
+| `backend/src/prisma/report/discrepancies.py` | ERA5 vs GHCN-Daily comparison per station/day → `results/discrepancies/` |
 | `configs/sources.yaml` | Source registry |
 | `configs/regions/argentina.yaml` | Region, stations, variables, horizontes |
 | `scripts/run_notebook.py` | Execute `notebooks/01_data_overview.ipynb` headlessly (Agg backend) |
