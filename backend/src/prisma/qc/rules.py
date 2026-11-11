@@ -73,6 +73,33 @@ def station_status(
     return status.reset_index()
 
 
+def source_freshness(frame: pd.DataFrame, as_of: Any | None = None) -> pd.DataFrame:
+    """Last ok observation per (source, location, variable) plus staleness.
+
+    This is the availability audit behind the stale-station check: it answers
+    "how far does each source actually reach, for each variable?".
+    """
+    ok = frame.loc[frame["quality_flag"].eq("ok") & frame["time"].notna()]
+    if ok.empty:
+        return pd.DataFrame(
+            columns=["source", "location", "variable", "last_observation", "days_since"]
+        )
+    last = (
+        ok.assign(time=pd.to_datetime(ok["time"]))
+        .groupby(["source", "location", "variable"])["time"]
+        .max()
+        .rename("last_observation")
+        .to_frame()
+    )
+    reference = (
+        pd.Timestamp(as_of)
+        if as_of is not None
+        else pd.Timestamp.now(tz="UTC").tz_localize(None)
+    )
+    last["days_since"] = (reference.normalize() - last["last_observation"]).dt.days
+    return last.reset_index()
+
+
 def summary(frame: pd.DataFrame) -> pd.DataFrame:
     grouped = frame.groupby(["source", "variable", "quality_flag"]).size().rename("rows")
     table = grouped.unstack(fill_value=0)
