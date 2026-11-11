@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -12,7 +13,9 @@ from prisma.report.bias_decomposition import (
     best_day_lag,
     bias_after_shift,
     decompose_location,
+    fetch_raw_grid_cached,
     hourly_sampling_correction,
+    missing_ranges,
     parabolic_peak,
     precip_orography_record,
 )
@@ -174,3 +177,84 @@ def test_precip_orography_record_notes() -> None:
 
     unknown = precip_orography_record(ratio=None, grid_elevation_m=None, station_elevation_m=None)
     assert unknown["note"] == ""
+
+
+def test_missing_ranges_reports_only_gaps() -> None:
+    full = pd.date_range("2026-01-01", "2026-01-10", freq="D")
+    assert missing_ranges(full, "2026-01-01", "2026-01-10") == []
+    assert missing_ranges([], "2026-01-01", "2026-01-03") == [
+        ("2026-01-01", "2026-01-03")
+    ]
+    gapped = full.delete([3, 4])  # 2026-01-04 and 2026-01-05 missing
+    assert missing_ranges(gapped, "2026-01-01", "2026-01-10") == [
+        ("2026-01-04", "2026-01-05")
+    ]
+    edge = pd.DatetimeIndex(["2026-01-02"])
+    assert missing_ranges(edge, "2026-01-01", "2026-01-03") == [
+        ("2026-01-01", "2026-01-01"),
+        ("2026-01-03", "2026-01-03"),
+    ]
+
+
+def test_fetch_raw_grid_cached_is_resumable(tmp_path: Path) -> None:
+    calls: list[tuple[str, str]] = []
+
+    def fake_fetch(
+        lat: float,
+        lon: float,
+        start: str,
+        end: str,
+        *,
+        timezone: str,
+        pause_seconds: float = 0.0,
+    ) -> tuple[pd.Series, float | None]:
+        calls.append((start, end))
+        index = pd.date_range(start, end, freq="D")
+        return pd.Series(range(len(index)), index=index, dtype=float), 123.0
+
+    cache = tmp_path / "openmeteo-era5-rawgrid.parquet"
+    kwargs = {
+        "cache_path": cache,
+        "location": "Test Station",
+        "lat": 0.0,
+        "lon": 0.0,
+        "timezone": "UTC",
+        "pause_seconds": 0.0,
+    }
+
+    first, first_el = fetch_raw_grid_cached(
+        fake_fetch, start="2026-01-01", end="2026-01-10", **kwargs
+    )
+    assert calls == [("2026-01-01", "2026-01-10")]
+    assert len(first) == 10
+    assert first_el == 123.0
+    assert cache.exists()
+
+    # Fully cached: no network call, same values and elevation.
+    second, second_el = fetch_raw_grid_cached(
+        fake_fetch, start="2026-01-01", end="2026-01-10", **kwargs
+    )
+    assert len(calls) == 1
+    assert len(second) == 10
+    assert second_el == 123.0
+
+    # Extended range: only the new tail is fetched.
+    third, _ = fetch_raw_grid_cached(
+        fake_fetch, start="2026-01-01", end="2026-01-12", **kwargs
+    )
+    assert calls[-1] == ("2026-01-11", "2026-01-12")
+    assert len(third) == 12
+
+    # A hole inside the cached range is refetched, not the whole history.
+    frame = pd.read_parquet(cache)
+    hole_days = pd.to_datetime(["2026-01-05", "2026-01-06"])
+    hole = frame.loc[~pd.to_datetime(frame["time"]).isin(hole_days)]
+    hole.to_parquet(cache, index=False)
+    fourth, _ = fetch_raw_grid_cached(
+        fake_fetch, start="2026-01-01", end="2026-01-12", **kwargs
+    )
+    assert calls[-1] == ("2026-01-05", "2026-01-06")
+    assert len(fourth) == 12
+
+    # The default downscaled archive is never written by this path.
+    assert not (tmp_path / "openmeteo-era5.parquet").exists()

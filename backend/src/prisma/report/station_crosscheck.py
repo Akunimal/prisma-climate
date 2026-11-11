@@ -1,9 +1,10 @@
 """Cross-match configured region stations against the SMN station catalogue.
 
 Matches each station in configs/regions/*.yaml to data/smn_probe/estaciones/
-estaciones_smn.txt by SMN NRO (any 5-digit window of the GHCN id, rightmost
-first — the ids pad the WMO number inconsistently), falling back to the
-nearest catalogue entry by coordinates. Flags coordinate offsets above
+estaciones_smn.txt by SMN NRO, extracted deterministically from the GHCN id
+per the readme's id rules (network M: last five characters; network 0:
+``000`` + WMO or two leading zeros + WMO + trailing zero), falling back to
+the nearest catalogue entry by coordinates. Flags coordinate offsets above
 0.05° and elevation offsets above 50 m so station metadata can be checked
 before any residual difference is attributed to a gridded source.
 
@@ -78,14 +79,33 @@ def _nearest(lat: float, lon: float, catalogue: pd.DataFrame) -> pd.Series:
 
 
 def _candidate_nros(ghcn_id: Any) -> list[int]:
-    """All 5-digit windows of a GHCN id, rightmost first.
+    """Deterministic WMO readings of a GHCN-Daily id (readme section IV).
 
-    GHCN-Daily ids pad the WMO station number inconsistently
-    (``ARM00087938`` → 87938 but ``AR000870470`` → 87047, not 70470), so
-    every window is tried until one exists in the SMN catalogue.
+    The id is ``FIPS(2) + network(1) + station(8)``. Network ``M`` stores the
+    WMO number in the last five characters (``ARM00087938`` → 87938). Network
+    ``0`` pads it either as ``000`` + WMO (``AR000087007`` → 87007) or as two
+    leading zeros + WMO + trailing zero (``AR000870470`` → 87047). Only these
+    three readings are tried — no sliding 5-digit window scan.
     """
-    digits = re.sub(r"\D", "", str(ghcn_id or ""))
-    return [int(digits[i : i + 5]) for i in range(len(digits) - 4, -1, -1)]
+    ghcn_id = str(ghcn_id or "")
+    if len(ghcn_id) != 11:
+        return []
+    network, station = ghcn_id[2], ghcn_id[3:]
+    readings: list[str] = []
+    if network == "M":
+        readings.append(station[-5:])
+    elif network == "0":
+        if station.startswith("000"):
+            readings.append(station[3:])
+        elif station.endswith("0"):
+            readings.append(station[2:7])
+    candidates: list[int] = []
+    for reading in readings:
+        if len(reading) == 5 and reading.isdigit():
+            value = int(reading)
+            if value not in candidates:
+                candidates.append(value)
+    return candidates
 
 
 def crosscheck_region(

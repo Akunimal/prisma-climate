@@ -8,6 +8,7 @@ import pandas as pd
 import pytest
 
 from prisma.report.station_crosscheck import (
+    _candidate_nros,
     crosscheck_region,
     parse_smn_estaciones,
     render_markdown,
@@ -154,3 +155,19 @@ def test_render_markdown_mentions_thresholds(tmp_path: Path) -> None:
     assert "0.05°" in report
     assert "50 m" in report
     assert "No station exceeded" in report
+
+
+def test_candidate_nros_deterministic_id_patterns() -> None:
+    # network 0, ``000`` + WMO (readme: station field 8 chars).
+    assert _candidate_nros("AR000087007") == [87007]
+    assert _candidate_nros("AR000087860") == [87860]
+    # network 0, two leading zeros + WMO + trailing zero.
+    assert _candidate_nros("AR000870470") == [87047]
+    assert _candidate_nros("AR000875850") == [87585]
+    # network M: last five characters are the WMO number.
+    assert _candidate_nros("ARM00087938") == [87938]
+    assert _candidate_nros("ARM00087121") == [87121]
+    # Malformed ids yield no candidates (fallback: nearest coordinates).
+    assert _candidate_nros(None) == []
+    assert _candidate_nros("") == []
+    assert _candidate_nros("TOOSHORT") == []

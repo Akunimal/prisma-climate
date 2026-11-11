@@ -27,17 +27,24 @@ applied as a constant mean correction; the window is recorded in the output.
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
 import requests
 
+from ..ingest.base import utc_now
 from ..ingest.openmeteo import ARCHIVE_URL, PAUSE_SECONDS, RETRIES, TIMEOUT
 
 # Standard-atmosphere environmental lapse rate (positive: °C per km of height).
 LAPSE_RATE_C_PER_KM = 6.5
 DAY_LAGS = (-1, 0, 1)
 HOURLY_PAUSE_SECONDS = PAUSE_SECONDS
+
+# Persistent elevation=nan series cache, separate from the default downscaled
+# archive (data/raw/openmeteo-era5.parquet), which the cron and notebook use.
+RAW_GRID_CACHE_COLUMNS = ["location", "time", "value", "grid_elevation_m", "retrieved_at"]
 
 
 def adjust_elevation(
@@ -236,6 +243,127 @@ def fetch_raw_grid_t2m_max(
             last_error = exc
             time.sleep(_retry_pause(exc, attempt))
     raise RuntimeError(f"raw-grid daily fetch failed for ({lat}, {lon}): {last_error}")
+
+
+def missing_ranges(
+    cached_times: pd.DatetimeIndex | pd.Series,
+    start: str | pd.Timestamp,
+    end: str | pd.Timestamp,
+) -> list[tuple[str, str]]:
+    """Contiguous daily gaps inside [start, end] not present in ``cached_times``."""
+    full = pd.date_range(pd.Timestamp(start), pd.Timestamp(end), freq="D")
+    if len(cached_times) == 0:
+        missing = full
+    else:
+        present = pd.DatetimeIndex(pd.to_datetime(cached_times)).normalize().unique()
+        missing = full.difference(present)
+    if len(missing) == 0:
+        return []
+    gaps: list[tuple[str, str]] = []
+    run_start = previous = missing[0]
+    for day in missing[1:]:
+        if day == previous + pd.Timedelta(days=1):
+            previous = day
+            continue
+        gaps.append((run_start.strftime("%Y-%m-%d"), previous.strftime("%Y-%m-%d")))
+        run_start = previous = day
+    gaps.append((run_start.strftime("%Y-%m-%d"), previous.strftime("%Y-%m-%d")))
+    return gaps
+
+
+def _load_raw_grid_cache(path: Path) -> pd.DataFrame:
+    if not path.exists():
+        return pd.DataFrame(columns=RAW_GRID_CACHE_COLUMNS)
+    frame = pd.read_parquet(path)
+    for column in RAW_GRID_CACHE_COLUMNS:
+        if column not in frame.columns:
+            frame[column] = None
+    return frame[RAW_GRID_CACHE_COLUMNS]
+
+
+def _save_raw_grid_cache(frame: pd.DataFrame, path: Path) -> None:
+    """Atomic write (temp file + rename) so an interrupted run keeps a valid cache."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    frame.to_parquet(tmp, index=False)
+    tmp.replace(path)
+
+
+def fetch_raw_grid_cached(
+    fetch: Callable[..., tuple[pd.Series, float | None]],
+    *,
+    cache_path: Path,
+    location: str,
+    lat: float,
+    lon: float,
+    start: str,
+    end: str,
+    timezone: str,
+    pause_seconds: float = HOURLY_PAUSE_SECONDS,
+) -> tuple[pd.Series, float | None]:
+    """Raw-grid daily series served from a persistent cache (resumable).
+
+    Only date ranges missing from ``cache_path`` are fetched, and the cache is
+    rewritten after every successful fetch, so a 429 mid-run loses at most the
+    request in flight — the next run resumes at the remaining gaps.
+    """
+    cache = _load_raw_grid_cache(cache_path)
+    local = cache.loc[cache["location"].eq(location)].copy() if not cache.empty else cache
+    if local.empty:
+        cached = pd.Series(dtype=float)
+        grid_el: float | None = None
+    else:
+        local["time"] = pd.to_datetime(local["time"])
+        cached = pd.Series(
+            pd.to_numeric(local["value"], errors="coerce").to_numpy(),
+            index=local["time"],
+        )
+        cached = cached[~cached.index.duplicated(keep="last")].sort_index()
+        elevs = pd.to_numeric(local["grid_elevation_m"], errors="coerce").dropna()
+        grid_el = float(elevs.iloc[-1]) if not elevs.empty else None
+
+    fetched_frames: list[pd.DataFrame] = []
+    working = local
+    for gap_start, gap_end in missing_ranges(cached.index, start, end):
+        series, fetched_el = fetch(
+            lat, lon, gap_start, gap_end, timezone=timezone, pause_seconds=pause_seconds
+        )
+        if fetched_el is not None:
+            grid_el = fetched_el
+        if series.empty:
+            continue
+        rows = pd.DataFrame(
+            {
+                "location": location,
+                "time": pd.to_datetime(series.index),
+                "value": series.to_numpy(dtype=float),
+                "grid_elevation_m": grid_el,
+                "retrieved_at": utc_now(),
+            }
+        )
+        fetched_frames.append(rows)
+        working = pd.concat([working, rows], ignore_index=True)
+        working = working.drop_duplicates(subset=["location", "time"], keep="last")
+        _save_raw_grid_cache(working[RAW_GRID_CACHE_COLUMNS], cache_path)
+
+    if fetched_frames:
+        added = pd.concat(fetched_frames, ignore_index=True)
+        combined = pd.concat([local, added], ignore_index=True) if not local.empty else added
+        combined = combined.drop_duplicates(subset=["location", "time"], keep="last")
+        combined["time"] = pd.to_datetime(combined["time"])
+        window = combined.loc[
+            combined["time"].between(pd.Timestamp(start), pd.Timestamp(end))
+        ].sort_values("time")
+        out = pd.Series(
+            pd.to_numeric(window["value"], errors="coerce").to_numpy(),
+            index=window["time"],
+        )
+        out = out[~out.index.duplicated(keep="last")]
+        return out, grid_el
+
+    start_ts, end_ts = pd.Timestamp(start), pd.Timestamp(end)
+    window = cached.loc[(cached.index >= start_ts) & (cached.index <= end_ts)]
+    return window.copy(), grid_el
 
 
 def fetch_hourly_t2m(

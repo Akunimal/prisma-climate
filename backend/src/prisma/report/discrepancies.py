@@ -28,6 +28,7 @@ from .bias_decomposition import (
     fetch_dem_elevation,
     fetch_grid_elevation,
     fetch_hourly_t2m,
+    fetch_raw_grid_cached,
     fetch_raw_grid_t2m_max,
     hourly_sampling_correction,
     precip_orography_record,
@@ -156,6 +157,7 @@ def collect_t2m_max_decomposition(
     fetch_hourly: Callable[..., pd.DataFrame] = fetch_hourly_t2m,
     sample_window_days: int = 21,
     pause_seconds: float = 2.0,
+    raw_grid_cache: Path | None = None,
 ) -> pd.DataFrame:
     """Residual ERA5−station t2m_max bias after each sequential adjustment.
 
@@ -166,6 +168,8 @@ def collect_t2m_max_decomposition(
     - ``raw_grid`` — refetched with ``elevation=nan``; source elevation =
       average grid-cell orography.
 
+    When ``raw_grid_cache`` is set, the raw-grid series is served from that
+    persistent file and only missing date ranges are fetched (resumable).
     Network calls are injectable for tests.
     """
     records: list[dict[str, Any]] = []
@@ -185,14 +189,28 @@ def collect_t2m_max_decomposition(
 
         timezone = region.get("timezone", "UTC")
         raw_end = max(pd.Timestamp(ghcn_tmax.index.max()), pd.Timestamp(era5_tmax.index.max()))
-        raw_series, grid_el = fetch_raw_grid(
-            station["lat"],
-            station["lon"],
-            history_start,
-            raw_end.strftime("%Y-%m-%d"),
-            timezone=timezone,
-            pause_seconds=pause_seconds,
-        )
+        raw_end_str = raw_end.strftime("%Y-%m-%d")
+        if raw_grid_cache is not None:
+            raw_series, grid_el = fetch_raw_grid_cached(
+                fetch_raw_grid,
+                cache_path=raw_grid_cache,
+                location=location,
+                lat=station["lat"],
+                lon=station["lon"],
+                start=history_start,
+                end=raw_end_str,
+                timezone=timezone,
+                pause_seconds=pause_seconds,
+            )
+        else:
+            raw_series, grid_el = fetch_raw_grid(
+                station["lat"],
+                station["lon"],
+                history_start,
+                raw_end_str,
+                timezone=timezone,
+                pause_seconds=pause_seconds,
+            )
         dem_el = fetch_dem_elev(station["lat"], station["lon"], timezone=timezone)
         hourly = fetch_hourly(
             station["lat"],
@@ -400,6 +418,12 @@ def render_decomposition_section(
         "to recent hourly ERA5 (sub-hourly max missing from hourly-sampled daily max)",
         "4. **day_convention** — best lag in {−1, 0, +1} days minimizing MAE",
         "",
+        "Limitation of step 3: the sampling correction is estimated once from "
+        "a single recent 21-day window (per row: `sample_window`) and applied "
+        "as a constant to the whole history — it is not re-estimated per "
+        "season, so seasonal variation in sub-hourly peakiness is not "
+        "captured.",
+        "",
         "Open-Meteo applies statistical downscaling to the 90 m DEM elevation "
         "of the requested point by default (docs: parameter `elevation`). Two "
         "tracks are therefore reported per location:",
@@ -484,9 +508,10 @@ def _crosscheck_section(crosscheck: pd.DataFrame | None) -> list[str]:
         "## Station cross-check (GHCN config vs SMN list)",
         "",
         "Configured region stations matched against "
-        "`data/smn_probe/estaciones/estaciones_smn.txt` (by SMN NRO found "
-        "among the 5-digit windows of the GHCN id, rightmost first; fallback "
-        "nearest by coordinates). "
+        "`data/smn_probe/estaciones/estaciones_smn.txt` by SMN NRO, extracted "
+        "deterministically from the GHCN id (readme rules: network M → last "
+        "five characters; network 0 → `000`+WMO or `00`+WMO+`0`); fallback "
+        "nearest by coordinates. "
         "Flag thresholds: |Δlat| or |Δlon| > 0.05°, |Δelev| > 50 m.",
         "",
     ]
@@ -773,7 +798,12 @@ def main(argv: list[str] | None = None) -> int:
                 "as_of": utc_now(),
             }
         print("collecting t2m_max bias decomposition (network)…")
-        t2m_table = collect_t2m_max_decomposition(era5, ghcn, region)
+        t2m_table = collect_t2m_max_decomposition(
+            era5,
+            ghcn,
+            region,
+            raw_grid_cache=root / "data" / "raw" / "openmeteo-era5-rawgrid.parquet",
+        )
         print("collecting precip orography check (network)…")
         precip_table = collect_precip_orography(era5, ghcn, region)
         decomposition_section = render_decomposition_section(

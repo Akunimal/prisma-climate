@@ -518,6 +518,8 @@ def test_render_decomposition_section_lists_residuals() -> None:
     assert "raw_grid" in section
     assert "downscaled" in section
     assert "elevation=nan" in section
+    assert "Limitation of step 3" in section
+    assert "not re-estimated per season" in section
     assert "Orography check — precip" in section
     assert "orographic enhancement" in section
     assert "Station cross-check" in section
