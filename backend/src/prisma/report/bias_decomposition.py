@@ -3,21 +3,30 @@
 Sequential adjustments, each reported with the residual bias that remains:
 
 1. raw          — mean(ERA5 − station)
-2. elevation    — lapse-rate correct ERA5 from grid-cell orography to station
-                  elevation (standard atmosphere, 6.5 °C/km)
+2. elevation    — lapse-rate correct the series from its source elevation to
+                  station elevation (standard atmosphere, 6.5 °C/km)
 3. sampling     — add the sub-hourly peak estimate missing from hourly-sampled
                   daily maxima (parabolic peak through the three hours around
                   the daily maximum of ERA5 hourly t2m)
 4. day_convention — realign one series by the best lag in {−1, 0, +1} days
 
-Grid elevation comes from the Open-Meteo archive response (`elevation`);
-station elevation from configs/regions/*.yaml. Hourly sampling is estimated
-on a recent window only (rate limits) and applied as a constant mean
-correction; the window is recorded in the output.
+Step 2 must use the elevation the series actually represents:
+
+- Open-Meteo's default response applies statistical downscaling to the 90 m
+  DEM elevation at the requested point (``elevation`` field ≈ DEM, not model
+  orography), so the stored connector data is a *downscaled* series.
+- ``elevation=nan`` disables downscaling; the response elevation is then the
+  average grid-cell height and the values are raw ERA5 grid output.
+
+The collector therefore runs both series: ``downscaled`` (DEM as source
+elevation) and ``raw_grid`` (grid-cell orography as source elevation).
+Hourly sampling is estimated on a recent window only (rate limits) and
+applied as a constant mean correction; the window is recorded in the output.
 """
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import pandas as pd
@@ -113,8 +122,53 @@ def bias_after_shift(era5: pd.Series, station: pd.Series, lag: int) -> float | N
     return float((pair["a"] - pair["b"]).mean())
 
 
+def _retry_pause(exc: Exception, attempt: int) -> float:
+    """Pause before the next attempt: 60 s on 429, 30 s on any 5xx.
+
+    Open-Meteo answers heavy archive queries with transient 503s under
+    load; a tight exponential backoff burns every retry in seconds.
+    """
+    code = getattr(getattr(exc, "response", None), "status_code", None)
+    if code == 429:
+        return 60.0
+    if code is not None and 500 <= code < 600:
+        return 30.0
+    return float(2**attempt)
+
+
 def fetch_grid_elevation(lat: float, lon: float, *, timezone: str) -> float | None:
-    """Grid-cell elevation (m) from a one-day Open-Meteo archive request."""
+    """Average ERA5 grid-cell orography (m) with downscaling disabled.
+
+    Open-Meteo's default ``elevation`` field is the 90 m DEM at the requested
+    point (used for statistical downscaling), not the model orography. Passing
+    ``elevation=nan`` disables downscaling and the response ``elevation`` then
+    reports the average grid-cell height.
+    """
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "start_date": "2026-01-01",
+        "end_date": "2026-01-01",
+        "daily": "temperature_2m_max",
+        "timezone": timezone,
+        "models": "era5",
+        "elevation": "nan",
+    }
+    last_error: Exception | None = None
+    for attempt in range(RETRIES):
+        try:
+            response = requests.get(ARCHIVE_URL, params=params, timeout=TIMEOUT)
+            response.raise_for_status()
+            elevation = response.json().get("elevation")
+            return float(elevation) if elevation is not None else None
+        except (requests.RequestException, ValueError, TypeError) as exc:
+            last_error = exc
+            time.sleep(_retry_pause(exc, attempt))
+    raise RuntimeError(f"grid elevation fetch failed for ({lat}, {lon}): {last_error}")
+
+
+def fetch_dem_elevation(lat: float, lon: float, *, timezone: str) -> float | None:
+    """90 m DEM elevation Open-Meteo downscales to (default request)."""
     params = {
         "latitude": lat,
         "longitude": lon,
@@ -125,7 +179,7 @@ def fetch_grid_elevation(lat: float, lon: float, *, timezone: str) -> float | No
         "models": "era5",
     }
     last_error: Exception | None = None
-    for _attempt in range(RETRIES):
+    for attempt in range(RETRIES):
         try:
             response = requests.get(ARCHIVE_URL, params=params, timeout=TIMEOUT)
             response.raise_for_status()
@@ -133,7 +187,55 @@ def fetch_grid_elevation(lat: float, lon: float, *, timezone: str) -> float | No
             return float(elevation) if elevation is not None else None
         except (requests.RequestException, ValueError, TypeError) as exc:
             last_error = exc
-    raise RuntimeError(f"grid elevation fetch failed for ({lat}, {lon}): {last_error}")
+            time.sleep(_retry_pause(exc, attempt))
+    raise RuntimeError(f"DEM elevation fetch failed for ({lat}, {lon}): {last_error}")
+
+
+def fetch_raw_grid_t2m_max(
+    lat: float,
+    lon: float,
+    start: str,
+    end: str,
+    *,
+    timezone: str,
+    pause_seconds: float = HOURLY_PAUSE_SECONDS,
+) -> tuple[pd.Series, float | None]:
+    """Daily t2m_max with Open-Meteo statistical downscaling disabled.
+
+    Returns (series indexed by local dates, average grid-cell elevation m).
+    """
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "start_date": start,
+        "end_date": end,
+        "daily": "temperature_2m_max",
+        "timezone": timezone,
+        "models": "era5",
+        "elevation": "nan",
+    }
+    last_error: Exception | None = None
+    for attempt in range(RETRIES):
+        try:
+            response = requests.get(ARCHIVE_URL, params=params, timeout=TIMEOUT)
+            response.raise_for_status()
+            payload = response.json()
+            daily = payload.get("daily") or {}
+            if "time" not in daily:
+                return pd.Series(dtype=float), None
+            series = pd.Series(
+                pd.to_numeric(pd.Series(daily["temperature_2m_max"]), errors="coerce").to_numpy(),
+                index=pd.to_datetime(daily["time"]),
+            )
+            series = series[~series.index.duplicated(keep="last")].sort_index()
+            elevation = payload.get("elevation")
+            grid_el = float(elevation) if elevation is not None else None
+            time.sleep(pause_seconds)
+            return series, grid_el
+        except (requests.RequestException, ValueError) as exc:
+            last_error = exc
+            time.sleep(_retry_pause(exc, attempt))
+    raise RuntimeError(f"raw-grid daily fetch failed for ({lat}, {lon}): {last_error}")
 
 
 def fetch_hourly_t2m(
@@ -146,8 +248,6 @@ def fetch_hourly_t2m(
     pause_seconds: float = HOURLY_PAUSE_SECONDS,
 ) -> pd.DataFrame:
     """Hourly ERA5 t2m for one point (long frame: time, value)."""
-    import time as _time
-
     params = {
         "latitude": lat,
         "longitude": lon,
@@ -167,11 +267,11 @@ def fetch_hourly_t2m(
                 return pd.DataFrame(columns=["time", "value"])
             value = pd.to_numeric(pd.Series(hourly.get("temperature_2m")), errors="coerce")
             frame = pd.DataFrame({"time": pd.to_datetime(hourly["time"]), "value": value})
-            _time.sleep(pause_seconds)
+            time.sleep(pause_seconds)
             return frame
         except (requests.RequestException, ValueError) as exc:
             last_error = exc
-            _time.sleep(2**attempt)
+            time.sleep(_retry_pause(exc, attempt))
     raise RuntimeError(f"hourly fetch failed for ({lat}, {lon}): {last_error}")
 
 

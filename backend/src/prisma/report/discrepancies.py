@@ -25,11 +25,14 @@ import pandas as pd
 from ..ingest.base import find_repo_root, load_region, utc_now
 from .bias_decomposition import (
     decompose_location,
+    fetch_dem_elevation,
     fetch_grid_elevation,
     fetch_hourly_t2m,
+    fetch_raw_grid_t2m_max,
     hourly_sampling_correction,
     precip_orography_record,
 )
+from .station_crosscheck import render_markdown as crosscheck_markdown
 
 # Labelling thresholds only; they never filter rows out of the comparison.
 TEMP_BIAS_FLAG_C = 3.0
@@ -131,14 +134,22 @@ def collect_t2m_max_decomposition(
     ghcn: pd.DataFrame,
     region: dict[str, Any],
     *,
-    fetch_elevation: Callable[..., float | None] = fetch_grid_elevation,
+    fetch_dem_elev: Callable[..., float | None] = fetch_dem_elevation,
+    fetch_raw_grid: Callable[..., tuple[pd.Series, float | None]] = fetch_raw_grid_t2m_max,
     fetch_hourly: Callable[..., pd.DataFrame] = fetch_hourly_t2m,
     sample_window_days: int = 21,
     pause_seconds: float = 2.0,
 ) -> pd.DataFrame:
     """Residual ERA5−station t2m_max bias after each sequential adjustment.
 
-    Network calls (grid elevation, recent hourly t2m) are injectable for tests.
+    Two parallel tracks per location (Open-Meteo applies statistical
+    downscaling to the 90 m DEM by default; ``elevation=nan`` disables it):
+
+    - ``downscaled`` — the stored connector series; source elevation = DEM.
+    - ``raw_grid`` — refetched with ``elevation=nan``; source elevation =
+      average grid-cell orography.
+
+    Network calls are injectable for tests.
     """
     records: list[dict[str, Any]] = []
     era5_max = pd.to_datetime(era5["time"]).max()
@@ -146,6 +157,7 @@ def collect_t2m_max_decomposition(
     sample_start = (
         pd.Timestamp(sample_end) - pd.Timedelta(days=sample_window_days)
     ).strftime("%Y-%m-%d")
+    history_start = str(region.get("history_start", "1996-01-01"))
 
     for station in region["stations"]:
         location = station["name"]
@@ -154,33 +166,53 @@ def collect_t2m_max_decomposition(
         if era5_tmax.empty or ghcn_tmax.empty:
             continue
 
-        grid_el = fetch_elevation(
+        timezone = region.get("timezone", "UTC")
+        raw_end = max(pd.Timestamp(ghcn_tmax.index.max()), pd.Timestamp(era5_tmax.index.max()))
+        raw_series, grid_el = fetch_raw_grid(
             station["lat"],
             station["lon"],
-            timezone=region.get("timezone", "UTC"),
+            history_start,
+            raw_end.strftime("%Y-%m-%d"),
+            timezone=timezone,
+            pause_seconds=pause_seconds,
         )
+        dem_el = fetch_dem_elev(station["lat"], station["lon"], timezone=timezone)
         hourly = fetch_hourly(
             station["lat"],
             station["lon"],
             sample_start,
             sample_end,
-            timezone=region.get("timezone", "UTC"),
+            timezone=timezone,
             pause_seconds=pause_seconds,
         )
         sampling = hourly_sampling_correction(hourly)
-        record = decompose_location(
-            era5_tmax,
-            ghcn_tmax,
-            grid_elevation_m=grid_el,
-            station_elevation_m=station.get("elevation_m"),
-            sampling_correction_c=sampling,
-        )
-        record["location"] = location
-        record["sample_window"] = f"{sample_start}..{sample_end}"
-        records.append(record)
+        window = f"{sample_start}..{sample_end}"
+
+        tracks = [
+            ("downscaled", era5_tmax, dem_el),
+            ("raw_grid", raw_series, grid_el),
+        ]
+        for series_label, series, source_el in tracks:
+            if series.empty:
+                continue
+            record = decompose_location(
+                series,
+                ghcn_tmax,
+                grid_elevation_m=source_el,
+                station_elevation_m=station.get("elevation_m"),
+                sampling_correction_c=sampling,
+            )
+            record["series"] = series_label
+            record["location"] = location
+            record["source_elevation_m"] = record.pop("grid_elevation_m")
+            record["dem_elevation_m"] = dem_el
+            record["grid_elevation_m"] = grid_el
+            record["sample_window"] = window
+            records.append(record)
         time.sleep(pause_seconds)
 
     columns = [
+        "series",
         "location",
         "n_days",
         "bias_raw",
@@ -188,6 +220,8 @@ def collect_t2m_max_decomposition(
         "bias_after_sampling",
         "bias_after_day_convention",
         "best_day_lag",
+        "source_elevation_m",
+        "dem_elevation_m",
         "grid_elevation_m",
         "station_elevation_m",
         "elevation_diff_m",
@@ -254,6 +288,7 @@ def collect_precip_orography(
 def render_decomposition_section(
     t2m_table: pd.DataFrame,
     precip_table: pd.DataFrame,
+    crosscheck: pd.DataFrame | None = None,
 ) -> str:
     """Markdown section with residual bias after each adjustment step."""
     lines = [
@@ -264,11 +299,21 @@ def render_decomposition_section(
         "the mean(ERA5 − station) after that step only:",
         "",
         "1. **raw** — unadjusted difference",
-        "2. **elevation** — lapse-rate correction (6.5 °C/km) from grid-cell "
-        "orography to station elevation",
+        "2. **elevation** — lapse-rate correction (6.5 °C/km) from the series' "
+        "source elevation to station elevation",
         "3. **sampling** — constant mean correction from a parabolic peak fit "
         "to recent hourly ERA5 (sub-hourly max missing from hourly-sampled daily max)",
         "4. **day_convention** — best lag in {−1, 0, +1} days minimizing MAE",
+        "",
+        "Open-Meteo applies statistical downscaling to the 90 m DEM elevation "
+        "of the requested point by default (docs: parameter `elevation`). Two "
+        "tracks are therefore reported per location:",
+        "",
+        "- **downscaled** — the stored connector series; source elevation = "
+        "the DEM elevation the downscaling targeted (`dem_elevation_m`).",
+        "- **raw_grid** — refetched with `elevation=nan` (downscaling off); "
+        "source elevation = average ERA5 grid-cell orography "
+        "(`grid_elevation_m`).",
         "",
     ]
     if t2m_table.empty:
@@ -280,6 +325,8 @@ def render_decomposition_section(
             "bias_after_elevation",
             "bias_after_sampling",
             "bias_after_day_convention",
+            "source_elevation_m",
+            "dem_elevation_m",
             "grid_elevation_m",
             "station_elevation_m",
             "elevation_diff_m",
@@ -288,17 +335,19 @@ def render_decomposition_section(
         ):
             if column in display.columns:
                 display[column] = pd.to_numeric(display[column], errors="coerce").round(2)
-        lag = pd.to_numeric(display["best_day_lag"], errors="coerce").astype("Int64")
-        display["best_day_lag"] = lag
+        if "best_day_lag" in display.columns:
+            lag = pd.to_numeric(display["best_day_lag"], errors="coerce").astype("Int64")
+            display["best_day_lag"] = lag
         lines.append(_markdown_table(display))
 
     lines += [
         "",
         "## Orography check — precip (Salta, Ushuaia)",
         "",
-        "Total ERA5/GHCN precip ratio with grid-vs-station elevation gap. "
-        "A high ratio with a high grid cell is consistent with orographic "
-        "enhancement; it does not prove it.",
+        "Total ERA5/GHCN precip ratio with grid-vs-station elevation gap "
+        "(grid elevation from an `elevation=nan` request, i.e. real ERA5 "
+        "grid-cell orography). A high ratio with a high grid cell is "
+        "consistent with orographic enhancement; it does not prove it.",
         "",
     ]
     if precip_table.empty:
@@ -313,7 +362,126 @@ def render_decomposition_section(
         ):
             display[column] = pd.to_numeric(display[column], errors="coerce").round(2)
         lines.append(_markdown_table(display))
+
+    lines += _crosscheck_section(crosscheck)
+    lines.append(render_honest_reading(t2m_table, crosscheck))
     return "\n".join(lines)
+
+
+def _crosscheck_section(crosscheck: pd.DataFrame | None) -> list[str]:
+    if crosscheck is None or crosscheck.empty:
+        return [
+            "",
+            "## Station cross-check (GHCN config vs SMN list)",
+            "",
+            "_SMN station list not available; cross-check skipped. Bias below "
+            "is not attributed to ERA5 before this check._",
+        ]
+    if "flags" in crosscheck:
+        flagged = crosscheck.loc[~crosscheck["flags"].eq("")]
+    else:
+        flagged = crosscheck.iloc[0:0]
+    lines = [
+        "",
+        "## Station cross-check (GHCN config vs SMN list)",
+        "",
+        "Configured region stations matched against "
+        "`data/smn_probe/estaciones/estaciones_smn.txt` (by SMN NRO found "
+        "among the 5-digit windows of the GHCN id, rightmost first; fallback "
+        "nearest by coordinates). "
+        "Flag thresholds: |Δlat| or |Δlon| > 0.05°, |Δelev| > 50 m.",
+        "",
+    ]
+    display = crosscheck.copy()
+    for column in display.columns:
+        if column.startswith(("delta_", "smn_lat", "smn_lon", "config_lat", "config_lon")):
+            display[column] = pd.to_numeric(display[column], errors="coerce").round(4)
+        if column in ("smn_elevation_m", "config_elevation_m", "delta_elevation_m"):
+            display[column] = pd.to_numeric(display[column], errors="coerce").round(1)
+    lines.append(_markdown_table(display))
+    lines.append("")
+    if flagged.empty:
+        lines.append(
+            f"All {len(crosscheck)} configured stations matched an SMN entry "
+            "within thresholds — no coordinate/elevation mismatch to flag."
+        )
+    else:
+        lines.append(f"**{len(flagged)} station(s) flagged:**")
+        for row in flagged.itertuples(index=False):
+            lines.append(f"- {row.location}: {row.flags}")
+    return lines
+
+
+def render_honest_reading(
+    t2m_table: pd.DataFrame,
+    crosscheck: pd.DataFrame | None = None,
+) -> str:
+    """Honest reading computed from the decomposition table (never hand-edited)."""
+    lines = [
+        "",
+        "## Honest reading",
+        "",
+        "- An earlier version of this step used Open-Meteo's default "
+        "`elevation` response field as \"grid orography\". That field is the "
+        "90 m DEM elevation used for statistical downscaling, not ERA5 model "
+        "orography, so the previous elevation gap was not an ERA5 orographic "
+        "signal. This report uses `elevation=nan` requests for real "
+        "grid-cell heights.",
+    ]
+    if crosscheck is not None and not crosscheck.empty:
+        if "flags" in crosscheck:
+            flagged = crosscheck.loc[~crosscheck["flags"].eq("")]
+        else:
+            flagged = crosscheck.iloc[0:0]
+        if flagged.empty:
+            lines.append(
+                "- All configured stations match the SMN list within "
+                "0.05° / 50 m, so the residual below is not attributable to a "
+                "misplaced station coordinate in the region config."
+            )
+        else:
+            names = ", ".join(str(loc) for loc in flagged["location"])
+            lines.append(
+                f"- Station metadata mismatches flagged before interpreting "
+                f"the bias: {names}. See the cross-check table above; residual "
+                "bias at those stations may reflect metadata, not ERA5."
+            )
+
+    if (
+        t2m_table.empty
+        or "bias_after_day_convention" not in t2m_table.columns
+        or "series" not in t2m_table.columns
+    ):
+        lines.append("- Decomposition table empty; no residual statement made.")
+        return "\n".join(lines)
+
+    for label in ("downscaled", "raw_grid"):
+        track = t2m_table.loc[t2m_table["series"].eq(label)]
+        if track.empty:
+            continue
+        raw_mean = float(track["bias_raw"].mean())
+        elev_mean = float(track["bias_after_elevation"].mean())
+        final_mean = float(track["bias_after_day_convention"].mean())
+        n = len(track)
+        lines.append(
+            f"- **{label}** (n={n} stations): mean bias raw {raw_mean:+.2f} °C → "
+            f"after elevation {elev_mean:+.2f} °C → after sampling + day "
+            f"convention {final_mean:+.2f} °C."
+        )
+
+    finals = pd.to_numeric(t2m_table["bias_after_day_convention"], errors="coerce")
+    if finals.notna().any() and float(finals.mean()) < -0.5:
+        lines.append(
+            "- The residual cold bias persists on both series after all three "
+            "adjustments. It is reported as an **observed ERA5 bias of these "
+            "grid values at these stations**; no causal claim is made here."
+        )
+    elif finals.notna().any():
+        lines.append(
+            "- After all adjustments the mean residual is within ±0.5 °C; no "
+            "systematic cold bias statement is made."
+        )
+    return "\n".join(lines) + "\n"
 
 
 def render_markdown(
@@ -439,14 +607,34 @@ def main(argv: list[str] | None = None) -> int:
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
+    region = load_region(root / "configs" / "regions" / f"{args.region}.yaml")
+    crosscheck: pd.DataFrame | None = None
+    catalogue_path = root / "data" / "smn_probe" / "estaciones" / "estaciones_smn.txt"
+    if catalogue_path.exists():
+        from .station_crosscheck import crosscheck_region, parse_smn_estaciones
+
+        print("cross-checking configured stations against SMN catalogue…")
+        crosscheck = crosscheck_region(region, parse_smn_estaciones(catalogue_path))
+        stations_dir = root / "results" / "stations"
+        stations_dir.mkdir(parents=True, exist_ok=True)
+        crosscheck.to_csv(stations_dir / "ghcn_vs_smn.csv", index=False)
+        (stations_dir / "ghcn_vs_smn.md").write_text(
+            crosscheck_markdown(
+                crosscheck, generated_at=utc_now(), region_id=region["id"]
+            ),
+            encoding="utf-8",
+        )
+        print(f"{len(crosscheck)} stations, {int(crosscheck['flags'].ne('').sum())} flagged")
+
     decomposition_section = ""
     if not args.skip_decomposition:
-        region = load_region(root / "configs" / "regions" / f"{args.region}.yaml")
         print("collecting t2m_max bias decomposition (network)…")
         t2m_table = collect_t2m_max_decomposition(era5, ghcn, region)
         print("collecting precip orography check (network)…")
         precip_table = collect_precip_orography(era5, ghcn, region)
-        decomposition_section = render_decomposition_section(t2m_table, precip_table)
+        decomposition_section = render_decomposition_section(
+            t2m_table, precip_table, crosscheck
+        )
         if not t2m_table.empty:
             t2m_table.to_csv(args.out_dir / "era5_vs_ghcn_t2m_max_decomposition.csv", index=False)
         if not precip_table.empty:
