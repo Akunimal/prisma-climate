@@ -2,6 +2,7 @@
 data/raw/
 data/processed/
 data/cache/
+data/smn_probe/
 !data/.gitkeep
 *.parquet
 

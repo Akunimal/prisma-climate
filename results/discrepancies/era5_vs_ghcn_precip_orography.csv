@@ -1,0 +1,3 @@
+location,n_days,precip_ratio_era5_over_station,grid_elevation_m,station_elevation_m,elevation_diff_m,note
+Salta Aero,4035,2.3113320000529782,1230.0,1246,-16.0,elevation gap alone does not explain the ratio
+Ushuaia Malvinas Argentinas,7490,1.6425688417854918,27.0,22,5.0,elevation gap alone does not explain the ratio

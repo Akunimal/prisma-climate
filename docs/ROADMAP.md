@@ -10,7 +10,7 @@ Phases with exit gates. A gate that does not pass is documented as a negative re
 | **3 · Subseasonal + alerts** | 2–4 months | 2–6 week horizon with ML, ENSO conditioning, screens 4–5, iOS/Windows | ML model beats the Phase 2 calibration on at least one lead time, or that is documented |
 | **4 · Public good + partners** | 4–6 months | Dataset and models with DOI (Zenodo), preprint or technical report, contact with university / CONICET / INTA | At least one institutional partner interested (requirement for grants) |
 
-## Current status (Phase 0)
+## Current status (Phase 1 in progress)
 
 Done:
 
@@ -19,9 +19,11 @@ Done:
 - Connectors: Open-Meteo (ERA5 + ensemble), GHCN-Daily, NOAA ONI/SAM; QC pass; Parquet storage.
 - Region config for 19 stations across Argentina's climate zones with selection criteria documented.
 - Daily ingest workflow with Hugging Face upload and Release fallback; status heartbeat commit.
-- SMN access re-verified (open-data endpoints reachable); recorded for Phase 1.
+- SMN access re-verified (open-data endpoints reachable); PAD licence read (CC BY 2.5 AR); payloads probed.
+- ERA5 vs GHCN discrepancy report with t2m_max bias decomposition and precip orography check.
+- Verification metrics module + unit tests (`backend/src/prisma/verify/metrics.py`); leaderboard gated until archive ≥ 15 issue dates.
 
-Not started (by design): verification metrics, calibration, API, Flutter app, SMN connector.
+Not started (by design): leaderboard numbers, calibration, API, Flutter app, SMN connector.
 
 ## Phase 1 checklist
 
@@ -29,8 +31,8 @@ Not started (by design): verification metrics, calibration, API, Flutter app, SM
 - [ ] Cross-check configured stations against the SMN station list; replace mismatches.
 - [x] Source-discrepancy report script (ERA5 vs GHCN) → `results/discrepancies/`.
 - [ ] SMN leg of the discrepancy report, once its connector lands.
-- [ ] Verification metrics (CRPS, Brier, reliability) per `EVALUATION_PROTOCOL.md`.
-- [ ] Leaderboard generated into `results/` by script.
+- [x] Verification metrics (CRPS, Brier, reliability) per `EVALUATION_PROTOCOL.md` (code + tests; no numbers published yet).
+- [ ] Leaderboard generated into `results/` by script — blocked until ≥ 15 archived issue dates (protocol amendment 2026-11-11).
 - [ ] 30 consecutive days of unattended daily ingest.
 
 ## Phase 2 checklist
