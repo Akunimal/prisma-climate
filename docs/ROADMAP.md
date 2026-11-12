@@ -23,6 +23,7 @@ Done:
 - SMN connector (`ingest/smn.py`): catalogue → NRO → observaciones match, daily TMAX/TMIN merged into `data/raw/smn-argentina.parquet`; source `status: active`.
 - ERA5 vs GHCN discrepancy report with t2m_max bias decomposition and precip orography check.
 - Verification metrics module + unit tests (`backend/src/prisma/verify/metrics.py`); leaderboard gated until archive ≥ 15 issue dates.
+- Redundant archive cron slots (06:47, 12:17, 18:31 UTC) plus a same-day no-op test; schedule itself still UNPROVEN (no `event=schedule` run as of 2026-11-12 — that day was archived by a manual `workflow_dispatch` rescue).
 
 Not started (by design): leaderboard numbers, calibration, API, Flutter app.
 

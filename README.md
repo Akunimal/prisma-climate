@@ -14,7 +14,7 @@ Early-stage independent research. Be precise about what exists today:
 - A quality-control pass (physical limits, spikes, duplicate rows) and a source registry with licenses in [`configs/sources.yaml`](configs/sources.yaml).
 - Notebook 01 generating real figures for 19 stations across Argentina's climate zones.
 - A source-discrepancy report (ERA5 vs GHCN-Daily per station and day, with bias/correlation flags) written to `results/discrepancies/` by script.
-- A daily GitHub Actions workflow that archives the ensemble forecast (past forecasts are not retrievable; every missed day is lost verification data).
+- A GitHub Actions workflow that archives the ensemble forecast on a daily schedule (past forecasts are not retrievable; every missed day is lost verification data). The archive mechanism is proven; the schedule trigger is not yet — see [Daily forecast archive](#daily-forecast-archive).
 
 **Does not exist yet:** forecast verification metrics, calibration, the API, the Flutter app, and SMN precipitation (no field in the open-data payloads; see [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)). Nothing in `results/` was produced by anything other than a script in this repository.
 
@@ -59,12 +59,14 @@ Every source is registered in [`configs/sources.yaml`](configs/sources.yaml) and
 
 ## Daily forecast archive
 
-The workflow [`.github/workflows/ingest.yml`](.github/workflows/ingest.yml) runs every day at **06:47 UTC** on `ubuntu-latest`, fetches the Open-Meteo ensemble for all configured locations with its `issue_time`, and stores the Parquet outside git:
+The workflow [`.github/workflows/ingest.yml`](.github/workflows/ingest.yml) is scheduled for **06:47, 12:17 and 18:31 UTC** on `ubuntu-latest`, fetches the Open-Meteo ensemble for all configured locations with its `issue_time`, and stores the Parquet outside git:
 
 1. **Primary — Hugging Face dataset [`Akunimal/prisma-climate`](https://huggingface.co/datasets/Akunimal/prisma-climate):** one file per issue date at `forecasts/<issue_date>/openmeteo-ensemble_<issue_date>.parquet` (secret `HF_TOKEN`, variable `HF_DATASET_REPO`). The issue date is read from the parquet's `issue_time`, never from the runner clock; an existing target is skipped, so the first archive of an issue date is canonical and frozen.
 2. **Fallback / provenance — GitHub Release `forecast-YYYY-MM-DD`:** used when `HF_TOKEN`/`HF_DATASET_REPO` are unconfigured **or** the Hugging Face upload step fails, so a transient HF error never loses a day. Releases are kept afterwards (for example [`forecast-2026-11-11`](https://github.com/Akunimal/prisma-climate/releases/tag/forecast-2026-11-11)).
 
-Schema, licences, attribution, provenance and the 15-issue-date evaluation gate are documented in [`docs/HF_DATASET_CARD.md`](docs/HF_DATASET_CARD.md), mirrored to the dataset's `README.md`.
+**Schedule status as of 2026-11-12: UNPROVEN.** No `event=schedule` run has ever completed on this repository. GitHub documents scheduled workflows as best-effort (runs may be delayed or dropped under load). The first eligible slot (2026-11-12 06:47 UTC — the workflow landed on the default branch on 2026-11-11, after that day's slot had passed) produced no run, so the 2026-11-12 issue date was archived by a manual `workflow_dispatch` rescue ([run 43183607191](https://github.com/Akunimal/prisma-climate/actions/runs/43183607191)); no Release fallback was used for it. Do not treat the schedule as working until a real `event=schedule` run appears under Actions. The archive path itself is proven: both issue dates to date were uploaded successfully (2026-11-11 via backfill, 2026-11-12 via dispatch), and a later same-day run is a tested no-op that never overwrites the canonical file.
+
+Schema, licences, attribution, provenance and the 15-issue-date evaluation gate are documented in [`docs/HF_DATASET_CARD.md`](docs/HF_DATASET_CARD.md), mirrored to the dataset's `README.md`. The gate counts distinct issue dates regardless of trigger; the manual rescue is recorded in the card and in [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) so it stays visible.
 
 Raw or archived data is never committed; GitHub Actions artifacts are not used as storage. Each run commits only [`results/ingest_status.json`](results/ingest_status.json) — last run, rows per source, failures — so scheduled workflows stay enabled.
 

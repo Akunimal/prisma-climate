@@ -133,6 +133,8 @@ The archive written by [`.github/workflows/ingest.yml`](../.github/workflows/ing
 
 Schema, licences, attribution and the evaluation gate for that dataset are documented in [`docs/HF_DATASET_CARD.md`](HF_DATASET_CARD.md), which is mirrored to the dataset's `README.md`.
 
+**Trigger provenance (as of 2026-11-12):** the schedule is **UNPROVEN** — no `event=schedule` run has ever completed on this repository (GitHub documents scheduled runs as best-effort and subject to delay or drop under load). The first eligible slot (2026-11-12 06:47 UTC; the workflow landed on the default branch on 2026-11-11, after that day's slot had passed) produced no run, so the 2026-11-12 issue date was archived by a manual `workflow_dispatch` rescue ([run 43183607191](https://github.com/Akunimal/prisma-climate/actions/runs/43183607191)). That run uploaded `forecasts/2026-11-12/openmeteo-ensemble_2026-11-12.parquet` (107,951 bytes, sha256 `689a013ffc6f23742a2728b1aefffc0c0733c533513e183ccd6b38209f10d2e5`) at dataset revision `7087bb0fb450c44b4547605857aced67189b4877`; the GitHub Release fallback was **not** used. As of that date the schedule was widened to three daily slots (06:47, 12:17, 18:31 UTC) for redundancy, but it remains unproven until a real `event=schedule` run succeeds. The 15-issue-date evaluation gate counts distinct issue dates regardless of trigger; this manual rescue is recorded here so it stays visible.
+
 ## Day-convention rule
 
 A source may not move to `status: active` while its `day_convention` is `unknown`. Mixing conventions across sources is the classic source of silent bias in cross-source comparisons; the field is stored on every row so analyses can group or filter by it.
