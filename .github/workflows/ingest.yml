@@ -23,7 +23,12 @@ name: Daily forecast archive
 
 on:
   schedule:
+    # Redundant same-day slots: GitHub schedules are best-effort and can be
+    # delayed or dropped under load, so several off-hour attempts reduce the
+    # chance a day is lost. The issue-dated target makes repeats no-ops.
     - cron: "47 6 * * *"
+    - cron: "17 12 * * *"
+    - cron: "31 18 * * *"
   workflow_dispatch:
 
 permissions:

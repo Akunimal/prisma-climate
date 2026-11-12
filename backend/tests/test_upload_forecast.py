@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import types
 from pathlib import Path
 
 import pandas as pd
@@ -117,3 +118,42 @@ def test_main_rejects_a_missing_card(tmp_path: Path, monkeypatch, upload) -> Non
         )
         == 1
     )
+
+
+def test_later_same_day_main_run_is_a_noop(tmp_path: Path, monkeypatch, upload) -> None:
+    """A second same-day run must not clobber the canonical file or mint a new date."""
+    monkeypatch.setenv("HF_TOKEN", "test-token")
+    monkeypatch.setenv("HF_DATASET_REPO", "Akunimal/prisma-climate")
+    _write_parquet(tmp_path / "openmeteo-ensemble_2026-11-11.parquet", ["2026-11-11 16:27:24"])
+
+    class FakeHfApi:
+        present: set[str] = set()
+        uploads: list[str] = []
+
+        def __init__(self, token: str | None = None) -> None:
+            self.token = token
+
+        def create_repo(self, repo: str, repo_type: str | None = None, exist_ok: bool = False):
+            return None
+
+        def file_exists(self, repo: str, target: str, repo_type: str | None = None) -> bool:
+            return target in self.present
+
+        def upload_file(self, path_in_repo: str, **_kwargs) -> None:
+            self.uploads.append(path_in_repo)
+            self.present.add(path_in_repo)
+
+    FakeHfApi.present.clear()
+    FakeHfApi.uploads.clear()
+    fake_hub = types.ModuleType("huggingface_hub")
+    fake_hub.HfApi = FakeHfApi  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "huggingface_hub", fake_hub)
+
+    argv = ["--archive-dir", str(tmp_path), "--issue-date", "2026-11-11"]
+    assert upload.main(argv) == 0
+    assert FakeHfApi.uploads == [TARGET]
+
+    # Later same-day run (e.g. a redundant cron slot): target already exists.
+    assert upload.main(argv) == 0
+    assert FakeHfApi.uploads == [TARGET], "second run must not upload again"
+    assert FakeHfApi.present == {TARGET}, "only one issue-date target may ever exist"
