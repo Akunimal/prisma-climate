@@ -179,36 +179,66 @@ sources:
     verified_on: null
 
   - id: imerg
-    name: "NASA IMERG (GPM precipitation)"
-    day_convention: unknown
+    name: "NASA IMERG Late Run (GPM precipitation, L3 daily)"
+    day_convention: utc
     connector: "imerg.Imerg"
     tier: 2
     status: planned
     variables: [precip]
-    access: "NASA Earthdata login, OPeNDAP or HTTPS granules"
-    endpoint: "https://gpm.nasa.gov/data/directory"
-    coverage: "60N-60S"
-    latency: "hours"
-    update_frequency: "30 minutes (Early run)"
-    license: "NASA open data policy, attribution requested"
+    access: "CMR metadata open over HTTPS; data files require Earthdata Login (free registration); PPS NRT requires email registration"
+    endpoint: "https://data.gesdisc.earthdata.nasa.gov/data/GPM_L3/GPM_3IMERGDL.07/{yyyy}/{mm}/{granule}.nc4"
+    coverage: "global, 0.1 degree (all latitudes except boxes very near the poles, per V07)"
+    latency: "observed 1 day: daily granule for obs day T ingested ~14:30 UTC on T+1 (Late)"
+    update_frequency: "daily"
+    license: "NASA GPM data usage policy: data freely available at all processed levels; citation requested (https://gpm.nasa.gov/data/policy)"
     redistributable: yes
-    verified_on: null
+    verified_on: "2026-11-12"
+    notes: >-
+      Tier 2 verification 2026-11-12, see docs/DATA_SOURCES.md section "Tier 2 verification — 2026-11-12".
+      Product pinned: IMERG Late Run L3 daily 0.1 degree, collection GPM_3IMERGDL version 07 (granule
+      algorithm id V07C observed). Family probed: Early (GPM_3IMERGDE.07, obs day 2026-11-11 ingested
+      2026-11-12T04:31:43Z) and Final (GPM_3IMERGDF.07, latest obs day 2025-09-30, ~13.5 months behind
+      at run time). Empirical latency evidence: open CMR granule metadata (short_name+version query,
+      HTTP 200) shows the latest Late granule covering obs day 2026-11-11 with updated
+      2026-11-12T14:32:02Z. Data-file GET without credentials returns HTTP 302 to
+      urs.earthdata.nasa.gov oauth (access requires Earthdata Login; GES DISC banner quote recorded in
+      the doc section); PPS NRT returns HTTP 401 and the GPM directory documents email registration.
+      GES DISC also notes its HTTPS servers migrate to Earthdata Cloud, access ending no earlier than
+      2026-09-30. day_convention utc from the granule CMR time_start/time_end
+      2026-11-11T00:00:00.000Z-23:59:59.999Z and the -S000000-E235959 filename span. Verification
+      only, no connector written; candidate SECONDARY / spatial-proxy reference pending a future dated
+      protocol amendment.
 
   - id: chirps
-    name: "CHIRPS (UCSB Climate Hazards Center)"
-    day_convention: unknown
+    name: "CHIRPS v2.0 daily (UCSB Climate Hazards Center)"
+    day_convention: utc
     connector: "chirps.Chirps"
     tier: 2
     status: planned
     variables: [precip]
-    access: "HTTPS GeoTIFF / NetCDF"
-    endpoint: "https://www.chc.ucsb.edu/data/chirps"
-    coverage: "50S-50N"
-    latency: "weeks"
-    update_frequency: daily to monthly
-    license: "CC BY 4.0 (UCSB CHC)"
+    access: "HTTPS directory listings, no auth; HTTP 429 rate-limiting observed under probing, future connector must pace requests"
+    endpoint: "https://data.chc.ucsb.edu/products/CHIRPS/v2.0/global_daily/"
+    coverage: "50S-50N, 0.05 degree"
+    latency: "observed: preliminary daily through obs day 2026-11-10 (2 days behind run date); final daily through 2026-09-30 as of 2026-11-12"
+    update_frequency: "daily (preliminary)"
+    license: "Public domain: Pete Peterson waived copyright; CHIRPS data is in the public domain as registered with Creative Commons (https://www.chc.ucsb.edu/data/chirps)"
     redistributable: yes
-    verified_on: null
+    verified_on: "2026-11-12"
+    notes: >-
+      Tier 2 verification 2026-11-12, see docs/DATA_SOURCES.md section "Tier 2 verification — 2026-11-12".
+      Endpoints: final under global_daily/ (tifs/p05/{yyyy}/, netcdf/p05/chirps-v2.0.{yyyy}.days_p05.nc),
+      preliminary under prelim/global_daily/; the old /products/CHIRPS-2.0/ path returns HTTP 404 (moved).
+      Empirical latency: preliminary latest file chirps-v2.0.2026.11.10.tif.gz (obs day 2026-11-10,
+      HTTP 200, 2026-11-12T16:40Z); final latest per-day tif obs day 2026-09-30 (HTTP 200,
+      2026-11-12T16:51Z); final yearly NetCDF Last-Modified 2026-10-15. Access is open but the front
+      end rate-limits (HTTP 429 observed); the CHC FAQ wiki timed out from this environment (finding,
+      not routed around). day_convention utc from README-CHIRPS2-Daily.txt: the date is "a consistent
+      UTC calendar-day label ... approximately 00:00 UTC on D to 00:00 UTC on D+1". That README also
+      states daily CHIRPS is a CFSv2 temporal disaggregation of pentad totals, not an independent daily
+      station product. CHIRPS v2 retires after December 2026; v3 daily is already served under
+      /products/CHIRPS/v3.0/daily/ so any connector must plan the v2 to v3 transition. Verification
+      only, no connector written; candidate SECONDARY / spatial-proxy reference pending a future dated
+      protocol amendment.
 
   - id: noaa-oisst
     name: "NOAA OISST v2.1 sea surface temperature"
