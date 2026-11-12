@@ -1,9 +1,11 @@
 # Precipitation reference options for the Phase 1 hypothesis — open memo
 
-Status: **analysis only, no decision.** Written 2026-11-12. The choice among
-options (a)–(c) below is the user's, and must be recorded in
-`docs/EVALUATION_PROTOCOL.md` **before any skill numbers are seen**. This memo
-does not change **X = 60%** and does not change the 15-issue-date gate.
+Status: **decided 2026-11-12 — option (c) adopted.** Written 2026-11-12 as
+analysis; the analysis below is unchanged. The choice is recorded in the
+`docs/EVALUATION_PROTOCOL.md` amendment "2026-11-12 — Precipitation reference
+decision" (with the §3.8 verification of IMERG and CHIRPS in
+`docs/DATA_SOURCES.md`). This memo does not change **X = 60%** and does not
+change the 15-issue-date gate.
 
 ## The problem
 
