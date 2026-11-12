@@ -1,0 +1,3 @@
+model,rows,differing,differing_pct,median_abs_diff
+ecmwf_ifs025,46512,0,0.0,
+gfs_seamless,28272,25554,90.4,1.8999999999999986

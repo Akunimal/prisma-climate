@@ -1,0 +1,4 @@
+variable,rows,differing,differing_pct,median_abs_diff
+precip,24928,7294,29.3,2.4
+t2m_max,24928,9271,37.2,2.1999999999999993
+t2m_min,24928,8989,36.1,1.4000000000000021
