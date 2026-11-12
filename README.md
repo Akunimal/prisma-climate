@@ -13,10 +13,11 @@ Early-stage independent research. Be precise about what exists today:
 - Ingest of Open-Meteo (ERA5 history + multi-model ensemble forecast), NOAA GHCN-Daily station observations, NOAA ONI/SAM indices, and SMN Argentina daily min/max temperature into normalized Parquet.
 - A quality-control pass (physical limits, spikes, duplicate rows) and a source registry with licenses in [`configs/sources.yaml`](configs/sources.yaml).
 - Notebook 01 generating real figures for 19 stations across Argentina's climate zones.
-- A source-discrepancy report (ERA5 vs GHCN-Daily per station and day, with bias/correlation flags) written to `results/discrepancies/` by script.
+- A source-discrepancy report (ERA5 vs GHCN-Daily per station and day, with bias/correlation flags) written to `results/discrepancies/` by script, plus an SMN leg comparing the gitignored regtemp capture against both sources over overlapping days (same flag scheme; gaps reported, never filled).
 - A GitHub Actions workflow that archives the ensemble forecast on a daily schedule (past forecasts are not retrievable; every missed day is lost verification data). The archive mechanism is proven; the schedule trigger is not yet — see [Daily forecast archive](#daily-forecast-archive).
+- Verification metrics (`backend/src/prisma/verify/metrics.py`) implemented as code and tests; no numbers published until the 15-issue-date gate in [`docs/EVALUATION_PROTOCOL.md`](docs/EVALUATION_PROTOCOL.md).
 
-**Does not exist yet:** forecast verification metrics, calibration, the API, the Flutter app, and SMN precipitation (no field in the open-data payloads; see [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)). Nothing in `results/` was produced by anything other than a script in this repository.
+**Does not exist yet:** calibration, the API, the Flutter app, and SMN precipitation (no field in the open-data payloads; see [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)). Nothing in `results/` was produced by anything other than a script in this repository.
 
 ## Quickstart
 

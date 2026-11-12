@@ -2,7 +2,7 @@
 
 Written before any calibration or training, as required by the project plan. Amendments must be appended with a date; the original thresholds are never silently edited.
 
-Status: **Phase 0 — protocol frozen for Phase 1 verification.** No verification metrics exist yet; nothing in `results/` claims a CRPS, Brier score or reliability number.
+Status: **Phase 0 — protocol frozen for Phase 1 verification.** The verification-metrics module exists as code and tests (`backend/src/prisma/verify/metrics.py`), but no metric number is published yet — nothing in `results/` claims a CRPS, Brier score or reliability number until the 15-issue-date gate opens.
 
 ## 1. Question
 
