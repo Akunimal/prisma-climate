@@ -146,7 +146,16 @@ sources:
       is served). Connector ingests observaciones -> t2m_max/t2m_min and merges each new day into
       data/raw/smn-argentina.parquet. Catalogue reconciliation: 124 physical lines = 2 blank +
       header + units + 118 station rows + 2 name-wrap fragments (ERO, RO); 118 stations parse and
-      118 appear in observaciones.
+      118 appear in observaciones. Precipitation is pending, not guessed: probed 2026-11-11,
+      datohorario carries FECHA HORA TEMP HUM PNM DD FF NOMBRE with units [HOA] [degC] [%] [hPa]
+      [gr] [km/hr] and no precip field at all, observaciones and regtemp carry only FECHA/TMAX/
+      TMIN/NOMBRE, and dato=precipitacion|precipitaciones|precip|lluvia|precipitacion_diaria|
+      precipitacion30d|precip30d|lluvias all return an empty ZIP (zero members), so there is
+      nothing to aggregate to the local calendar day. regtemp was probed and serves
+      registro_temperatura365d_smn.txt (42,953 rows, 365 local days 2025-11-11..2026-11-10, 135
+      station names): a candidate t2m_max/t2m_min backfill over the GHCN staleness gap, recorded
+      but not wired. observaciones ignores fecha and serves only the latest completed day, so the
+      live series accumulates forward with no backfill through that endpoint.
     options: {}
 
   # ---------------------------------------------------------------------------

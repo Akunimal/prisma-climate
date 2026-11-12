@@ -85,7 +85,7 @@ https://ssl.smn.gob.ar/dpd/zipopendata.php?dato=observaciones  # daily min/max t
 https://ssl.smn.gob.ar/dpd/zipopendata.php?dato=tiepre         # current weather snapshot
 ```
 
-Other catalogue parameters (from datos.gob.ar CKAN, not all probed): `datohorario` (hourly T/P/wind/humidity), `regtemp` (365-day temperature), `radsolar`, `pron5d` (5-day forecast). Responses are ZIP payloads containing one fixed-width text file each.
+Other catalogue parameters (from datos.gob.ar CKAN, probed 2026-11-11): `datohorario` (hourly T/wind/humidity/pressure), `regtemp` (365-day temperature), `radsolar`, `pron5d` (5-day forecast), `tiepre` (current weather snapshot). Responses are ZIP payloads containing one fixed-width text file each.
 
 **Catalogue and metadata:** the authoritative dataset list is the datos.gob.ar CKAN package for org `servicio-meteorologico-nacional` (`https://datos.gob.ar/api/3/action/package_search?q=servicio%20meteorologico`). Landing page: `https://www.smn.gob.ar/descarga-de-datos`. Contact: `datosabiertos@smn.gob.ar`.
 
@@ -103,7 +103,20 @@ Other catalogue parameters (from datos.gob.ar CKAN, not all probed): `datohorari
 - `datohorarioYYYYMMDD.txt` carries `FECHA` as DDMMYYYY plus `HORA` in `[HOA]` (Hora Oficial Argentina, UTC−3, no DST since 2009); the probe file for 2026-11-10 contains exactly hours 0–23 of that local date, so a day is the local calendar day.
 - `observacionesYYYYMMDD.txt` is one `TMAX`/`TMIN` row per `FECHA` (local calendar day). The `fecha` query parameter is ignored by the endpoint — requesting `fecha=20261105` still returns the latest completed day — so only the most recent day is served and the connector merges each fetched day into `data/raw/smn-argentina.parquet`.
 
-**What the connector does not claim:** `observaciones` provides `t2m_max`/`t2m_min` only; other SMN variables (`datohorario` hourly fields, `tiepre`, forecasts) are not ingested yet. Live series for the configured stations are built only for stations that resolve by NRO in both catalogue and payload.
+**What the connector does not claim:** `observaciones` provides `t2m_max`/`t2m_min` only; `tiepre` and `pron5d` are text products and are not ingested. Live series for the configured stations are built only for stations that resolve by NRO in both catalogue and payload.
+
+**Precipitation — pending, not available through the open-data API (probed 2026-11-11):** there is no precipitation field to aggregate, so no value was guessed.
+
+| Payload | Fields actually present | Precip? |
+|---|---|---|
+| `datohorarioYYYYMMDD.txt` | `FECHA HORA TEMP HUM PNM DD FF NOMBRE` — units `[HOA] [ºC] [%] [hPa] [gr] [km/hr]` | no column, no units |
+| `observacionesYYYYMMDD.txt` | `FECHA TMAX TMIN NOMBRE` | no |
+| `registro_temperatura365d_smn.txt` (`regtemp`) | `FECHA TMAX TMIN NOMBRE` | no |
+| `tiepre` | free-text current-weather lines | no |
+
+`dato=precipitacion`, `precipitaciones`, `precip`, `lluvia`, `precipitacion_diaria`, `precipitacion30d`, `precip30d` and `lluvias` all return HTTP 200 with an **empty ZIP** (zero members), so there is no precipitation series behind the API either. Until SMN publishes one, daily precipitation in Phase 1 comes from GHCN-Daily `PRCP` (ingested) and from the ensemble forecast's `precip`; SMN precip stays `pending` with this reason rather than being faked or silently omitted.
+
+**Series accumulation and the `regtemp` opportunity:** `observaciones` serves only the latest completed local day and ignores `fecha`, so the SMN series **accumulates forward from the first run — no backfill through this endpoint**. However, `regtemp` was probed on 2026-11-11 and serves `registro_temperatura365d_smn.txt` (42,953 rows, `FECHA TMAX TMIN NOMBRE`, **365 distinct local days from 2025-11-11 to 2026-11-10**, 135 station names). That is a candidate backfill for `t2m_max`/`t2m_min` over the GHCN staleness gap; it is recorded here as observed and **not wired into the connector yet**.
 
 ## Tier 2 / Tier 3 (planned)
 
