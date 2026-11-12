@@ -138,3 +138,26 @@ jobs:
           curl -fsSL "https://huggingface.co/api/datasets/${HF_DATASET_REPO}?full=1" \
             | python3 -c 'import json,sys; d=json.load(sys.stdin); print("revision after write:", d.get("sha")); [print("  ", s.get("rfilename")) for s in d.get("siblings", [])]' \
             | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify the published parquet byte-for-byte
+        run: |
+          CANONICAL_SHA="88c23d04d21d391215bb99277e5b24b926e015367f3c0bb0b62952b9b29dde6c"
+          TARGET="forecasts/2026-11-11/openmeteo-ensemble_2026-11-11.parquet"
+          curl -fsSL -o published.parquet \
+            "https://huggingface.co/datasets/${HF_DATASET_REPO}/resolve/main/${TARGET}"
+          PUBLISHED_SHA=$(sha256sum published.parquet | cut -d' ' -f1)
+          POST_REV=$(curl -fsSL "https://huggingface.co/api/datasets/${HF_DATASET_REPO}" \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin).get("sha") or "")')
+          if [ "$PUBLISHED_SHA" != "$CANONICAL_SHA" ]; then
+            echo "::error::published sha256 ${PUBLISHED_SHA} does not equal the canonical ${CANONICAL_SHA}"
+            echo "- **VERIFY FAILED:** published \`${PUBLISHED_SHA}\` != expected \`${CANONICAL_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          {
+            echo
+            echo "### Post-write verification"
+            echo
+            echo "- re-downloaded sha256: \`${PUBLISHED_SHA}\` (matches canonical)"
+            echo "- post-write dataset revision: \`${POST_REV}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Verified published sha256=${PUBLISHED_SHA} at revision ${POST_REV}"
