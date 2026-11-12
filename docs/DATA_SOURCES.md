@@ -118,6 +118,8 @@ Other catalogue parameters (from datos.gob.ar CKAN, probed 2026-11-11): `datohor
 
 **Series accumulation and the `regtemp` opportunity:** `observaciones` serves only the latest completed local day and ignores `fecha`, so the SMN series **accumulates forward from the first run — no backfill through this endpoint**. However, `regtemp` was probed on 2026-11-11 and serves `registro_temperatura365d_smn.txt` (42,953 rows, `FECHA TMAX TMIN NOMBRE`, **365 distinct local days from 2025-11-11 to 2026-11-10**, 135 station names). That is a candidate backfill for `t2m_max`/`t2m_min` over the GHCN staleness gap; it is recorded here as observed and **not wired into the connector yet**.
 
+**Perishable `regtemp` capture (2026-11-12):** the endpoint serves a **rolling 365-day window** — older days roll off and are lost — so the raw ZIP was fetched and persisted under `data/smn_probe/regtemp/` (gitignored) with `manifest.json` recording `retrieved_at` (2026-11-12T01:41:32Z), the served window (2025-11-11 → 2026-11-10, 365 days, 42,953 rows), sha256, observed fields (`FECHA` as `DDMMYYYY`, `TMAX`, `TMIN`, `NOMBRE`) and the `local_calendar` day-convention evidence (date-only, no hour column). Still **not wired**; capture does not imply ingest.
+
 ## Tier 2 / Tier 3 (planned)
 
 Registered in [`configs/sources.yaml`](../configs/sources.yaml) with `status: planned` and `day_convention: unknown`: INTA, NASA IMERG, CHIRPS, NOAA OISST, NOAA GEFS, ECMWF open data, NOAA ISD, INA, Servicio de Hidrografía Naval, NASA FIRMS, NASA SMAP, GOES-19, CAMMESA, OpenAQ/CAMS. Each needs the §3.8 verification (access method, licence, redistribution) before its connector is written.
