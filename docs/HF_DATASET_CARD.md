@@ -108,8 +108,9 @@ terms:
 Skill metrics and any leaderboard are published only once **15 distinct issue
 dates** are archived. Counting starts at 2026-11-11, so the earliest possible
 15th distinct issue date is **2026-11-25** if every day archives. The
-verification protocol's train/test split (X = 60%) is frozen and is not
-re-thresholded; see `docs/EVALUATION_PROTOCOL.md`.
+hypothesis threshold **X = 60%** — the minimum share of stations in which local
+calibration must reduce CRPS versus the raw ensemble while keeping 90% nominal
+reliability — is frozen and is not re-thresholded; see `docs/EVALUATION_PROTOCOL.md`.
 
 ## Source repository
 
