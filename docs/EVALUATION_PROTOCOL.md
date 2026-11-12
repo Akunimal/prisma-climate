@@ -77,3 +77,14 @@ Appended (original thresholds above unchanged; **X = 60 % remains frozen**):
 1. **No leaderboard or skill numbers** (CRPS, CRPSS, Brier, BSS, reliability, coverage) may be published in `results/` until the daily forecast archive holds **at least 15 distinct issue dates**. Until then only code and unit tests may land; sample-size honesty applies even after day 15.
 2. If a **historical-forecast API** is ever used to build a hindcast (forecasts not issued on that calendar day by our archive), every table, figure and docs mention must label the numbers **`hindcast`** explicitly, with the provider and retrieval date. Operational archive scores and hindcast scores are never mixed in one series without that label.
 3. Climatology and persistence baselines are scored only on days that also have an archived forecast issue; no baseline is scored against reanalysis-only pseudo-forecasts.
+
+### 2026-11-12 — Protocol body restoration after accidental truncation
+
+On 2026-11-12 we verified this file after commit `8ebaba7` accidentally replaced the protocol body (§1–8) with only the Amendments appendix. The body was restored verbatim from `9661420` in `61018d6`.
+
+Byte-level comparison (evidence under `results/protocol_integrity/`):
+
+- `body_restore_9661420_vs_61018d6.diff` and `body_restore_9661420_vs_HEAD.diff` — body of `9661420` vs the restored body: identical except one extra trailing newline before `## Amendments`.
+- `truncation_8ebaba7_vs_restore.diff` — full truncated (`8ebaba7`) vs restored (`61018d6`) file: the whole body is re-added; the Amendments appendix is preserved.
+
+**No threshold, split, percentile or testing rule changed.** X = 60 %, the 400-day splits, the 90th/95th percentiles, the 1000-resample bootstrap and the reporting rules are unchanged.
