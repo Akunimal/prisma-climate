@@ -23,7 +23,7 @@ Done:
 - SMN connector (`ingest/smn.py`): catalogue → NRO → observaciones match, daily TMAX/TMIN merged into `data/raw/smn-argentina.parquet`; source `status: active`.
 - ERA5 vs GHCN discrepancy report with t2m_max bias decomposition and precip orography check; SMN leg added over the regtemp capture (19/19 stations by NRO, local-calendar joins, gaps reported, never filled).
 - Verification metrics module + unit tests (`backend/src/prisma/verify/metrics.py`); leaderboard gated until archive ≥ 15 issue dates.
-- Redundant archive cron slots (06:47, 12:17, 18:31 UTC) plus a same-day no-op test; schedule itself still UNPROVEN (no `event=schedule` run as of 2026-11-12 — that day was archived by a manual `workflow_dispatch` rescue).
+- Redundant archive cron slots (06:47, 12:17, 18:31 UTC) plus a same-day no-op test; first `event=schedule` run 2026-11-12 (run 43249798026, success — 12:17 UTC slot, delayed ~3h20m; data no-op, that day was archived by a manual `workflow_dispatch` rescue).
 
 Not started (by design): leaderboard numbers, calibration, API, Flutter app.
 
@@ -35,7 +35,7 @@ Not started (by design): leaderboard numbers, calibration, API, Flutter app.
 - [x] SMN leg of the discrepancy report (regtemp capture via catalogue NRO; connector not required — the leg reads the gitignored capture only).
 - [x] Verification metrics (CRPS, Brier, reliability) per `EVALUATION_PROTOCOL.md` (code + tests; no numbers published yet).
 - [ ] Leaderboard generated into `results/` by script — blocked until ≥ 15 archived issue dates (protocol amendment 2026-11-11).
-- [ ] 30 consecutive days of unattended daily ingest.
+- [ ] 30 consecutive days of unattended daily ingest. Counted from the first day whose canonical archive is produced by a scheduled run with no human dispatch; 2026-11-11 and 2026-11-12 were archived by manual dispatch and do not count (earliest day 1: 2026-11-13).
 
 ## Phase 2 checklist
 
