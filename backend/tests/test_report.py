@@ -142,7 +142,8 @@ def test_render_markdown_contains_table_and_flags() -> None:
     assert "| location |" in report
     assert "What this does not show" in report
     assert "**x / t2m_max**" in report
-    assert "15-day maturity gate" in report
+    assert "15-issue-date gate" in report
+    assert "diagnostics, not skill metrics" in report
 
 
 REGION = {

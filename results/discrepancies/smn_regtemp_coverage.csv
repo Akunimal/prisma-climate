@@ -1,0 +1,20 @@
+location,smn_nro,regtemp_name,match_status,row_days,expected_days,missing_row_days,t2m_max_values,t2m_min_values,blank_tmax_days,blank_tmin_days,status
+La Quiaca Observatorio,87007,LA QUIACA OBSERVATORIO,resolved,365,365,0,348,364,17,1,gaps
+Salta Aero,87047,SALTA AERO,resolved,365,365,0,365,365,0,0,full
+Tucuman (Teniente Benjamin Matienzo),87121,TUCUMAN AERO,resolved,365,365,0,365,365,0,0,full
+Formosa,87162,FORMOSA AERO,resolved,365,365,0,282,365,83,0,gaps
+Resistencia Aero,87155,RESISTENCIA AERO,resolved,365,365,0,365,365,0,0,full
+Posadas,87178,POSADAS AERO,resolved,365,365,0,365,365,0,0,full
+Mendoza Aero,87418,MENDOZA AERO,resolved,365,365,0,365,363,0,2,gaps
+San Juan,87311,SAN JUAN AERO,resolved,365,365,0,339,365,26,0,gaps
+Malargue,87506,MALARGUE AERO,resolved,365,365,0,365,365,0,0,full
+Cordoba Aero,87344,CORDOBA AERO,resolved,365,365,0,365,365,0,0,full
+Rosario,87480,ROSARIO AERO,resolved,365,365,0,365,365,0,0,full
+Buenos Aires Observatorio,87585,BUENOS AIRES OBSERVATORIO,resolved,365,365,0,365,365,0,0,full
+Santa Rosa Aero,87623,SANTA ROSA AERO,resolved,365,365,0,365,365,0,0,full
+Mar del Plata Aero,87692,MAR DEL PLATA AERO,resolved,365,365,0,365,365,0,0,full
+Bahia Blanca Aero,87750,BAHIA BLANCA AERO,resolved,365,365,0,365,365,0,0,full
+Comodoro Rivadavia,87860,COMODORO RIVADAVIA AERO,resolved,365,365,0,364,364,1,1,gaps
+San Carlos de Bariloche,87765,BARILOCHE AERO,resolved,365,365,0,365,365,0,0,full
+Trelew Aero,87828,TRELEW AERO,resolved,365,365,0,365,365,0,0,full
+Ushuaia Malvinas Argentinas,87938,USHUAIA AERO,resolved,365,365,0,339,359,26,6,gaps

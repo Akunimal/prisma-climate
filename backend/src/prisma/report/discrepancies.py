@@ -33,6 +33,18 @@ from .bias_decomposition import (
     hourly_sampling_correction,
     precip_orography_record,
 )
+from .smn_leg import (
+    build_smn_frame,
+    capture_gap_rows,
+    coverage_table,
+    load_capture_manifest,
+    no_overlap_note,
+    overlap_period,
+    parse_catalogue_nro_names,
+    parse_regtemp,
+    render_smn_section,
+    resolve_region_stations,
+)
 from .station_crosscheck import render_markdown as crosscheck_markdown
 
 # Labelling thresholds only; they never filter rows out of the comparison.
@@ -648,6 +660,7 @@ def render_markdown(
     period_end: pd.Timestamp,
     generated_at: pd.Timestamp,
     decomposition_section: str = "",
+    smn_section: str = "",
 ) -> str:
     locations = table["location"].nunique()
     total_days = int(table["n_days"].sum())
@@ -696,6 +709,7 @@ def render_markdown(
             lines.append(f"- **{row.location} / {row.variable}**: {row.flags}")
 
     lines += decomposition_section.splitlines(keepends=False) if decomposition_section else []
+    lines += smn_section.splitlines(keepends=False) if smn_section else []
 
     lines += [
         "",
@@ -703,10 +717,13 @@ def render_markdown(
         "",
         "- No forecast is involved here: this compares two observational/reanalysis sources, "
         "not a prediction against what happened (that is verification, Phase 1).",
-        "- SMN Argentina is not included yet; it joins this report once its connector lands.",
+        "- The SMN leg (when present) compares the gitignored regtemp capture only; the "
+        "connector's live `smn-argentina.parquet` series is not merged into this report. "
+        "Missing capture days are reported as gaps, never filled.",
+        "- Discrepancy bias/correlation flags are diagnostics, not skill metrics: no "
+        "CRPS, Brier, reliability or leaderboard number is published before the "
+        "15-issue-date gate in `docs/EVALUATION_PROTOCOL.md`.",
         "- A flag is a prompt to investigate, not proof of an error in either source.",
-        "- No verification metric (CRPS, Brier, reliability) is quoted: archived forecasts "
-        "have not yet reached the 15-day maturity gate in `docs/EVALUATION_PROTOCOL.md`.",
         "",
     ]
     return "\n".join(lines)
@@ -737,6 +754,12 @@ def main(argv: list[str] | None = None) -> int:
         "--region",
         default="argentina",
         help="region config stem used for elevations in the decomposition",
+    )
+    parser.add_argument(
+        "--regtemp",
+        type=Path,
+        default=root / "data" / "smn_probe" / "regtemp" / "registro_temperatura365d_smn.txt",
+        help="gitignored regtemp capture feeding the SMN leg (skipped when absent)",
     )
     parser.add_argument(
         "--skip-decomposition",
@@ -780,6 +803,89 @@ def main(argv: list[str] | None = None) -> int:
             encoding="utf-8",
         )
         print(f"{len(crosscheck)} stations, {int(crosscheck['flags'].ne('').sum())} flagged")
+
+    smn_section = ""
+    if args.regtemp.is_file():
+        print("building SMN regtemp leg…")
+        regtemp = parse_regtemp(args.regtemp)
+        provenance = load_capture_manifest(args.regtemp.with_name("manifest.json"))
+        regtemp_names = set(regtemp["regtemp_name"])
+        catalogue_path = root / "data" / "smn_probe" / "estaciones" / "estaciones_smn.txt"
+        if catalogue_path.exists():
+            catalogue_by_nro = parse_catalogue_nro_names(catalogue_path)
+        else:
+            catalogue_by_nro = {}
+        resolution = resolve_region_stations(region, catalogue_by_nro, regtemp_names)
+        smn_frame = build_smn_frame(regtemp, resolution)
+        coverage = coverage_table(regtemp, resolution)
+        gaps = capture_gap_rows(regtemp)
+
+        smn_vs_era5 = None
+        era5_overlap = None
+        era5_no_overlap = None
+        if not smn_frame.empty:
+            era5_overlap = overlap_period(smn_frame, era5)
+            if era5_overlap is not None:
+                smn_vs_era5 = compare(smn_frame, era5, source_a="smn", source_b="era5")
+            else:
+                era5_no_overlap = no_overlap_note(smn_frame, era5, other_label="ERA5")
+        smn_vs_ghcn = None
+        ghcn_no_overlap = None
+        if not smn_frame.empty:
+            if overlap_period(smn_frame, ghcn) is None:
+                ghcn_no_overlap = no_overlap_note(smn_frame, ghcn, other_label="GHCN-Daily")
+                smn_vs_ghcn = None
+            else:
+                smn_vs_ghcn = compare(smn_frame, ghcn, source_a="smn", source_b="ghcn")
+
+        smn_section = render_smn_section(
+            smn_vs_era5=smn_vs_era5,
+            smn_vs_ghcn=smn_vs_ghcn,
+            era5_no_overlap=era5_no_overlap,
+            ghcn_no_overlap=ghcn_no_overlap,
+            provenance=provenance,
+            resolution=resolution,
+            coverage=coverage,
+            capture_gaps=gaps,
+            regtemp_path=args.regtemp,
+            era5_overlap=era5_overlap,
+        )
+        if smn_vs_era5 is not None and not smn_vs_era5.empty:
+            smn_vs_era5.to_csv(args.out_dir / "smn_vs_era5.csv", index=False)
+        if smn_vs_ghcn is not None and not smn_vs_ghcn.empty:
+            smn_vs_ghcn.to_csv(args.out_dir / "smn_vs_ghcn.csv", index=False)
+        coverage.to_csv(args.out_dir / "smn_regtemp_coverage.csv", index=False)
+        resolved_n = int(resolution["match_status"].str.startswith("resolved").sum())
+        era5_groups = 0 if smn_vs_era5 is None else len(smn_vs_era5)
+        if ghcn_no_overlap:
+            ghcn_groups = "no ghcn overlap"
+        else:
+            ghcn_groups = (
+                "0 smn-vs-ghcn groups"
+                if smn_vs_ghcn is None
+                else f"{len(smn_vs_ghcn)} smn-vs-ghcn groups"
+            )
+        print(
+            f"SMN leg: {resolved_n}/{len(resolution)} stations resolved, "
+            f"{era5_groups} smn-vs-era5 groups, {ghcn_groups}"
+        )
+    else:
+        print(f"regtemp capture not found at {args.regtemp}; SMN leg skipped")
+        try:
+            regtemp_display = args.regtemp.resolve().relative_to(root).as_posix()
+        except ValueError:
+            regtemp_display = args.regtemp.as_posix()
+        smn_section = "\n".join(
+            [
+                "",
+                "## SMN leg — regtemp capture vs ERA5 and GHCN-Daily",
+                "",
+                f"_Skipped: regtemp capture not present at `{regtemp_display}` "
+                "(gitignored; see `docs/DATA_SOURCES.md` for the capture provenance). "
+                "Nothing is substituted for the missing capture._",
+                "",
+            ]
+        )
 
     decomposition_section = ""
     if not args.skip_decomposition:
@@ -826,6 +932,7 @@ def main(argv: list[str] | None = None) -> int:
             period_end=period_end,
             generated_at=utc_now(),
             decomposition_section=decomposition_section,
+            smn_section=smn_section,
         ),
         encoding="utf-8",
     )
