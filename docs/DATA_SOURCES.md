@@ -122,6 +122,15 @@ Other catalogue parameters (from datos.gob.ar CKAN, probed 2026-11-11): `datohor
 
 Registered in [`configs/sources.yaml`](../configs/sources.yaml) with `status: planned` and `day_convention: unknown`: INTA, NASA IMERG, CHIRPS, NOAA OISST, NOAA GEFS, ECMWF open data, NOAA ISD, INA, Servicio de Hidrografía Naval, NASA FIRMS, NASA SMAP, GOES-19, CAMMESA, OpenAQ/CAMS. Each needs the §3.8 verification (access method, licence, redistribution) before its connector is written.
 
+## Where the daily forecast archive lives
+
+The archive written by [`.github/workflows/ingest.yml`](../.github/workflows/ingest.yml) is stored **outside git**, in two places:
+
+- **Primary store — Hugging Face dataset [`Akunimal/prisma-climate`](https://huggingface.co/datasets/Akunimal/prisma-climate):** one file per issue date at `forecasts/<issue_date>/openmeteo-ensemble_<issue_date>.parquet`. Verified present on 2026-11-11 via the HF API (siblings list and repository sha change after upload). The issue date is read from the parquet's `issue_time` column, never from the runner clock, and an existing target path is skipped: the **first archive of an issue date is canonical and frozen**.
+- **Fallback / provenance — GitHub Release `forecast-YYYY-MM-DD`:** used when `HF_TOKEN`/`HF_DATASET_REPO` are unconfigured **or** the Hugging Face upload step fails, so a transient Hugging Face error never loses a day. Releases are kept afterwards as provenance (for example [`forecast-2026-11-11`](https://github.com/Akunimal/prisma-climate/releases/tag/forecast-2026-11-11), whose asset is the canonical 2026-11-11 archive).
+
+Schema, licences, attribution and the evaluation gate for that dataset are documented in [`docs/HF_DATASET_CARD.md`](HF_DATASET_CARD.md), which is mirrored to the dataset's `README.md`.
+
 ## Day-convention rule
 
 A source may not move to `status: active` while its `day_convention` is `unknown`. Mixing conventions across sources is the classic source of silent bias in cross-source comparisons; the field is stored on every row so analyses can group or filter by it.

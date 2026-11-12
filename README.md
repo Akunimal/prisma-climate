@@ -10,13 +10,13 @@ Early-stage independent research. Be precise about what exists today:
 
 **Works today (Phase 0):**
 
-- Ingest of Open-Meteo (ERA5 history + multi-model ensemble forecast), NOAA GHCN-Daily station observations, and NOAA ONI/SAM indices into normalized Parquet.
+- Ingest of Open-Meteo (ERA5 history + multi-model ensemble forecast), NOAA GHCN-Daily station observations, NOAA ONI/SAM indices, and SMN Argentina daily min/max temperature into normalized Parquet.
 - A quality-control pass (physical limits, spikes, duplicate rows) and a source registry with licenses in [`configs/sources.yaml`](configs/sources.yaml).
 - Notebook 01 generating real figures for 19 stations across Argentina's climate zones.
 - A source-discrepancy report (ERA5 vs GHCN-Daily per station and day, with bias/correlation flags) written to `results/discrepancies/` by script.
 - A daily GitHub Actions workflow that archives the ensemble forecast (past forecasts are not retrievable; every missed day is lost verification data).
 
-**Does not exist yet:** forecast verification metrics, calibration, the API, the Flutter app, and the SMN Argentina connector (its open-data endpoints are reachable but unparsed; see [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)). Nothing in `results/` was produced by anything other than a script in this repository.
+**Does not exist yet:** forecast verification metrics, calibration, the API, the Flutter app, and SMN precipitation (no field in the open-data payloads; see [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)). Nothing in `results/` was produced by anything other than a script in this repository.
 
 ## Quickstart
 
@@ -55,14 +55,16 @@ Every source is registered in [`configs/sources.yaml`](configs/sources.yaml) and
 | Open-Meteo (ERA5 + ensemble) | CC BY 4.0 (free tier non-commercial); ERA5 under Copernicus licence | Derived only | active |
 | NOAA GHCN-Daily | Public domain (NOAA/NCEI) | Yes | active |
 | NOAA ONI / SAM indices | Public domain (NOAA/NWS) | Yes | active |
-| SMN Argentina | CC BY 2.5 AR (site content; terms PDF to record) | Unknown | planned (endpoints verified, connector not written) |
+| SMN Argentina | CC BY 2.5 AR (PAD_legales.pdf, Infoleg disp25.pdf) | Yes | active |
 
 ## Daily forecast archive
 
-The workflow [`.github/workflows/ingest.yml`](.github/workflows/ingest.yml) runs every day on `ubuntu-latest`, fetches the Open-Meteo ensemble for all configured locations with its `issue_time`, and stores the Parquet outside git:
+The workflow [`.github/workflows/ingest.yml`](.github/workflows/ingest.yml) runs every day at **06:47 UTC** on `ubuntu-latest`, fetches the Open-Meteo ensemble for all configured locations with its `issue_time`, and stores the Parquet outside git:
 
-1. **Primary:** a public Hugging Face Dataset (secret `HF_TOKEN`, variable `HF_DATASET_REPO`).
-2. **Fallback while not configured:** a GitHub Release asset named `forecast-YYYY-MM-DD`.
+1. **Primary — Hugging Face dataset [`Akunimal/prisma-climate`](https://huggingface.co/datasets/Akunimal/prisma-climate):** one file per issue date at `forecasts/<issue_date>/openmeteo-ensemble_<issue_date>.parquet` (secret `HF_TOKEN`, variable `HF_DATASET_REPO`). The issue date is read from the parquet's `issue_time`, never from the runner clock; an existing target is skipped, so the first archive of an issue date is canonical and frozen.
+2. **Fallback / provenance — GitHub Release `forecast-YYYY-MM-DD`:** used when `HF_TOKEN`/`HF_DATASET_REPO` are unconfigured **or** the Hugging Face upload step fails, so a transient HF error never loses a day. Releases are kept afterwards (for example [`forecast-2026-11-11`](https://github.com/Akunimal/prisma-climate/releases/tag/forecast-2026-11-11)).
+
+Schema, licences, attribution, provenance and the 15-issue-date evaluation gate are documented in [`docs/HF_DATASET_CARD.md`](docs/HF_DATASET_CARD.md), mirrored to the dataset's `README.md`.
 
 Raw or archived data is never committed; GitHub Actions artifacts are not used as storage. Each run commits only [`results/ingest_status.json`](results/ingest_status.json) — last run, rows per source, failures — so scheduled workflows stay enabled.
 
