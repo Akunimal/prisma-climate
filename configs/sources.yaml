@@ -152,10 +152,11 @@ sources:
       TMIN/NOMBRE, and dato=precipitacion|precipitaciones|precip|lluvia|precipitacion_diaria|
       precipitacion30d|precip30d|lluvias all return an empty ZIP (zero members), so there is
       nothing to aggregate to the local calendar day. regtemp was probed and serves
-      registro_temperatura365d_smn.txt (42,953 rows, 365 local days 2025-11-11..2026-11-10, 135
-      station names): a candidate t2m_max/t2m_min backfill over the GHCN staleness gap, recorded
-      but not wired. observaciones ignores fecha and serves only the latest completed day, so the
-      live series accumulates forward with no backfill through that endpoint.
+      registro_temperatura365d_smn.txt (42,953 rows, 365 local days 2025-11-11..2026-11-10, 118
+      distinct station names under fixed-column parse; a whitespace split invents ~135 tokens from
+      blank TMAX/TMIN rows): a candidate t2m_max/t2m_min backfill over the GHCN staleness gap,
+      recorded but not wired. observaciones ignores fecha and serves only the latest completed day,
+      so the live series accumulates forward with no backfill through that endpoint.
     options: {}
 
   # ---------------------------------------------------------------------------
