@@ -1,0 +1,140 @@
+# One-shot reconciliation for the Hugging Face dataset.
+#
+# Publishes the canonical 2026-11-11 archive (the ORIGINAL Release asset) and
+# the generated dataset card to Akunimal/prisma-climate. The write token never
+# leaves GitHub Actions: every write uses secrets.HF_TOKEN plus
+# vars.HF_DATASET_REPO, and the token is never printed or written to a log.
+#
+# Idempotent: when the target already holds the canonical sha256 the parquet is
+# skipped, so re-running this workflow is a no-op for the data. A file at the
+# same path with a different sha256 is replaced once, and the revision that held
+# it is recorded in the dataset card; Hugging Face keeps git history, so the
+# superseded blob stays readable.
+#
+# This workflow is workflow_dispatch only: never scheduled, never triggered by
+# a push. Runners: standard ubuntu-latest only.
+
+name: Hugging Face backfill
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hf-backfill
+  cancel-in-progress: false
+
+env:
+  HF_TOKEN: ${{ secrets.HF_TOKEN }}
+  HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check that Hugging Face is configured
+        run: |
+          if [ -z "$HF_TOKEN" ] || [ -z "$HF_DATASET_REPO" ]; then
+            echo "::error::HF_TOKEN (secret) or HF_DATASET_REPO (variable) is not configured"
+            exit 1
+          fi
+          echo "Dataset repo configured: ${HF_DATASET_REPO}"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install project
+        run: uv sync --project backend
+
+      - name: Download the canonical archive from its Release
+        run: |
+          mkdir -p data/archive
+          gh release download forecast-2026-11-11 \
+            --repo "${{ github.repository }}" \
+            --pattern "openmeteo-ensemble_2026-11-11.parquet" \
+            --dir data/archive \
+            --clobber
+          echo "88c23d04d21d391215bb99277e5b24b926e015367f3c0bb0b62952b9b29dde6c  data/archive/openmeteo-ensemble_2026-11-11.parquet" \
+            | sha256sum --check --strict -
+          echo "Release asset matches the expected sha256"
+
+      - name: Read the Hugging Face state before any write
+        id: state
+        run: |
+          CANONICAL_SHA="88c23d04d21d391215bb99277e5b24b926e015367f3c0bb0b62952b9b29dde6c"
+          TARGET="forecasts/2026-11-11/openmeteo-ensemble_2026-11-11.parquet"
+          PRE_REV=$(curl -fsSL "https://huggingface.co/api/datasets/${HF_DATASET_REPO}" \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin).get("sha") or "")')
+          CODE=$(curl -sSL -o existing.parquet \
+            -w '%{http_code}' \
+            "https://huggingface.co/datasets/${HF_DATASET_REPO}/resolve/main/${TARGET}") || CODE=000
+          if [ "$CODE" = "200" ]; then
+            EXISTING_SHA=$(sha256sum existing.parquet | cut -d' ' -f1)
+          else
+            EXISTING_SHA=""
+          fi
+
+          if [ "$EXISTING_SHA" = "$CANONICAL_SHA" ]; then
+            ACTION="skip the parquet: the target already holds the canonical sha256"
+            REPLACE=""
+          elif [ -n "$EXISTING_SHA" ]; then
+            ACTION="replace the non-canonical file once (one-time reconciliation)"
+            REPLACE="--replace"
+          else
+            ACTION="upload: no file at the target path"
+            REPLACE=""
+          fi
+
+          {
+            echo "pre_revision=${PRE_REV}"
+            echo "existing_sha=${EXISTING_SHA}"
+            echo "replace=${REPLACE}"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "## Hugging Face backfill"
+            echo
+            echo "- dataset revision before any write: \`${PRE_REV}\`"
+            echo "- sha256 already at the target: \`${EXISTING_SHA:-none}\`"
+            echo "- parquet action: ${ACTION}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Read HF state: pre_revision=${PRE_REV} existing_sha=${EXISTING_SHA:-none}"
+
+      - name: Generate the dataset card
+        env:
+          PRE_REVISION: ${{ steps.state.outputs.pre_revision }}
+          EXISTING_SHA: ${{ steps.state.outputs.existing_sha }}
+        run: |
+          if [ -n "$EXISTING_SHA" ] && [ "$EXISTING_SHA" != "88c23d04d21d391215bb99277e5b24b926e015367f3c0bb0b62952b9b29dde6c" ]; then
+            uv run --project backend python scripts/generate_dataset_card.py \
+              --out docs/HF_DATASET_CARD.md \
+              --superseded-revision "$PRE_REVISION" \
+              --superseded-sha256 "$EXISTING_SHA"
+          else
+            uv run --project backend python scripts/generate_dataset_card.py \
+              --out docs/HF_DATASET_CARD.md
+          fi
+
+      - name: Upload archive and dataset card to Hugging Face
+        env:
+          REPLACE: ${{ steps.state.outputs.replace }}
+        run: |
+          uv run --project backend --with huggingface_hub \
+            python scripts/upload_forecast.py \
+            --archive-dir data/archive \
+            --issue-date 2026-11-11 \
+            $REPLACE \
+            --card docs/HF_DATASET_CARD.md
+
+      - name: Report the Hugging Face state after the write
+        run: |
+          curl -fsSL "https://huggingface.co/api/datasets/${HF_DATASET_REPO}?full=1" \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin); print("revision after write:", d.get("sha")); [print("  ", s.get("rfilename")) for s in d.get("siblings", [])]' \
+            | tee -a "$GITHUB_STEP_SUMMARY"

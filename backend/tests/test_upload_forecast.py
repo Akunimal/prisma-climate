@@ -104,3 +104,16 @@ def test_print_issue_date_round_trip(tmp_path: Path, capsys, upload) -> None:
     path = _write_parquet(tmp_path / "a.parquet", ["2026-11-11 19:46:14"])
     assert upload.main(["--print-issue-date", str(path)]) == 0
     assert capsys.readouterr().out.strip() == "2026-11-11"
+
+
+def test_main_rejects_a_missing_card(tmp_path: Path, monkeypatch, upload) -> None:
+    monkeypatch.setenv("HF_TOKEN", "test-token")
+    monkeypatch.setenv("HF_DATASET_REPO", "Akunimal/prisma-climate")
+    _write_parquet(tmp_path / "openmeteo-ensemble_2026-11-11.parquet", ["2026-11-11 16:27:24"])
+    missing = tmp_path / "no-such-card.md"
+    assert (
+        upload.main(
+            ["--archive-dir", str(tmp_path), "--issue-date", "2026-11-11", "--card", str(missing)]
+        )
+        == 1
+    )

@@ -91,6 +91,12 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="print the issue date derived from PARQUET and exit",
     )
+    parser.add_argument(
+        "--card",
+        metavar="PATH",
+        default=None,
+        help="also publish PATH as the dataset README.md, independently of the parquet skip",
+    )
     args = parser.parse_args(argv)
 
     if args.print_issue_date:
@@ -134,6 +140,11 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
+    card = Path(args.card) if args.card else None
+    if card is not None and not card.is_file():
+        print(f"card not found: {card}", file=sys.stderr)
+        return 1
+
     from huggingface_hub import HfApi  # imported late: only needed when uploading
 
     api = HfApi(token=token)
@@ -158,6 +169,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"uploaded {path.name} -> {repo}/{target}")
     if not planned:
         print(f"nothing to upload for {issue_date}")
+    if card is not None:
+        api.upload_file(
+            path_or_fileobj=str(card),
+            path_in_repo="README.md",
+            repo_id=repo,
+            repo_type="dataset",
+            commit_message="update dataset card",
+        )
+        print(f"uploaded {card.name} -> {repo}/README.md")
     return 0
 
 
