@@ -7,7 +7,10 @@ today UTC) with the issue dates present in the public Hugging Face archive
 scheduled day is visible in the repository heartbeat.
 
 This is **visibility only**: it never fetches, repairs or uploads anything,
-and a missing day does not fail the workflow.
+and a missing day does not fail the workflow. The check reads the archive
+through a Hugging Face repository listing, which can be cache-prone: a
+reported missing day may be a false positive — verify against the dataset
+before acting.
 
     uv run --project backend --with huggingface_hub \
         python scripts/archive_watchdog.py
@@ -84,7 +87,11 @@ def merge_status(
         "as_of": as_of.isoformat(),
         "archived_issue_dates": len(archived),
         "missing_issue_dates": missing,
-        "note": "visibility only; no repair is performed by this check",
+        "note": (
+            "visibility only; no repair is performed by this check; "
+            "the HF listing can be cache-prone, so a missing day may be "
+            "a false positive — verify against the dataset before acting"
+        ),
     }
     return payload
 
