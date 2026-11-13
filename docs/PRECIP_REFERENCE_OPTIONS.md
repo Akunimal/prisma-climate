@@ -1,4 +1,4 @@
-# Precipitation reference options for the Phase 1 hypothesis — open memo
+# Precipitation reference options for the Phase 2 hypothesis — open memo
 
 Status: **decided 2026-11-12 — option (c) adopted.** Written 2026-11-12 as
 analysis; the analysis below is unchanged. The choice is recorded in the
@@ -9,7 +9,7 @@ change the 15-issue-date gate.
 
 ## The problem
 
-The Phase 1 falsifiable hypothesis covers **daily precipitation** as well as
+The Phase 2 falsifiable hypothesis covers **daily precipitation** as well as
 `t2m_max`. Verification needs a fresh observational reference for precip on the
 same days as the archived forecasts. Today:
 
@@ -63,7 +63,7 @@ accumulating forward; precip does not.
 ## Option (c) — document the limitation; precip arm not yet verifiable
 
 - **What it means:** state in `EVALUATION_PROTOCOL.md` and reporting that the
-  precip arm of the Phase 1 hypothesis **cannot be evaluated yet** for
+  precip arm of the Phase 2 hypothesis **cannot be evaluated yet** for
   archived issue dates (no fresh station precip; SMN has none; GHCN stale;
   ERA5 reanalysis is not the verification target). Temperature arm proceeds
   under the same X and gate rules.

@@ -1,0 +1,3 @@
+issue_date,issue_time_utc,hour_utc,band,rows,file
+2026-11-11,2026-11-11 16:27:24,16,12:00-23:59,74784,2026-11-11/openmeteo-ensemble_2026-11-11.parquet
+2026-11-12,2026-11-12 08:31:23,8,00:00-11:59,74784,2026-11-12/openmeteo-ensemble_2026-11-12.parquet
