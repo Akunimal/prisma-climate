@@ -20,12 +20,59 @@ it is retrieved, and a missed day is lost verification data.
 
 ```
 forecasts/<issue_date>/openmeteo-ensemble_<issue_date>.parquet
+observations/smn/<dato>/<date>/<dato>.zip
+observations/smn/<dato>/<date>/manifest.json
 ```
 
-One file per issue date. The issue date is read from the parquet's `issue_time`
-column and never from the runner clock, and an existing path is skipped rather
-than overwritten, so the **first archive of an issue date is canonical and
-frozen**.
+`forecasts/` holds one file per issue date. The issue date is read from the
+parquet's `issue_time` column and never from the runner clock, and an existing
+path is skipped rather than overwritten, so the **first archive of an issue date
+is canonical and frozen**.
+
+`observations/smn/` holds the SMN Argentina open-data payloads exactly as
+served, one ZIP plus its `manifest.json` per capture, for the three payloads
+`regtemp`, `datohorario` and `observaciones`.
+
+## Observation archive (`observations/smn/`)
+
+Captured by a dedicated workflow, `.github/workflows/observations.yml`, which is
+isolated from the forecast archive by construction: its own schedule, its own
+concurrency group (`observations-archive`), `contents: read` and **no push step
+at all**, so it never commits to `main` and an SMN failure fails only that
+workflow. Its run status travels in the `github_run` block of the manifest it
+writes here instead of in a heartbeat commit.
+
+- **Schedule** (observed in the workflow file, `ubuntu-latest`):
+  `datohorario` and `observaciones` daily at **07:17, 11:41 and 19:09 UTC**
+  (three attempts, because both endpoints serve only the latest completed LOCAL
+  day), and `regtemp` weekly on **Mondays at 04:34 UTC**. `workflow_dispatch` is
+  enabled and runs all three payloads.
+- **Date keys come from the payload, never from the runner clock.** The daily
+  key is the payload's `FECHA` (DDMMYYYY, local calendar day); `regtemp` is
+  keyed by the **last `FECHA` of the served window**, because the endpoint
+  serves a rolling 365-day window and the retrieval instant belongs in
+  `manifest.json` (`retrieved_at`), never in the path. An existing target is
+  skipped, so the **first capture of a date is canonical and frozen**, and no
+  observation is ever written under `forecasts/` or touches forecast keying.
+- **Manifest contents:** endpoint, payload member, `retrieved_at`, capture key
+  and where it came from, served window (first/last `FECHA`, distinct days), row
+  count, sha256 of the ZIP as served, field list, `local_calendar` day-convention
+  evidence, SMN attribution and licence, the Hugging Face target, and the
+  GitHub Actions run (workflow, run id, attempt, event, cron that fired, head
+  sha, run URL).
+- **`regtemp` provenance:** the capture the published discrepancy results were
+  computed from was retrieved locally at `2026-11-12T01:41:32Z` with window
+  `2025-11-11` → `2026-11-10` (42,953 rows, sha256
+  `28b166d87e618df127cb2e7bb932e4b6c813b0ab4e489e860cc542bf5902af98`) and lives at
+  `observations/smn/regtemp/2026-11-10/`. Every later snapshot's manifest states
+  whether its window starts later than that capture, so two snapshots are never
+  presented as a day-for-day superset: the endpoint is a rolling window and the
+  earlier days have rolled off.
+- **No backfill:** probed 2026-11-13, the `fecha` query parameter is ignored by
+  these endpoints — a request for `fecha=20261111` returned
+  `datohorario20261112.txt` (`FECHA 12112026`) — so each day is captured on the
+  day it is served and a missed day is lost, exactly like a missed issue date in
+  `forecasts/`.
 
 ## Update frequency
 
@@ -91,9 +138,24 @@ instant instead (plan section 3.3, `docs/PLAN.md`). Two files with different
 
 ## Attribution and licences
 
-Licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The files
-redistribute derived forecast values; the underlying sources keep their own
-terms:
+**Licences are stated per prefix:**
+
+- **`forecasts/`** — covered by the dataset-level **CC BY 4.0** tag on this card
+  (the `license:` field of the frontmatter).
+- **`observations/smn/`** — **CC BY 2.5 AR** with attribution to the Servicio
+  Meteorológico Nacional (SMN Argentina):
+  <https://creativecommons.org/licenses/by/2.5/ar/legalcode>. This is a
+  **different licence from the dataset-level cc-by-4.0 tag**, which covers
+  `forecasts/` and does not cover these observation payloads. Whenever these
+  files are republished, credit the SMN as the source and link the licence. The
+  terms were read on 2026-11-11 from `PAD_legales.pdf` ("El SMN licencia todos
+  sus contenidos bajo la licencia Creative Commons Atribución 2.5 Argentina",
+  section *Propiedad Intelectual*) and from Infoleg disp25.pdf (*Política de
+  Datos del SMN*, §4.A, which classifies web-accessible SMN data as *Datos
+  Abiertos* under that licence); both are recorded in `docs/DATA_SOURCES.md`.
+
+The `forecasts/` files redistribute derived forecast values; the underlying
+sources keep their own terms:
 
 - **Weather data by Open-Meteo.com (CC BY 4.0)** - <https://open-meteo.com/>.
   The Open-Meteo licence page states that API data are offered under

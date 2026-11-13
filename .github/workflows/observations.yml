@@ -1,0 +1,116 @@
+# Observation archive (SMN Argentina) to the Hugging Face dataset.
+#
+# Isolation by construction: this workflow is deliberately separate from
+# ingest.yml (the daily forecast archive) — its own schedule, its own
+# concurrency group, its own failure domain. An SMN failure fails only this
+# workflow, and ingest.yml is never edited here.
+#
+# Why a second archive exists: the daily cron in ingest.yml ingests only
+# --sources openmeteo-ensemble, and the SMN payloads (the regtemp capture and
+# data/raw/smn-argentina.parquet) live on the owner's disk alone. The regtemp
+# endpoint serves a ROLLING 365-day window, so a snapshot that is not taken is
+# lost; these captures keep the SMN temperature reference reproducible without
+# depending on one local copy.
+#
+# Storage policy:
+#   - Raw payloads (the ZIP exactly as served) are NEVER committed to this
+#     repository and are NOT written to Actions artifacts (they expire).
+#   - Primary store: the same public Hugging Face dataset (secrets.HF_TOKEN
+#     plus vars.HF_DATASET_REPO), under observations/smn/<dato>/<date>/ —
+#     never under forecasts/, whose keying and skip-if-exists rule belong to
+#     issue-dated forecasts alone.
+#   - The capture date comes from the payload's FECHA, never from the runner
+#     clock; regtemp is keyed by the LAST FECHA of its rolling 365-day window
+#     (retrieval time lives in manifest.json, never in the path). An existing
+#     target is skipped, so the first capture of a day is canonical.
+#   - This workflow never commits to main: no push step, `contents: read`
+#     only. Its run status travels in the manifest it writes to Hugging Face
+#     (the github_run block), so a skipped (no-op) run leaves only the Actions
+#     run list as its record.
+#
+# Licences: observations/smn/ payloads are CC BY 2.5 AR with attribution to the
+# Servicio Meteorológico Nacional; the dataset-level cc-by-4.0 tag covers
+# forecasts/. See docs/HF_DATASET_CARD.md.
+#
+# Runners: standard ubuntu-latest only.
+
+name: Observation archive (SMN)
+
+on:
+  schedule:
+    # Daily payloads (datohorario + observaciones): three attempts spread over
+    # the UTC day. Both endpoints serve only the latest completed LOCAL day and
+    # ignore the `fecha` query parameter (probe 2026-11-13: a request for
+    # fecha=20261111 returned datohorario20261112.txt, FECHA 12112026), so a day
+    # with no successful run cannot be backfilled and is lost; redundant slots
+    # hedge against the delayed or dropped schedules GitHub documents as
+    # best-effort. 07:17 UTC is already 04:17 in Argentina (UTC-3), i.e. after
+    # the local day has closed; 11:41 and 19:09 UTC are later retries. Minutes
+    # are deliberately off the ingest.yml slots (47 6, 47 9, 17 12, 43 14, 31 18).
+    - cron: "17 7 * * *"
+    - cron: "41 11 * * *"
+    - cron: "9 19 * * *"
+    # Weekly regtemp snapshot of the rolling 365-day window (Mondays 04:34 UTC).
+    - cron: "34 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  # Read-only on purpose: this workflow never commits to main, so there is no
+  # push race with the ingest heartbeat commits.
+  contents: read
+
+concurrency:
+  group: observations-archive
+  cancel-in-progress: false
+
+env:
+  HF_TOKEN: ${{ secrets.HF_TOKEN }}
+  HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO }}
+  # github.event.schedule holds the cron expression that fired; it is not
+  # exported by default, and the manifest records it as run provenance.
+  SCHEDULED_CRON: ${{ github.event.schedule }}
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+
+      - name: Install project
+        run: uv sync --project backend
+
+      - name: Capture the daily payloads (datohorario, observaciones)
+        id: daily
+        run: >
+          uv run --project backend --with huggingface_hub
+          python scripts/capture_observations.py
+          --payloads datohorario observaciones
+          --upload
+
+      - name: Capture the weekly regtemp snapshot
+        id: regtemp
+        # Weekly slot or any manual dispatch. always() keeps this capture
+        # attempted even when the daily step failed, so one failing payload
+        # cannot hide a working one; the job still fails afterwards.
+        if: >-
+          always() && (github.event_name == 'workflow_dispatch' ||
+          github.event.schedule == '34 4 * * 1')
+        run: >
+          uv run --project backend --with huggingface_hub
+          python scripts/capture_observations.py
+          --payloads regtemp
+          --upload
+
+      - name: Report the failure
+        if: always() && (steps.daily.outcome == 'failure' || steps.regtemp.outcome == 'failure')
+        # A failed capture is not retried by anything else: the endpoints do
+        # not serve history, so the day is lost and only visible here.
+        run: |
+          echo "A capture failed; that payload is lost for the day (no backfill)."
+          exit 1

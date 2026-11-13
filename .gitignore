@@ -4,6 +4,7 @@ data/processed/
 data/cache/
 data/smn_probe/
 data/precip_probe/
+data/observations/
 !data/.gitkeep
 *.parquet
 
