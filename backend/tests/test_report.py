@@ -552,8 +552,109 @@ def test_render_honest_reading_freshness_line() -> None:
     assert "GHCN through 2025-08-24" in reading
     assert "refreshed 2026-11-11" in reading
     assert "gap is on the GHCN side" in reading
+    assert "Correction (" not in reading  # legacy call: no reattribution passed
     section = render_decomposition_section(
         t2m, pd.DataFrame(columns=["location"]), None, freshness=freshness
     )
     assert "Data freshness" in section
+
+
+def _reattribution_fixture() -> pd.DataFrame:
+    return pd.DataFrame.from_records(
+        [
+            {
+                "location": "Salta Aero",
+                "variable": "t2m_max",
+                "n_days_ghcn": 5659,
+                "first_day_ghcn": "1996-01-01",
+                "last_day_ghcn": "2025-08-24",
+                "bias_era5_minus_ghcn": -3.4,
+                "corr_ghcn": 0.95,
+                "mean_era5_ghcn": 20.0,
+                "mean_ghcn": 23.4,
+                "flags_ghcn": "|bias| >= 3 C",
+                "n_days_smn": 360,
+                "first_day_smn": "2025-11-11",
+                "last_day_smn": "2026-11-05",
+                "bias_era5_minus_smn": -1.0,
+                "corr_smn": 0.99,
+                "mean_era5_smn": 21.0,
+                "mean_smn": 22.0,
+                "flags_smn": "",
+            },
+            {
+                "location": "Salta Aero",
+                "variable": "t2m_min",
+                "n_days_ghcn": 7853,
+                "first_day_ghcn": "1996-01-01",
+                "last_day_ghcn": "2025-08-24",
+                "bias_era5_minus_ghcn": 1.2,
+                "corr_ghcn": 0.97,
+                "mean_era5_ghcn": 12.0,
+                "mean_ghcn": 10.8,
+                "flags_ghcn": "",
+                "n_days_smn": 360,
+                "first_day_smn": "2025-11-11",
+                "last_day_smn": "2026-11-05",
+                "bias_era5_minus_smn": 0.7,
+                "corr_smn": 0.98,
+                "mean_era5_smn": 12.5,
+                "mean_smn": 11.8,
+                "flags_smn": "",
+            },
+        ]
+    )
+
+
+def test_honest_reading_leg_dependence_correction() -> None:
+    t2m = pd.DataFrame(_t2m_pair_rows())  # finals mean < -0.5 → cold-bias branch
+    reading = render_honest_reading(
+        t2m, None, reattribution=_reattribution_fixture(), shared_days=0
+    )
+    assert "The residual cold bias persists" in reading  # original finding kept
+    assert "**Correction (2026-11-13):**" in reading
+    assert "leg-dependent" in reading
+    assert "1996-01-01 → 2025-08-24" in reading
+    assert "2025-11-11 → 2026-11-05" in reading
+    assert "averages -3.40 °C on t2m_max with 1/1 stations" in reading
+    assert "averages -1.00 °C with 0/1" in reading
+    assert "share **0** station-days" in reading
+    assert "period-confounded" in reading
+    assert "none is asserted here as the cause" in reading
+    assert "bias_matched_calendar.csv" in reading
+
+
+def test_honest_reading_correction_skipped_without_smn_leg() -> None:
+    t2m = pd.DataFrame(_t2m_pair_rows())
+    table = _reattribution_fixture()
+    table["bias_era5_minus_smn"] = float("nan")
+    reading = render_honest_reading(t2m, None, reattribution=table, shared_days=0)
+    assert "Correction (" not in reading
+    # No SMN leg → correction omitted, but original finding still present.
+    assert "The residual cold bias persists" in reading
+
+
+def test_decomposition_section_passes_correction_through() -> None:
+    t2m = pd.DataFrame(_t2m_pair_rows())
+    precip = pd.DataFrame(
+        columns=[
+            "location",
+            "n_days",
+            "precip_ratio_era5_over_station",
+            "grid_elevation_m",
+            "station_elevation_m",
+            "elevation_diff_m",
+            "note",
+        ]
+    )
+    section = render_decomposition_section(
+        t2m,
+        precip,
+        None,
+        reattribution=_reattribution_fixture(),
+        shared_days=0,
+    )
+    assert "**Correction (2026-11-13):**" in section
+    without = render_decomposition_section(t2m, precip, None)
+    assert "Correction (" not in without
 

@@ -51,6 +51,10 @@ from .station_crosscheck import render_markdown as crosscheck_markdown
 TEMP_BIAS_FLAG_C = 3.0
 CORRELATION_FLAG = 0.90
 PRECIP_RATIO_RANGE = (0.70, 1.40)
+# Date the leg-dependence correction entered the honest reading; stable by
+# design (a correction date is when it was written, not when the report is
+# regenerated).
+LEG_CORRECTION_DATE = "2026-11-13"
 
 
 def _ok_rows(frame: pd.DataFrame, value_name: str) -> pd.DataFrame:
@@ -414,6 +418,8 @@ def render_decomposition_section(
     precip_table: pd.DataFrame,
     crosscheck: pd.DataFrame | None = None,
     freshness: dict[str, pd.Timestamp] | None = None,
+    reattribution: pd.DataFrame | None = None,
+    shared_days: int | None = None,
 ) -> str:
     """Markdown section with residual bias after each adjustment step."""
     lines = [
@@ -498,7 +504,15 @@ def render_decomposition_section(
         lines.append(_markdown_table(display))
 
     lines += _crosscheck_section(crosscheck)
-    lines.append(render_honest_reading(t2m_table, crosscheck, freshness=freshness))
+    lines.append(
+        render_honest_reading(
+            t2m_table,
+            crosscheck,
+            freshness=freshness,
+            reattribution=reattribution,
+            shared_days=shared_days,
+        )
+    )
     return "\n".join(lines)
 
 
@@ -567,10 +581,56 @@ def _freshness_line(freshness: dict[str, pd.Timestamp]) -> str:
     )
 
 
+def _leg_dependence_correction(
+    reattribution: pd.DataFrame | None,
+    shared_days: int | None,
+) -> list[str]:
+    """Dated correction: the residual's size is leg-dependent, not one constant.
+
+    Every number is recomputed from the bias-re-attribution table at render
+    time (sign convention ERA5 − station); candidates are listed, none
+    asserted. Returns [] when the table or the SMN leg is unavailable.
+    """
+    if reattribution is None or reattribution.empty or shared_days is None:
+        return []
+    tmax = reattribution.loc[reattribution["variable"].eq("t2m_max")]
+    ghcn_bias = pd.to_numeric(tmax["bias_era5_minus_ghcn"], errors="coerce").dropna()
+    smn_bias = pd.to_numeric(tmax["bias_era5_minus_smn"], errors="coerce").dropna()
+    if ghcn_bias.empty or smn_bias.empty:
+        return []
+    ghcn_period = (
+        f"{min(tmax['first_day_ghcn'].dropna())} → {max(tmax['last_day_ghcn'].dropna())}"
+    )
+    smn_period = (
+        f"{min(tmax['first_day_smn'].dropna())} → {max(tmax['last_day_smn'].dropna())}"
+    )
+    ghcn_flagged = int((ghcn_bias.abs() >= TEMP_BIAS_FLAG_C).sum())
+    smn_flagged = int((smn_bias.abs() >= TEMP_BIAS_FLAG_C).sum())
+    return [
+        f"- **Correction ({LEG_CORRECTION_DATE}):** the size of that residual "
+        "is **leg-dependent**, not a single ERA5 constant. Recomputed with "
+        "sign ERA5 − station over each leg's own paired days "
+        "(`results/discrepancies/bias_reattribution.{csv,md}`): the GHCN leg "
+        f"({ghcn_period}) averages {ghcn_bias.mean():+.2f} °C on t2m_max with "
+        f"{ghcn_flagged}/{len(ghcn_bias)} stations at |bias| >= "
+        f"{TEMP_BIAS_FLAG_C:g} °C, while the SMN leg ({smn_period}) averages "
+        f"{smn_bias.mean():+.2f} °C with {smn_flagged}/{len(smn_bias)}; the "
+        f"two windows share **{shared_days}** station-days, so the contrast "
+        "is period-confounded. Discriminating candidates — different periods "
+        "(climatology/decade), different instruments and aggregation (GHCN "
+        "record vs SMN capture served as-is), paired-day selection, and "
+        "source QC/versioning — are bounded by the controls in "
+        "`bias_per_year_ghcn.csv` (per-year) and `bias_matched_calendar.csv` "
+        "(matched-calendar adjacent); none is asserted here as the cause.",
+    ]
+
+
 def render_honest_reading(
     t2m_table: pd.DataFrame,
     crosscheck: pd.DataFrame | None = None,
     freshness: dict[str, pd.Timestamp] | None = None,
+    reattribution: pd.DataFrame | None = None,
+    shared_days: int | None = None,
 ) -> str:
     """Honest reading computed from the decomposition table (never hand-edited)."""
     lines = [
@@ -643,6 +703,7 @@ def render_honest_reading(
             "adjustments. It is reported as an **observed ERA5 bias of these "
             "grid values at these stations**; no causal claim is made here."
         )
+        lines += _leg_dependence_correction(reattribution, shared_days)
     elif finals.notna().any():
         lines.append(
             "- After all adjustments the mean residual is within ±0.5 °C; no "
@@ -805,6 +866,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{len(crosscheck)} stations, {int(crosscheck['flags'].ne('').sum())} flagged")
 
     smn_section = ""
+    smn_frame = era5.iloc[0:0].copy()
     if args.regtemp.is_file():
         print("building SMN regtemp leg…")
         regtemp = parse_regtemp(args.regtemp)
@@ -912,8 +974,28 @@ def main(argv: list[str] | None = None) -> int:
         )
         print("collecting precip orography check (network)…")
         precip_table = collect_precip_orography(era5, ghcn, region)
+        # Local import: bias_reattribution imports this module's thresholds,
+        # so the two modules cannot be joined at import time.
+        from .bias_reattribution import (
+            build_reattribution,
+            leg_table,
+            overlap_days,
+            pair_era5_station,
+        )
+
+        paired_ghcn = pair_era5_station(era5, ghcn, "ghcn")
+        paired_smn = pair_era5_station(era5, smn_frame, "smn")
+        reattribution = build_reattribution(
+            leg_table(paired_ghcn), leg_table(paired_smn)
+        )
+        shared_days = overlap_days(paired_ghcn, paired_smn)
         decomposition_section = render_decomposition_section(
-            t2m_table, precip_table, crosscheck, freshness=freshness
+            t2m_table,
+            precip_table,
+            crosscheck,
+            freshness=freshness,
+            reattribution=reattribution,
+            shared_days=shared_days,
         )
         if not t2m_table.empty:
             t2m_table.to_csv(args.out_dir / "era5_vs_ghcn_t2m_max_decomposition.csv", index=False)
