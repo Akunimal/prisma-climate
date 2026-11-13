@@ -1,0 +1,583 @@
+location,year,period,source_flag,quality_flag,n
+Bahia Blanca Aero,1996,1996-2003,G,(blank),366
+Bahia Blanca Aero,1997,1996-2003,G,(blank),365
+Bahia Blanca Aero,1998,1996-2003,G,(blank),365
+Bahia Blanca Aero,1999,1996-2003,G,(blank),365
+Bahia Blanca Aero,2000,1996-2003,G,(blank),366
+Bahia Blanca Aero,2001,1996-2003,G,(blank),347
+Bahia Blanca Aero,2002,1996-2003,G,(blank),355
+Bahia Blanca Aero,2003,1996-2003,G,(blank),358
+Bahia Blanca Aero,2004,2004,G,(blank),152
+Bahia Blanca Aero,2004,2004,S,(blank),100
+Bahia Blanca Aero,2005,2005-2025,S,(blank),185
+Bahia Blanca Aero,2006,2005-2025,S,(blank),96
+Bahia Blanca Aero,2007,2005-2025,S,(blank),189
+Bahia Blanca Aero,2008,2005-2025,S,(blank),181
+Bahia Blanca Aero,2009,2005-2025,S,(blank),111
+Bahia Blanca Aero,2010,2005-2025,S,(blank),198
+Bahia Blanca Aero,2011,2005-2025,S,(blank),205
+Bahia Blanca Aero,2012,2005-2025,S,(blank),188
+Bahia Blanca Aero,2013,2005-2025,S,(blank),189
+Bahia Blanca Aero,2014,2005-2025,S,(blank),204
+Bahia Blanca Aero,2015,2005-2025,S,(blank),191
+Bahia Blanca Aero,2016,2005-2025,S,(blank),194
+Bahia Blanca Aero,2017,2005-2025,S,(blank),197
+Bahia Blanca Aero,2018,2005-2025,S,(blank),175
+Bahia Blanca Aero,2019,2005-2025,S,(blank),181
+Bahia Blanca Aero,2020,2005-2025,S,(blank),181
+Bahia Blanca Aero,2021,2005-2025,S,(blank),186
+Bahia Blanca Aero,2022,2005-2025,S,(blank),170
+Bahia Blanca Aero,2023,2005-2025,S,(blank),171
+Bahia Blanca Aero,2024,2005-2025,S,(blank),133
+Bahia Blanca Aero,2025,2005-2025,S,(blank),116
+Buenos Aires Observatorio,1996,1996-2003,G,(blank),366
+Buenos Aires Observatorio,1997,1996-2003,G,(blank),365
+Buenos Aires Observatorio,1998,1996-2003,G,(blank),365
+Buenos Aires Observatorio,1999,1996-2003,G,(blank),365
+Buenos Aires Observatorio,2000,1996-2003,G,(blank),366
+Buenos Aires Observatorio,2001,1996-2003,G,(blank),365
+Buenos Aires Observatorio,2002,1996-2003,G,(blank),365
+Buenos Aires Observatorio,2003,1996-2003,G,(blank),365
+Buenos Aires Observatorio,2004,2004,G,(blank),152
+Buenos Aires Observatorio,2011,2005-2025,S,(blank),61
+Buenos Aires Observatorio,2012,2005-2025,S,(blank),200
+Buenos Aires Observatorio,2013,2005-2025,S,(blank),197
+Buenos Aires Observatorio,2014,2005-2025,S,(blank),189
+Buenos Aires Observatorio,2015,2005-2025,S,(blank),207
+Buenos Aires Observatorio,2016,2005-2025,S,(blank),195
+Buenos Aires Observatorio,2017,2005-2025,S,(blank),201
+Buenos Aires Observatorio,2018,2005-2025,S,(blank),191
+Buenos Aires Observatorio,2019,2005-2025,S,(blank),171
+Buenos Aires Observatorio,2020,2005-2025,S,(blank),180
+Buenos Aires Observatorio,2021,2005-2025,S,(blank),178
+Buenos Aires Observatorio,2022,2005-2025,S,(blank),166
+Buenos Aires Observatorio,2023,2005-2025,S,(blank),173
+Buenos Aires Observatorio,2024,2005-2025,S,(blank),163
+Buenos Aires Observatorio,2025,2005-2025,S,(blank),113
+Comodoro Rivadavia,1996,1996-2003,G,(blank),366
+Comodoro Rivadavia,1997,1996-2003,G,(blank),365
+Comodoro Rivadavia,1998,1996-2003,G,(blank),365
+Comodoro Rivadavia,1999,1996-2003,G,(blank),365
+Comodoro Rivadavia,2000,1996-2003,G,(blank),366
+Comodoro Rivadavia,2001,1996-2003,G,(blank),360
+Comodoro Rivadavia,2001,1996-2003,I,(blank),2
+Comodoro Rivadavia,2002,1996-2003,G,(blank),362
+Comodoro Rivadavia,2002,1996-2003,I,(blank),1
+Comodoro Rivadavia,2003,1996-2003,G,(blank),365
+Comodoro Rivadavia,2004,2004,G,(blank),152
+Comodoro Rivadavia,2004,2004,S,(blank),117
+Comodoro Rivadavia,2005,2005-2025,S,(blank),203
+Comodoro Rivadavia,2006,2005-2025,S,(blank),193
+Comodoro Rivadavia,2007,2005-2025,S,(blank),198
+Comodoro Rivadavia,2008,2005-2025,S,(blank),190
+Comodoro Rivadavia,2009,2005-2025,S,(blank),185
+Comodoro Rivadavia,2010,2005-2025,S,(blank),197
+Comodoro Rivadavia,2011,2005-2025,S,(blank),194
+Comodoro Rivadavia,2012,2005-2025,S,(blank),201
+Comodoro Rivadavia,2013,2005-2025,S,(blank),192
+Comodoro Rivadavia,2014,2005-2025,S,(blank),201
+Comodoro Rivadavia,2015,2005-2025,S,(blank),193
+Comodoro Rivadavia,2016,2005-2025,S,(blank),189
+Comodoro Rivadavia,2017,2005-2025,S,(blank),196
+Comodoro Rivadavia,2018,2005-2025,S,(blank),187
+Comodoro Rivadavia,2019,2005-2025,S,(blank),192
+Comodoro Rivadavia,2020,2005-2025,S,(blank),193
+Comodoro Rivadavia,2021,2005-2025,S,(blank),179
+Comodoro Rivadavia,2022,2005-2025,S,(blank),183
+Comodoro Rivadavia,2023,2005-2025,S,(blank),186
+Comodoro Rivadavia,2024,2005-2025,S,(blank),185
+Comodoro Rivadavia,2025,2005-2025,S,(blank),113
+Cordoba Aero,1996,1996-2003,G,(blank),366
+Cordoba Aero,1997,1996-2003,G,(blank),365
+Cordoba Aero,1998,1996-2003,G,(blank),364
+Cordoba Aero,1998,1996-2003,G,I,1
+Cordoba Aero,1999,1996-2003,G,(blank),365
+Cordoba Aero,2000,1996-2003,G,(blank),366
+Cordoba Aero,2001,1996-2003,G,(blank),365
+Cordoba Aero,2002,1996-2003,G,(blank),363
+Cordoba Aero,2002,1996-2003,I,(blank),2
+Cordoba Aero,2003,1996-2003,G,(blank),365
+Cordoba Aero,2004,2004,G,(blank),151
+Cordoba Aero,2004,2004,S,(blank),96
+Cordoba Aero,2005,2005-2025,S,(blank),149
+Cordoba Aero,2006,2005-2025,S,(blank),162
+Cordoba Aero,2007,2005-2025,S,(blank),174
+Cordoba Aero,2008,2005-2025,S,(blank),168
+Cordoba Aero,2009,2005-2025,S,(blank),157
+Cordoba Aero,2010,2005-2025,S,(blank),169
+Cordoba Aero,2011,2005-2025,S,(blank),167
+Cordoba Aero,2012,2005-2025,S,(blank),156
+Cordoba Aero,2013,2005-2025,S,(blank),152
+Cordoba Aero,2014,2005-2025,S,(blank),170
+Cordoba Aero,2015,2005-2025,S,(blank),188
+Cordoba Aero,2016,2005-2025,S,(blank),161
+Cordoba Aero,2017,2005-2025,S,(blank),172
+Cordoba Aero,2018,2005-2025,S,(blank),161
+Cordoba Aero,2019,2005-2025,S,(blank),157
+Cordoba Aero,2020,2005-2025,S,(blank),171
+Cordoba Aero,2021,2005-2025,S,(blank),173
+Cordoba Aero,2022,2005-2025,S,(blank),170
+Cordoba Aero,2023,2005-2025,S,(blank),183
+Cordoba Aero,2024,2005-2025,S,(blank),166
+Cordoba Aero,2025,2005-2025,S,(blank),108
+Formosa,1996,1996-2003,S,(blank),135
+Formosa,1997,1996-2003,S,(blank),160
+Formosa,1998,1996-2003,S,(blank),157
+Formosa,1999,1996-2003,S,(blank),150
+Formosa,2000,1996-2003,S,(blank),145
+Formosa,2001,1996-2003,S,(blank),173
+Formosa,2002,1996-2003,S,(blank),152
+Formosa,2003,1996-2003,S,(blank),146
+Formosa,2004,2004,S,(blank),165
+Formosa,2005,2005-2025,S,(blank),149
+Formosa,2006,2005-2025,S,(blank),160
+Formosa,2007,2005-2025,S,(blank),164
+Formosa,2008,2005-2025,S,(blank),161
+Formosa,2009,2005-2025,S,(blank),153
+Formosa,2009,2005-2025,S,I,1
+Formosa,2010,2005-2025,S,(blank),164
+Formosa,2011,2005-2025,S,(blank),148
+Formosa,2012,2005-2025,S,(blank),153
+Formosa,2014,2005-2025,S,(blank),155
+Formosa,2015,2005-2025,S,(blank),164
+Formosa,2016,2005-2025,S,(blank),167
+Formosa,2017,2005-2025,S,(blank),159
+Formosa,2018,2005-2025,S,(blank),151
+Formosa,2019,2005-2025,S,(blank),162
+Formosa,2020,2005-2025,S,(blank),147
+Formosa,2021,2005-2025,S,(blank),140
+Formosa,2022,2005-2025,S,(blank),145
+Formosa,2023,2005-2025,S,(blank),126
+Formosa,2024,2005-2025,S,(blank),147
+Formosa,2025,2005-2025,S,(blank),110
+La Quiaca Observatorio,1996,1996-2003,G,(blank),299
+La Quiaca Observatorio,1997,1996-2003,G,(blank),365
+La Quiaca Observatorio,1998,1996-2003,G,(blank),333
+La Quiaca Observatorio,1999,1996-2003,G,(blank),256
+La Quiaca Observatorio,2000,1996-2003,G,(blank),363
+La Quiaca Observatorio,2000,1996-2003,G,G,2
+La Quiaca Observatorio,2002,1996-2003,G,(blank),59
+La Quiaca Observatorio,2003,1996-2003,G,(blank),197
+La Quiaca Observatorio,2003,1996-2003,I,(blank),5
+La Quiaca Observatorio,2004,2004,G,(blank),13
+La Quiaca Observatorio,2005,2005-2025,S,(blank),199
+La Quiaca Observatorio,2006,2005-2025,S,(blank),257
+La Quiaca Observatorio,2007,2005-2025,S,(blank),238
+La Quiaca Observatorio,2008,2005-2025,S,(blank),9
+La Quiaca Observatorio,2009,2005-2025,S,(blank),21
+La Quiaca Observatorio,2010,2005-2025,S,(blank),272
+La Quiaca Observatorio,2011,2005-2025,S,(blank),291
+La Quiaca Observatorio,2012,2005-2025,S,(blank),284
+La Quiaca Observatorio,2013,2005-2025,S,(blank),294
+La Quiaca Observatorio,2014,2005-2025,S,(blank),292
+La Quiaca Observatorio,2015,2005-2025,S,(blank),294
+La Quiaca Observatorio,2016,2005-2025,S,(blank),303
+La Quiaca Observatorio,2017,2005-2025,S,(blank),284
+La Quiaca Observatorio,2018,2005-2025,S,(blank),195
+La Quiaca Observatorio,2019,2005-2025,S,(blank),193
+La Quiaca Observatorio,2020,2005-2025,S,(blank),222
+La Quiaca Observatorio,2021,2005-2025,S,(blank),276
+La Quiaca Observatorio,2022,2005-2025,S,(blank),239
+La Quiaca Observatorio,2023,2005-2025,S,(blank),245
+La Quiaca Observatorio,2024,2005-2025,S,(blank),244
+La Quiaca Observatorio,2025,2005-2025,S,(blank),156
+Malargue,1996,1996-2003,S,(blank),181
+Malargue,1997,1996-2003,S,(blank),179
+Malargue,1998,1996-2003,S,(blank),119
+Malargue,1999,1996-2003,S,(blank),68
+Malargue,2000,1996-2003,S,(blank),195
+Malargue,2001,1996-2003,S,(blank),232
+Malargue,2002,1996-2003,S,(blank),223
+Malargue,2003,1996-2003,S,(blank),220
+Malargue,2004,2004,S,(blank),228
+Malargue,2005,2005-2025,S,(blank),223
+Malargue,2006,2005-2025,S,(blank),204
+Malargue,2007,2005-2025,S,(blank),105
+Malargue,2008,2005-2025,S,(blank),101
+Malargue,2009,2005-2025,S,(blank),128
+Malargue,2010,2005-2025,S,(blank),219
+Malargue,2011,2005-2025,S,(blank),210
+Malargue,2012,2005-2025,S,(blank),200
+Malargue,2013,2005-2025,S,(blank),208
+Malargue,2014,2005-2025,S,(blank),211
+Malargue,2015,2005-2025,S,(blank),209
+Malargue,2016,2005-2025,S,(blank),213
+Malargue,2017,2005-2025,S,(blank),209
+Malargue,2018,2005-2025,S,(blank),194
+Malargue,2019,2005-2025,S,(blank),188
+Malargue,2020,2005-2025,S,(blank),195
+Malargue,2021,2005-2025,S,(blank),172
+Malargue,2022,2005-2025,S,(blank),188
+Malargue,2023,2005-2025,S,(blank),186
+Malargue,2024,2005-2025,S,(blank),196
+Malargue,2025,2005-2025,S,(blank),116
+Mar del Plata Aero,1996,1996-2003,G,(blank),366
+Mar del Plata Aero,1997,1996-2003,G,(blank),365
+Mar del Plata Aero,1998,1996-2003,G,(blank),365
+Mar del Plata Aero,1999,1996-2003,G,(blank),365
+Mar del Plata Aero,2000,1996-2003,G,(blank),366
+Mar del Plata Aero,2001,1996-2003,G,(blank),356
+Mar del Plata Aero,2001,1996-2003,I,(blank),5
+Mar del Plata Aero,2002,1996-2003,G,(blank),365
+Mar del Plata Aero,2003,1996-2003,G,(blank),364
+Mar del Plata Aero,2004,2004,G,(blank),151
+Mar del Plata Aero,2004,2004,S,(blank),115
+Mar del Plata Aero,2005,2005-2025,S,(blank),187
+Mar del Plata Aero,2006,2005-2025,S,(blank),151
+Mar del Plata Aero,2007,2005-2025,S,(blank),198
+Mar del Plata Aero,2008,2005-2025,S,(blank),188
+Mar del Plata Aero,2009,2005-2025,S,(blank),197
+Mar del Plata Aero,2010,2005-2025,S,(blank),187
+Mar del Plata Aero,2011,2005-2025,S,(blank),184
+Mar del Plata Aero,2012,2005-2025,S,(blank),191
+Mar del Plata Aero,2013,2005-2025,S,(blank),190
+Mar del Plata Aero,2014,2005-2025,S,(blank),190
+Mar del Plata Aero,2015,2005-2025,S,(blank),198
+Mar del Plata Aero,2016,2005-2025,S,(blank),181
+Mar del Plata Aero,2017,2005-2025,S,(blank),174
+Mar del Plata Aero,2018,2005-2025,S,(blank),177
+Mar del Plata Aero,2019,2005-2025,S,(blank),184
+Mar del Plata Aero,2020,2005-2025,S,(blank),179
+Mar del Plata Aero,2021,2005-2025,S,(blank),184
+Mar del Plata Aero,2022,2005-2025,S,(blank),189
+Mar del Plata Aero,2023,2005-2025,S,(blank),190
+Mar del Plata Aero,2024,2005-2025,S,(blank),177
+Mar del Plata Aero,2025,2005-2025,S,(blank),125
+Mendoza Aero,1996,1996-2003,G,(blank),366
+Mendoza Aero,1997,1996-2003,G,(blank),365
+Mendoza Aero,1998,1996-2003,G,(blank),365
+Mendoza Aero,1999,1996-2003,G,(blank),365
+Mendoza Aero,2000,1996-2003,G,(blank),366
+Mendoza Aero,2001,1996-2003,G,(blank),364
+Mendoza Aero,2002,1996-2003,G,(blank),365
+Mendoza Aero,2003,1996-2003,G,(blank),365
+Mendoza Aero,2004,2004,G,(blank),152
+Mendoza Aero,2004,2004,S,(blank),104
+Mendoza Aero,2005,2005-2025,S,(blank),76
+Mendoza Aero,2006,2005-2025,S,(blank),187
+Mendoza Aero,2007,2005-2025,S,(blank),180
+Mendoza Aero,2008,2005-2025,S,(blank),168
+Mendoza Aero,2009,2005-2025,S,(blank),181
+Mendoza Aero,2010,2005-2025,S,(blank),30
+Mendoza Aero,2011,2005-2025,S,(blank),185
+Mendoza Aero,2012,2005-2025,S,(blank),176
+Mendoza Aero,2013,2005-2025,S,(blank),185
+Mendoza Aero,2014,2005-2025,S,(blank),181
+Mendoza Aero,2015,2005-2025,S,(blank),196
+Mendoza Aero,2016,2005-2025,S,(blank),180
+Mendoza Aero,2017,2005-2025,S,(blank),187
+Mendoza Aero,2018,2005-2025,S,(blank),172
+Mendoza Aero,2019,2005-2025,S,(blank),180
+Mendoza Aero,2020,2005-2025,S,(blank),177
+Mendoza Aero,2021,2005-2025,S,(blank),174
+Mendoza Aero,2022,2005-2025,S,(blank),171
+Mendoza Aero,2023,2005-2025,S,(blank),178
+Mendoza Aero,2024,2005-2025,S,(blank),169
+Mendoza Aero,2025,2005-2025,S,(blank),85
+Posadas,1996,1996-2003,S,(blank),155
+Posadas,1997,1996-2003,S,(blank),156
+Posadas,1998,1996-2003,S,(blank),149
+Posadas,1999,1996-2003,S,(blank),163
+Posadas,2000,1996-2003,S,(blank),145
+Posadas,2001,1996-2003,S,(blank),162
+Posadas,2002,1996-2003,S,(blank),162
+Posadas,2003,1996-2003,S,(blank),149
+Posadas,2004,2004,S,(blank),155
+Posadas,2005,2005-2025,S,(blank),143
+Posadas,2006,2005-2025,S,(blank),153
+Posadas,2007,2005-2025,S,(blank),127
+Posadas,2008,2005-2025,S,(blank),157
+Posadas,2009,2005-2025,S,(blank),153
+Posadas,2010,2005-2025,S,(blank),176
+Posadas,2011,2005-2025,S,(blank),162
+Posadas,2012,2005-2025,S,(blank),160
+Posadas,2013,2005-2025,S,(blank),138
+Posadas,2014,2005-2025,S,(blank),134
+Posadas,2015,2005-2025,S,(blank),153
+Posadas,2016,2005-2025,S,(blank),149
+Posadas,2017,2005-2025,S,(blank),152
+Posadas,2018,2005-2025,S,(blank),150
+Posadas,2019,2005-2025,S,(blank),155
+Posadas,2020,2005-2025,S,(blank),153
+Posadas,2021,2005-2025,S,(blank),151
+Posadas,2022,2005-2025,S,(blank),168
+Posadas,2023,2005-2025,S,(blank),173
+Posadas,2024,2005-2025,S,(blank),160
+Posadas,2025,2005-2025,S,(blank),125
+Resistencia Aero,1996,1996-2003,G,(blank),366
+Resistencia Aero,1997,1996-2003,G,(blank),365
+Resistencia Aero,1998,1996-2003,G,(blank),365
+Resistencia Aero,1999,1996-2003,G,(blank),365
+Resistencia Aero,2000,1996-2003,G,(blank),366
+Resistencia Aero,2001,1996-2003,G,(blank),362
+Resistencia Aero,2001,1996-2003,I,(blank),1
+Resistencia Aero,2002,1996-2003,G,(blank),363
+Resistencia Aero,2002,1996-2003,I,(blank),1
+Resistencia Aero,2003,1996-2003,G,(blank),294
+Resistencia Aero,2003,1996-2003,I,(blank),31
+Resistencia Aero,2004,2004,G,(blank),152
+Resistencia Aero,2004,2004,S,(blank),97
+Resistencia Aero,2005,2005-2025,S,(blank),155
+Resistencia Aero,2006,2005-2025,S,(blank),175
+Resistencia Aero,2007,2005-2025,S,(blank),164
+Resistencia Aero,2008,2005-2025,S,(blank),167
+Resistencia Aero,2009,2005-2025,S,(blank),158
+Resistencia Aero,2010,2005-2025,S,(blank),171
+Resistencia Aero,2011,2005-2025,S,(blank),173
+Resistencia Aero,2012,2005-2025,S,(blank),165
+Resistencia Aero,2013,2005-2025,S,(blank),163
+Resistencia Aero,2014,2005-2025,S,(blank),162
+Resistencia Aero,2015,2005-2025,S,(blank),170
+Resistencia Aero,2016,2005-2025,S,(blank),163
+Resistencia Aero,2017,2005-2025,S,(blank),162
+Resistencia Aero,2018,2005-2025,S,(blank),147
+Resistencia Aero,2019,2005-2025,S,(blank),149
+Resistencia Aero,2020,2005-2025,S,(blank),150
+Resistencia Aero,2021,2005-2025,S,(blank),144
+Resistencia Aero,2022,2005-2025,S,(blank),156
+Resistencia Aero,2023,2005-2025,S,(blank),168
+Resistencia Aero,2024,2005-2025,S,(blank),154
+Resistencia Aero,2025,2005-2025,S,(blank),104
+Rosario,1996,1996-2003,S,(blank),155
+Rosario,1997,1996-2003,S,(blank),174
+Rosario,1998,1996-2003,S,(blank),171
+Rosario,1999,1996-2003,S,(blank),177
+Rosario,2000,1996-2003,S,(blank),166
+Rosario,2001,1996-2003,S,(blank),165
+Rosario,2002,1996-2003,S,(blank),171
+Rosario,2003,1996-2003,S,(blank),156
+Rosario,2004,2004,S,(blank),156
+Rosario,2005,2005-2025,S,(blank),154
+Rosario,2006,2005-2025,S,(blank),155
+Rosario,2007,2005-2025,S,(blank),142
+Rosario,2008,2005-2025,S,(blank),154
+Rosario,2009,2005-2025,S,(blank),141
+Rosario,2010,2005-2025,S,(blank),169
+Rosario,2011,2005-2025,S,(blank),165
+Rosario,2012,2005-2025,S,(blank),163
+Rosario,2013,2005-2025,S,(blank),167
+Rosario,2014,2005-2025,S,(blank),131
+Rosario,2015,2005-2025,S,(blank),180
+Rosario,2016,2005-2025,S,(blank),192
+Rosario,2017,2005-2025,S,(blank),172
+Rosario,2018,2005-2025,S,(blank),159
+Rosario,2019,2005-2025,S,(blank),150
+Rosario,2020,2005-2025,S,(blank),155
+Rosario,2021,2005-2025,S,(blank),164
+Rosario,2022,2005-2025,S,(blank),178
+Rosario,2023,2005-2025,S,(blank),181
+Rosario,2024,2005-2025,S,(blank),165
+Rosario,2025,2005-2025,S,(blank),116
+Salta Aero,1996,1996-2003,G,(blank),366
+Salta Aero,1997,1996-2003,G,(blank),365
+Salta Aero,1998,1996-2003,G,(blank),365
+Salta Aero,1999,1996-2003,G,(blank),365
+Salta Aero,2000,1996-2003,G,(blank),366
+Salta Aero,2001,1996-2003,G,(blank),364
+Salta Aero,2002,1996-2003,G,(blank),365
+Salta Aero,2003,1996-2003,G,(blank),365
+Salta Aero,2004,2004,G,(blank),152
+Salta Aero,2004,2004,S,(blank),95
+Salta Aero,2005,2005-2025,S,(blank),156
+Salta Aero,2006,2005-2025,S,(blank),175
+Salta Aero,2007,2005-2025,S,(blank),166
+Salta Aero,2008,2005-2025,S,(blank),159
+Salta Aero,2009,2005-2025,S,(blank),172
+Salta Aero,2010,2005-2025,S,(blank),165
+Salta Aero,2011,2005-2025,S,(blank),169
+Salta Aero,2012,2005-2025,S,(blank),159
+Salta Aero,2015,2005-2025,S,(blank),179
+Salta Aero,2016,2005-2025,S,(blank),165
+Salta Aero,2017,2005-2025,S,(blank),166
+Salta Aero,2018,2005-2025,S,(blank),167
+Salta Aero,2019,2005-2025,S,(blank),157
+Salta Aero,2020,2005-2025,S,(blank),166
+Salta Aero,2021,2005-2025,S,(blank),172
+Salta Aero,2022,2005-2025,S,(blank),138
+Salta Aero,2023,2005-2025,S,(blank),162
+Salta Aero,2024,2005-2025,S,(blank),162
+Salta Aero,2025,2005-2025,S,(blank),110
+San Carlos de Bariloche,1996,1996-2003,S,(blank),187
+San Carlos de Bariloche,1997,1996-2003,S,(blank),188
+San Carlos de Bariloche,1998,1996-2003,S,(blank),197
+San Carlos de Bariloche,1999,1996-2003,S,(blank),197
+San Carlos de Bariloche,2000,1996-2003,S,(blank),196
+San Carlos de Bariloche,2001,1996-2003,S,(blank),201
+San Carlos de Bariloche,2002,1996-2003,S,(blank),197
+San Carlos de Bariloche,2003,1996-2003,S,(blank),182
+San Carlos de Bariloche,2004,2004,S,(blank),197
+San Carlos de Bariloche,2005,2005-2025,S,(blank),194
+San Carlos de Bariloche,2006,2005-2025,S,(blank),194
+San Carlos de Bariloche,2007,2005-2025,S,(blank),194
+San Carlos de Bariloche,2008,2005-2025,S,(blank),204
+San Carlos de Bariloche,2009,2005-2025,S,(blank),190
+San Carlos de Bariloche,2010,2005-2025,S,(blank),178
+San Carlos de Bariloche,2011,2005-2025,S,(blank),176
+San Carlos de Bariloche,2012,2005-2025,S,(blank),164
+San Carlos de Bariloche,2013,2005-2025,S,(blank),163
+San Carlos de Bariloche,2014,2005-2025,S,(blank),170
+San Carlos de Bariloche,2015,2005-2025,S,(blank),187
+San Carlos de Bariloche,2016,2005-2025,S,(blank),202
+San Carlos de Bariloche,2017,2005-2025,S,(blank),196
+San Carlos de Bariloche,2018,2005-2025,S,(blank),196
+San Carlos de Bariloche,2019,2005-2025,S,(blank),182
+San Carlos de Bariloche,2020,2005-2025,S,(blank),191
+San Carlos de Bariloche,2021,2005-2025,S,(blank),192
+San Carlos de Bariloche,2022,2005-2025,S,(blank),194
+San Carlos de Bariloche,2023,2005-2025,S,(blank),193
+San Carlos de Bariloche,2024,2005-2025,S,(blank),187
+San Carlos de Bariloche,2025,2005-2025,S,(blank),121
+San Juan,1996,1996-2003,S,(blank),160
+San Juan,1997,1996-2003,S,(blank),180
+San Juan,1998,1996-2003,S,(blank),167
+San Juan,1999,1996-2003,S,(blank),157
+San Juan,2000,1996-2003,S,(blank),176
+San Juan,2001,1996-2003,S,(blank),185
+San Juan,2002,1996-2003,S,(blank),172
+San Juan,2003,1996-2003,S,(blank),169
+San Juan,2004,2004,S,(blank),176
+San Juan,2005,2005-2025,S,(blank),170
+San Juan,2006,2005-2025,S,(blank),175
+San Juan,2007,2005-2025,S,(blank),184
+San Juan,2008,2005-2025,S,(blank),187
+San Juan,2009,2005-2025,S,(blank),177
+San Juan,2010,2005-2025,S,(blank),177
+San Juan,2011,2005-2025,S,(blank),174
+San Juan,2012,2005-2025,S,(blank),183
+San Juan,2013,2005-2025,S,(blank),181
+San Juan,2014,2005-2025,S,(blank),187
+San Juan,2015,2005-2025,S,(blank),199
+San Juan,2016,2005-2025,S,(blank),172
+San Juan,2017,2005-2025,S,(blank),186
+San Juan,2018,2005-2025,S,(blank),191
+San Juan,2019,2005-2025,S,(blank),175
+San Juan,2020,2005-2025,S,(blank),176
+San Juan,2021,2005-2025,S,(blank),178
+San Juan,2022,2005-2025,S,(blank),176
+San Juan,2023,2005-2025,S,(blank),182
+San Juan,2024,2005-2025,S,(blank),173
+San Juan,2025,2005-2025,S,(blank),114
+Santa Rosa Aero,1996,1996-2003,G,(blank),366
+Santa Rosa Aero,1997,1996-2003,G,(blank),365
+Santa Rosa Aero,1998,1996-2003,G,(blank),365
+Santa Rosa Aero,1999,1996-2003,G,(blank),365
+Santa Rosa Aero,2000,1996-2003,G,(blank),366
+Santa Rosa Aero,2001,1996-2003,G,(blank),365
+Santa Rosa Aero,2002,1996-2003,G,(blank),365
+Santa Rosa Aero,2003,1996-2003,G,(blank),365
+Santa Rosa Aero,2004,2004,G,(blank),152
+Santa Rosa Aero,2004,2004,S,(blank),111
+Santa Rosa Aero,2005,2005-2025,S,(blank),182
+Santa Rosa Aero,2006,2005-2025,S,(blank),201
+Santa Rosa Aero,2007,2005-2025,S,(blank),188
+Santa Rosa Aero,2008,2005-2025,S,(blank),198
+Santa Rosa Aero,2009,2005-2025,S,(blank),192
+Santa Rosa Aero,2010,2005-2025,S,(blank),190
+Santa Rosa Aero,2011,2005-2025,S,(blank),191
+Santa Rosa Aero,2012,2005-2025,S,(blank),184
+Santa Rosa Aero,2013,2005-2025,S,(blank),179
+Santa Rosa Aero,2014,2005-2025,S,(blank),197
+Santa Rosa Aero,2015,2005-2025,S,(blank),184
+Santa Rosa Aero,2016,2005-2025,S,(blank),204
+Santa Rosa Aero,2017,2005-2025,S,(blank),200
+Santa Rosa Aero,2018,2005-2025,S,(blank),193
+Santa Rosa Aero,2019,2005-2025,S,(blank),185
+Santa Rosa Aero,2020,2005-2025,S,(blank),189
+Santa Rosa Aero,2021,2005-2025,S,(blank),185
+Santa Rosa Aero,2022,2005-2025,S,(blank),196
+Santa Rosa Aero,2023,2005-2025,S,(blank),187
+Santa Rosa Aero,2024,2005-2025,S,(blank),193
+Santa Rosa Aero,2025,2005-2025,S,(blank),122
+Trelew Aero,1996,1996-2003,G,(blank),366
+Trelew Aero,1997,1996-2003,G,(blank),365
+Trelew Aero,1998,1996-2003,G,(blank),365
+Trelew Aero,1999,1996-2003,G,(blank),365
+Trelew Aero,2000,1996-2003,G,(blank),366
+Trelew Aero,2001,1996-2003,G,(blank),361
+Trelew Aero,2001,1996-2003,I,(blank),2
+Trelew Aero,2002,1996-2003,G,(blank),360
+Trelew Aero,2003,1996-2003,G,(blank),363
+Trelew Aero,2003,1996-2003,I,(blank),1
+Trelew Aero,2004,2004,G,(blank),151
+Trelew Aero,2004,2004,S,(blank),114
+Trelew Aero,2005,2005-2025,S,(blank),191
+Trelew Aero,2006,2005-2025,S,(blank),188
+Trelew Aero,2007,2005-2025,S,(blank),213
+Trelew Aero,2008,2005-2025,S,(blank),193
+Trelew Aero,2009,2005-2025,S,(blank),172
+Trelew Aero,2010,2005-2025,S,(blank),145
+Trelew Aero,2011,2005-2025,S,(blank),128
+Trelew Aero,2012,2005-2025,S,(blank),191
+Trelew Aero,2013,2005-2025,S,(blank),185
+Trelew Aero,2014,2005-2025,S,(blank),156
+Trelew Aero,2015,2005-2025,S,(blank),209
+Trelew Aero,2016,2005-2025,S,(blank),193
+Trelew Aero,2017,2005-2025,S,(blank),193
+Trelew Aero,2018,2005-2025,S,(blank),198
+Trelew Aero,2019,2005-2025,S,(blank),189
+Trelew Aero,2020,2005-2025,S,(blank),190
+Trelew Aero,2021,2005-2025,S,(blank),178
+Trelew Aero,2022,2005-2025,S,(blank),184
+Trelew Aero,2023,2005-2025,S,(blank),182
+Trelew Aero,2024,2005-2025,S,(blank),181
+Trelew Aero,2025,2005-2025,S,(blank),121
+Tucuman (Teniente Benjamin Matienzo),1996,1996-2003,S,(blank),142
+Tucuman (Teniente Benjamin Matienzo),1997,1996-2003,S,(blank),152
+Tucuman (Teniente Benjamin Matienzo),1998,1996-2003,S,(blank),151
+Tucuman (Teniente Benjamin Matienzo),1999,1996-2003,S,(blank),154
+Tucuman (Teniente Benjamin Matienzo),2000,1996-2003,S,(blank),134
+Tucuman (Teniente Benjamin Matienzo),2001,1996-2003,S,(blank),150
+Tucuman (Teniente Benjamin Matienzo),2002,1996-2003,S,(blank),149
+Tucuman (Teniente Benjamin Matienzo),2003,1996-2003,S,(blank),141
+Tucuman (Teniente Benjamin Matienzo),2004,2004,S,(blank),149
+Tucuman (Teniente Benjamin Matienzo),2005,2005-2025,S,(blank),140
+Tucuman (Teniente Benjamin Matienzo),2006,2005-2025,S,(blank),146
+Tucuman (Teniente Benjamin Matienzo),2007,2005-2025,S,(blank),164
+Tucuman (Teniente Benjamin Matienzo),2008,2005-2025,S,(blank),176
+Tucuman (Teniente Benjamin Matienzo),2009,2005-2025,S,(blank),166
+Tucuman (Teniente Benjamin Matienzo),2010,2005-2025,S,(blank),137
+Tucuman (Teniente Benjamin Matienzo),2011,2005-2025,S,(blank),153
+Tucuman (Teniente Benjamin Matienzo),2012,2005-2025,S,(blank),160
+Tucuman (Teniente Benjamin Matienzo),2013,2005-2025,S,(blank),144
+Tucuman (Teniente Benjamin Matienzo),2014,2005-2025,S,(blank),145
+Tucuman (Teniente Benjamin Matienzo),2015,2005-2025,S,(blank),159
+Tucuman (Teniente Benjamin Matienzo),2016,2005-2025,S,(blank),156
+Tucuman (Teniente Benjamin Matienzo),2017,2005-2025,S,(blank),162
+Tucuman (Teniente Benjamin Matienzo),2018,2005-2025,S,(blank),149
+Tucuman (Teniente Benjamin Matienzo),2019,2005-2025,S,(blank),146
+Tucuman (Teniente Benjamin Matienzo),2020,2005-2025,S,(blank),150
+Tucuman (Teniente Benjamin Matienzo),2021,2005-2025,S,(blank),161
+Tucuman (Teniente Benjamin Matienzo),2022,2005-2025,S,(blank),159
+Tucuman (Teniente Benjamin Matienzo),2023,2005-2025,S,(blank),146
+Tucuman (Teniente Benjamin Matienzo),2024,2005-2025,S,(blank),172
+Tucuman (Teniente Benjamin Matienzo),2025,2005-2025,S,(blank),115
+Ushuaia Malvinas Argentinas,1996,1996-2003,S,(blank),196
+Ushuaia Malvinas Argentinas,1997,1996-2003,S,(blank),166
+Ushuaia Malvinas Argentinas,1998,1996-2003,S,(blank),209
+Ushuaia Malvinas Argentinas,1999,1996-2003,S,(blank),218
+Ushuaia Malvinas Argentinas,2000,1996-2003,S,(blank),198
+Ushuaia Malvinas Argentinas,2001,1996-2003,S,(blank),207
+Ushuaia Malvinas Argentinas,2002,1996-2003,S,(blank),195
+Ushuaia Malvinas Argentinas,2003,1996-2003,S,(blank),198
+Ushuaia Malvinas Argentinas,2004,2004,S,(blank),196
+Ushuaia Malvinas Argentinas,2005,2005-2025,S,(blank),192
+Ushuaia Malvinas Argentinas,2006,2005-2025,S,(blank),182
+Ushuaia Malvinas Argentinas,2007,2005-2025,S,(blank),195
+Ushuaia Malvinas Argentinas,2008,2005-2025,S,(blank),190
+Ushuaia Malvinas Argentinas,2009,2005-2025,S,(blank),29
+Ushuaia Malvinas Argentinas,2010,2005-2025,S,(blank),85
+Ushuaia Malvinas Argentinas,2011,2005-2025,S,(blank),187
+Ushuaia Malvinas Argentinas,2012,2005-2025,S,(blank),176
+Ushuaia Malvinas Argentinas,2013,2005-2025,S,(blank),200
+Ushuaia Malvinas Argentinas,2014,2005-2025,S,(blank),212
+Ushuaia Malvinas Argentinas,2015,2005-2025,S,(blank),200
+Ushuaia Malvinas Argentinas,2016,2005-2025,S,(blank),202
+Ushuaia Malvinas Argentinas,2017,2005-2025,S,(blank),191
+Ushuaia Malvinas Argentinas,2018,2005-2025,S,(blank),178
+Ushuaia Malvinas Argentinas,2019,2005-2025,S,(blank),195
+Ushuaia Malvinas Argentinas,2020,2005-2025,S,(blank),180
+Ushuaia Malvinas Argentinas,2021,2005-2025,S,(blank),190
+Ushuaia Malvinas Argentinas,2022,2005-2025,S,(blank),192
+Ushuaia Malvinas Argentinas,2023,2005-2025,S,(blank),181
+Ushuaia Malvinas Argentinas,2024,2005-2025,S,(blank),141
+Ushuaia Malvinas Argentinas,2025,2005-2025,S,(blank),72

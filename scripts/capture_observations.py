@@ -11,8 +11,11 @@ Keying rules, identical for all three payloads:
 - the target day is read from the payload's ``FECHA`` (an 8-digit local calendar
   date, DDMMYYYY) and never from the runner clock, so a re-run resolves to the
   same target instead of minting a duplicate;
-- an existing target is skipped, so the first capture of a day is canonical and
-  frozen;
+- an existing target is skipped only when BOTH ``<dato>.zip`` and
+  ``manifest.json`` are present, and the two files are always uploaded in ONE
+  commit, so a failed second upload can never leave a folder that a later run
+  mistakes for a finished capture (a half-written folder is completed, not
+  hidden); the first capture of a day is still canonical and frozen;
 - targets live under ``observations/smn/<dato>/<date>/`` and never under
   ``forecasts/``, which stays reserved for issue-dated forecasts;
 - ``regtemp`` serves a rolling 365-day window, so its key is the window's LAST
@@ -317,16 +320,20 @@ def plan_uploads(
     key: str,
     exists: Callable[[str], bool],
 ) -> tuple[list[str], list[str]]:
-    """Split one capture into files to upload and an already-canonical target.
+    """Split one capture into files to upload and an already-complete target.
 
-    The payload file gates the whole directory: when it is already present the
-    manifest of the frozen first capture is not overwritten either.
+    A capture counts as canonical only when payload AND manifest are both
+    present: uploading them in separate commits used to leave a folder with a
+    payload but no manifest, and a payload-only skip check then hid that
+    half-written folder forever. Anything less than both files is re-uploaded
+    (payload and manifest together, in one commit) so the folder is completed
+    instead of silently preserved in its broken state.
     """
     directory = target_dir(dato, key)
     payload_target = f"{directory}/{dato}.zip"
     manifest_target = f"{directory}/manifest.json"
-    if exists(payload_target):
-        return [], [payload_target]
+    if exists(payload_target) and exists(manifest_target):
+        return [], [payload_target, manifest_target]
     return [payload_target, manifest_target], []
 
 
@@ -428,15 +435,7 @@ def main(argv: list[str] | None = None) -> int:
                     continue
 
             target = target_dir(dato, key)
-            payload_path = stage_payload(args.out, dato, key, payload)
-            if api is not None:
-                api.upload_file(
-                    path_or_fileobj=str(payload_path),
-                    path_in_repo=f"{target}/{dato}.zip",
-                    repo_id=repo,
-                    repo_type="dataset",
-                    commit_message=f"observation capture {dato} {key}",
-                )
+            stage_payload(args.out, dato, key, payload)
             if args.retrieved_at is not None:
                 retrieved_at = datetime.strptime(args.retrieved_at, "%Y-%m-%dT%H:%M:%SZ").replace(
                     tzinfo=UTC
@@ -454,14 +453,16 @@ def main(argv: list[str] | None = None) -> int:
                 upload_status="uploaded" if api is not None else "staged",
                 requests_used=0 if args.local_zip is not None else 1,
             )
-            manifest_path = stage_manifest(args.out, dato, key, manifest)
+            stage_manifest(args.out, dato, key, manifest)
             if api is not None:
-                api.upload_file(
-                    path_or_fileobj=str(manifest_path),
-                    path_in_repo=f"{target}/manifest.json",
+                # One commit for the pair: a payload without its manifest must
+                # never reach the dataset, not even transiently.
+                api.upload_folder(
+                    folder_path=str(args.out / dato / key),
+                    path_in_repo=target,
                     repo_id=repo,
                     repo_type="dataset",
-                    commit_message=f"observation manifest {dato} {key}",
+                    commit_message=f"observation capture {dato} {key} (payload + manifest)",
                 )
             print(
                 f"{dato}: {key} ({len(dates)} rows, {len(set(dates))} day(s)) -> "

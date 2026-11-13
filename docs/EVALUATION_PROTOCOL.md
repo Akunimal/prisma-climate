@@ -66,6 +66,7 @@ Percentile thresholds are computed once from the training window and frozen.
 1. Exact EMOS variant and predictor set (ENSO state in or out — decided by ablation on the training window only).
 2. Precipitation handling: censored EMOS vs quantile mapping (decided by CRPS on the training window).
 3. Whether station-level or pooled calibration is the app default (decided by the reliability deviation, not by aesthetics).
+4. **Which series "the observation" is for the climatology baseline (§4) — OPEN OWNER DECISION, recorded 2026-11-13, nothing decided here.** §4 says "empirical distribution of the observation" without naming the series, and the candidates differ materially: the T26a discrepancy report (`results/discrepancies/era5_vs_ghcn.md`) shows ERA5 at −0.97 °C mean against SMN on t2m_max, while GHCN-Daily is sparse and stale (last valid rows 2025-08-24, about 50% daily coverage since 2005). **This must be closed by a dated amendment before the 15-issue-date gate (earliest 2026-11-25)** — earlier than the Phase 2 horizon of the other items in this list. No threshold, split, percentile or testing rule changes by recording it.
 
 
 ## Amendments

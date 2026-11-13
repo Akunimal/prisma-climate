@@ -110,7 +110,10 @@ def test_malformed_capture_date_is_refused(capture) -> None:
 def test_plan_uploads_skips_an_existing_capture(capture) -> None:
     planned, skipped = capture.plan_uploads("regtemp", "2026-11-10", lambda _target: True)
     assert planned == []
-    assert skipped == ["observations/smn/regtemp/2026-11-10/regtemp.zip"]
+    assert skipped == [
+        "observations/smn/regtemp/2026-11-10/regtemp.zip",
+        "observations/smn/regtemp/2026-11-10/manifest.json",
+    ]
 
 
 def test_plan_uploads_lists_payload_and_manifest_for_a_new_capture(capture) -> None:
@@ -118,6 +121,31 @@ def test_plan_uploads_lists_payload_and_manifest_for_a_new_capture(capture) -> N
     assert planned == [
         "observations/smn/datohorario/2026-11-12/datohorario.zip",
         "observations/smn/datohorario/2026-11-12/manifest.json",
+    ]
+    assert skipped == []
+
+
+def test_plan_uploads_never_skips_a_folder_with_only_the_payload(capture) -> None:
+    """A failed second upload left payload-only folders; skip must not hide them."""
+    payload = "observations/smn/datohorario/2026-11-12/datohorario.zip"
+    planned, skipped = capture.plan_uploads(
+        "datohorario", "2026-11-12", lambda target: target == payload
+    )
+    assert planned == [
+        payload,
+        "observations/smn/datohorario/2026-11-12/manifest.json",
+    ]
+    assert skipped == []
+
+
+def test_plan_uploads_never_skips_a_folder_with_only_the_manifest(capture) -> None:
+    manifest = "observations/smn/observaciones/2026-11-10/manifest.json"
+    planned, skipped = capture.plan_uploads(
+        "observaciones", "2026-11-10", lambda target: target == manifest
+    )
+    assert planned == [
+        "observations/smn/observaciones/2026-11-10/observaciones.zip",
+        manifest,
     ]
     assert skipped == []
 
@@ -334,7 +362,7 @@ def test_main_uploads_once_and_repeats_are_a_noop(
 
     class FakeHfApi:
         present: set[str] = set()
-        uploads: list[str] = []
+        commits: list[list[str]] = []
 
         def __init__(self, token: str | None = None) -> None:
             self.token = token
@@ -345,12 +373,15 @@ def test_main_uploads_once_and_repeats_are_a_noop(
         def file_exists(self, repo: str, target: str, repo_type: str | None = None) -> bool:
             return target in self.present
 
-        def upload_file(self, path_or_fileobj: str, path_in_repo: str, **_kwargs) -> None:
-            self.uploads.append(path_in_repo)
-            self.present.add(path_in_repo)
+        def upload_folder(
+            self, folder_path: str, path_in_repo: str, **_kwargs
+        ) -> None:
+            files = sorted(p.name for p in Path(folder_path).iterdir())
+            self.commits.append([f"{path_in_repo}/{name}" for name in files])
+            self.present.update(f"{path_in_repo}/{name}" for name in files)
 
     FakeHfApi.present.clear()
-    FakeHfApi.uploads.clear()
+    FakeHfApi.commits.clear()
     fake_hub = types.ModuleType("huggingface_hub")
     fake_hub.HfApi = FakeHfApi  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "huggingface_hub", fake_hub)
@@ -365,16 +396,75 @@ def test_main_uploads_once_and_repeats_are_a_noop(
         "--upload",
     ]
     assert capture.main(argv) == 0
-    assert FakeHfApi.uploads == [
-        "observations/smn/observaciones/2026-11-10/observaciones.zip",
-        "observations/smn/observaciones/2026-11-10/manifest.json",
-    ]
+    assert FakeHfApi.commits == [
+        [
+            "observations/smn/observaciones/2026-11-10/manifest.json",
+            "observations/smn/observaciones/2026-11-10/observaciones.zip",
+        ]
+    ], "payload and manifest must leave in one commit"
     assert capture.main(argv) == 0
-    assert len(FakeHfApi.uploads) == 2, "a repeat must not upload the canonical capture again"
-    assert all(path.startswith("observations/smn/") for path in FakeHfApi.uploads)
-    assert all("forecasts" not in path for path in FakeHfApi.uploads)
+    assert len(FakeHfApi.commits) == 1, "a repeat must not commit the canonical capture again"
+    assert all(path.startswith("observations/smn/") for c in FakeHfApi.commits for path in c)
+    assert all("forecasts" not in path for c in FakeHfApi.commits for path in c)
     body = json.loads(
         (out / "observaciones" / "2026-11-10" / "manifest.json").read_text(encoding="utf-8")
     )
     assert body["hf_upload"] == "uploaded"
     assert body["requests_used"] == 0
+
+
+def test_main_completes_a_half_written_folder_in_one_commit(
+    tmp_path: Path, monkeypatch, capture
+) -> None:
+    """payload already on HF, manifest missing: the next run must repair it."""
+    monkeypatch.setenv("HF_TOKEN", "test-token")
+    monkeypatch.setenv("HF_DATASET_REPO", "Akunimal/prisma-climate")
+    monkeypatch.delenv("GITHUB_RUN_ID", raising=False)
+    zip_path = tmp_path / "src.zip"
+    zip_path.write_bytes(make_zip("observaciones20261110.txt", OBSERVACIONES_TEXT))
+    out = tmp_path / "staged"
+
+    class HalfWrittenApi:
+        present: set[str] = {"observations/smn/observaciones/2026-11-10/observaciones.zip"}
+        commits: list[list[str]] = []
+
+        def __init__(self, token: str | None = None) -> None:
+            self.token = token
+
+        def create_repo(self, repo: str, repo_type: str | None = None, exist_ok: bool = False):
+            return None
+
+        def file_exists(self, repo: str, target: str, repo_type: str | None = None) -> bool:
+            return target in self.present
+
+        def upload_folder(
+            self, folder_path: str, path_in_repo: str, **_kwargs
+        ) -> None:
+            files = sorted(p.name for p in Path(folder_path).iterdir())
+            self.commits.append([f"{path_in_repo}/{name}" for name in files])
+            self.present.update(f"{path_in_repo}/{name}" for name in files)
+
+    HalfWrittenApi.present = {
+        "observations/smn/observaciones/2026-11-10/observaciones.zip"
+    }
+    HalfWrittenApi.commits = []
+    fake_hub = types.ModuleType("huggingface_hub")
+    fake_hub.HfApi = HalfWrittenApi  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "huggingface_hub", fake_hub)
+
+    argv = [
+        "--payloads",
+        "observaciones",
+        "--local-zip",
+        str(zip_path),
+        "--out",
+        str(out),
+        "--upload",
+    ]
+    assert capture.main(argv) == 0
+    assert len(HalfWrittenApi.commits) == 1, "the repair must be exactly one commit"
+    manifest_target = "observations/smn/observaciones/2026-11-10/manifest.json"
+    assert manifest_target in HalfWrittenApi.present, "the half-written folder must be completed"
+    # A repeat now sees both files and must be a no-op.
+    assert capture.main(argv) == 0
+    assert len(HalfWrittenApi.commits) == 1

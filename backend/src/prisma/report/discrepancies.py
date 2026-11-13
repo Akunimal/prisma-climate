@@ -641,7 +641,7 @@ def _controls_sentence(
     per_year: pd.DataFrame | None,
     matched: pd.DataFrame | None,
 ) -> str:
-    """One dated sentence: what the two period controls show, computed now."""
+    """Dated controls line: two controls, then two independent follow-ups, as separate sentences."""
     if per_year is None or per_year.empty or matched is None or matched.empty:
         return ""
     matched_tmax = matched.loc[matched["variable"].eq("t2m_max")]
@@ -684,11 +684,21 @@ def _controls_sentence(
     early_block = yearly.loc[yearly.index <= 2003]
     late_block = yearly.loc[yearly.index >= 2005]
     ndays_2025 = per_year.loc[per_year["year"].eq(2025), "n_days"]
-    if early_block.empty or late_block.empty or ndays_2025.empty:
+    ndays_2003 = per_year.loc[per_year["year"].eq(2003), "n_days"]
+    ndays_2005 = per_year.loc[per_year["year"].eq(2005), "n_days"]
+    if (
+        early_block.empty
+        or late_block.empty
+        or ndays_2025.empty
+        or ndays_2003.empty
+        or ndays_2005.empty
+    ):
         return ""
     early = float(early_block.mean())
     late = float(late_block.mean())
     ndays_2025_mean = float(ndays_2025.mean())
+    ndays_2003_mean = float(ndays_2003.mean())
+    ndays_2005_mean = float(ndays_2005.mean())
     return (
         f"- **Controls ({LEG_CORRECTION_DATE}):** the matched-calendar control "
         f"(`bias_matched_calendar.csv`) still shows a mean t2m_max gap of "
@@ -699,9 +709,12 @@ def _controls_sentence(
         f"{int(n_s.min())}–{int(n_s.max())}), and the per-year control "
         f"(`bias_per_year_ghcn.csv`) moves the station-mean ERA5−GHCN "
         f"t2m_max bias from {early:+.2f} °C (1996–2003) to {late:+.2f} °C "
-        f"(2005–2025) while mean coverage falls to {ndays_2025_mean:.1f} days in "
-        "2025 before the 2025-08-24 cutoff — so a pure daily-window shift "
-        "cannot produce a ~2 °C mean bias, and the model-splice candidate is "
+        f"(2005–2025) while mean coverage drops from {ndays_2003_mean:.1f} "
+        f"days in 2003 to {ndays_2005_mean:.1f} days in 2005 — the 2004–2005 "
+        f"step coincides with that coverage drop — and mean coverage is "
+        f"{ndays_2025_mean:.1f} days in 2025 before the 2025-08-24 cutoff. "
+        "Independently of those coverage figures, a pure daily-window shift "
+        "cannot produce a ~2 °C mean bias. The model-splice candidate is "
         "ruled out by the two-request check (stored ERA5 matches a "
         "`models=era5` request exactly, while the same request without the "
         "parameter differs from the stored series)."

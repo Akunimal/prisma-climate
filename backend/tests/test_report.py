@@ -726,9 +726,17 @@ def test_honest_reading_controls_sentence() -> None:
     assert "GHCN more negative at 2/2 stations" in reading
     assert "120–150 of 287" in reading
     assert "from -2.00 °C (1996–2003) to -3.50 °C (2005–2025)" in reading
+    assert "300.0 days in 2003 to 180.0 days in 2005" in reading
+    assert "coincides with that coverage drop" in reading
     assert "114.0 days in 2025" in reading
     assert "pure daily-window shift cannot produce a ~2 °C mean bias" in reading
     assert "model-splice candidate is ruled out by the two-request check" in reading
+    # The controls line reads as separate sentences, not one chained clause.
+    controls_line = next(
+        line for line in reading.splitlines() if line.startswith("- **Controls (")
+    )
+    assert controls_line.count("Independent") == 1
+    assert controls_line.rstrip().endswith("stored series).")
     # Original correction bullet is still present and unchanged in substance.
     assert "**Correction (2026-11-13):**" in reading
     # Controls sentence needs both tables; without them it is omitted.

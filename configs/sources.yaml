@@ -82,7 +82,13 @@ sources:
     license: "Public domain (NOAA/NCEI, U.S. Government)"
     redistributable: yes
     verified_on: "2026-11-11"
-    notes: "Primary observation source. Station IDs are declared per region in configs/regions/."
+    notes: >-
+      Primary observation source. Station IDs are declared per region in configs/regions/.
+      Observed staleness (independent of the nominal "days" latency above): the last valid
+      rows for the 19 region stations are 2025-08-24, and daily coverage falls to about 50%
+      of days since 2005; both facts re-verified 2026-11-12 and 2026-11-13 (raw .dly
+      re-read, results/qc/freshness.md and results/discrepancies/). The source stays
+      status active for its historical series; freshness is reported, never filled.
     options:
       min_year: 1996
 
@@ -290,19 +296,68 @@ sources:
 
   - id: isd
     name: "NOAA Integrated Surface Database"
-    day_convention: unknown
+    day_convention: utc
     connector: "isd.Isd"
     tier: 2
     status: planned
     variables: [t2m, wind, humidity, pressure]
-    access: "HTTPS station files"
+    access: "Anonymous HTTPS/S3: hourly CSV s3://noaa-global-hourly-pds/{year}/{usaf}{wban}.csv; original .gz s3://noaa-isd-pds/data/{year}/{usaf}-{wban}-{year}.gz; inventory https://www.ncei.noaa.gov/pub/data/noaa/isd-history.csv (all HTTP 200, no key)"
     endpoint: "https://www.ncei.noaa.gov/pub/data/noaa/"
     coverage: global
-    latency: "days"
+    latency: "product page says stations update daily; observed 2026-11-13: no data after 2025-08-24 (see notes)"
     update_frequency: daily
-    license: "Public domain (NOAA/NCEI)"
-    redistributable: yes
-    verified_on: null
+    license: "NODD: NOAA data open to the public with attribution (registry.opendata.aws/noaa-isd, read 2026-11-13); WMO Resolution 40 note for non-U.S. data (GSOD doc readme)"
+    redistributable: derived_only
+    verified_on: "2026-11-13"
+    notes: >-
+      Tier 2 verification 2026-11-13, see docs/DATA_SOURCES.md section "Tier 2 verification — 2026-11-13
+      (NOAA ISD / GSOD)". Station ids are USAF+WBAN (e.g. Buenos Aires Observatorio 87585099999).
+      Routes probed plain HTTPS, no auth, no registration wall: AWS Open Data buckets noaa-global-hourly-pds
+      (CSV) and noaa-isd-pds (original .gz under /data/{year}/); both listed in registry.opendata.aws/noaa-isd
+      with update frequency "Daily" and the NODD licence quoted there. The WAF trees /data/global-hourly/
+      and /pub/data/noaa/isd-lite/ return an S3-explorer HTML shell for every probed path (soft-404) and are
+      not usable as plain file routes from this environment. Observed lag 2026-11-13: for all 19 region
+      stations the hourly CSV exists for 2024 and 2025 but both years end on 2025-08-24 (294 of 304
+      window-1 days carry TMP; 2024 file Last-Modified 2025-03-01, 2025 file 2025-10-04); every 2026 key
+      returns 404 / zero keys in all three buckets; isd-history.csv downloaded the same day shows global
+      max END 2025-08-28 and zero stations ending on or after 2026-01-01 — i.e. ~447 days stale vs the
+      nominal "updated daily". NCEI's product page banner (read 2026-11-13) reports a cloud migration with
+      "Current Impact: data archiving delays". day_convention utc: ISD rows are hourly instants with DATE
+      like 2025-01-01T00:00:00, and the GSOD readme states the original synoptic/hourly data are based on
+      GMT (0000Z-2359Z); ISD itself performs no day aggregation. Licence nuance drives redistributable
+      derived_only: the NODD statement allows use as desired with attribution, but the GSOD readme (same
+      WMO Resolution 40 exchange) restricts non-U.S. data to research/education/non-commercial use and
+      forbids commercial re-export, so bulk republication of raw files is out of scope until the owner
+      confirms. Verification only, no connector written.
+
+  - id: gsod
+    name: "NOAA Global Summary of the Day (GSOD)"
+    day_convention: utc
+    connector: "gsod.Gsod"
+    tier: 2
+    status: planned
+    variables: [t2m, t2m_max, t2m_min, precip, wind, humidity]
+    access: "HTTPS CSV per station-year, no key: https://www.ncei.noaa.gov/data/global-summary-of-the-day/access/{year}/{usaf}{wban}.csv; mirror s3://noaa-gsod-pds/{year}/{usaf}{wban}.csv (both HTTP 200, no auth)"
+    endpoint: "https://www.ncei.noaa.gov/data/global-summary-of-the-day/"
+    coverage: "global, ~9000 stations (product readme)"
+    latency: "readme: normally a few days after the observations; observed 2026-11-13: last obs day 2025-08-24 (see notes)"
+    update_frequency: daily
+    license: "GSOD doc readme: WMO Resolution 40 — non-U.S. data intended for free and unrestricted use in research, education and other non-commercial activities; not for re-export of commercial services"
+    redistributable: derived_only
+    verified_on: "2026-11-13"
+    notes: >-
+      Tier 2 verification 2026-11-13, see docs/DATA_SOURCES.md section "Tier 2 verification — 2026-11-13
+      (NOAA ISD / GSOD)". Daily summaries derived from ISD; readme at
+      https://www.ncei.noaa.gov/data/global-summary-of-the-day/doc/readme.txt (HTTP 200, read 2026-11-13).
+      Daily precip IS derivable and comes with quality: PRCP in inches (missing 99.99,
+      "0" = none/trace) plus PRCP_ATTRIBUTES codes A-I observed in real files (A/B/C/D/G/H/I present per
+      station), with the readme noting a total may include part of the previous day. Day convention utc:
+      "reported and summarized based on Greenwich Mean Time (GMT, 0000Z - 2359Z)". Observed lag 2026-11-13:
+      access/{year}/{station}.csv exists for 2024 (through 2024-12-31) and 2025 (through 2025-08-24) for
+      all 19 region stations, access/2026/ returns HTTP 404; the noaa-gsod-pds mirror has no 2026 keys at
+      all (last object writes 2025-09-12) — last obs day 447 days behind the probe date vs the readme's
+      nominal "a few days". Non-US (Argentine) station data carry the WMO Resolution 40 non-commercial
+      restriction quoted above, so redistributable derived_only. Verification only, no connector written.
 
   # ---------------------------------------------------------------------------
   # Tier 3

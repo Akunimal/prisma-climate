@@ -21,8 +21,10 @@
 #     issue-dated forecasts alone.
 #   - The capture date comes from the payload's FECHA, never from the runner
 #     clock; regtemp is keyed by the LAST FECHA of its rolling 365-day window
-#     (retrieval time lives in manifest.json, never in the path). An existing
-#     target is skipped, so the first capture of a day is canonical.
+#     (retrieval time lives in manifest.json, never in the path). A target is
+#     skipped only when BOTH payload and manifest exist, and both files are
+#     uploaded in ONE commit, so the first capture of a day is canonical and a
+#     half-written folder can never be mistaken for a finished one.
 #   - This workflow never commits to main: no push step, `contents: read`
 #     only. Its run status travels in the manifest it writes to Hugging Face
 #     (the github_run block), so a skipped (no-op) run leaves only the Actions
@@ -114,3 +116,17 @@ jobs:
         run: |
           echo "A capture failed; that payload is lost for the day (no backfill)."
           exit 1
+
+      - name: Report missing observation days (visibility only)
+        if: always()
+        # Lists the archived local dates under observations/smn/{datohorario,
+        # observaciones}/ and fails when any day between the first archived date
+        # and the latest completed local day is absent. It never repairs
+        # anything and never blocks the upload steps above — a missed day has no
+        # backfill (the endpoints ignore fecha), so a silent gap becomes a red
+        # run instead. Limits: it only speaks when a run actually starts (a
+        # schedule GitHub never fires produces no report at all), and days
+        # before the archive's first capture are out of scope by construction.
+        run: >
+          uv run --project backend --with huggingface_hub
+          python scripts/check_observation_gaps.py
