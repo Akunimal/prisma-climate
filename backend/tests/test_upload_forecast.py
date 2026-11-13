@@ -153,7 +153,9 @@ def test_later_same_day_main_run_is_a_noop(tmp_path: Path, monkeypatch, upload) 
     assert upload.main(argv) == 0
     assert FakeHfApi.uploads == [TARGET]
 
-    # Later same-day run (e.g. a redundant cron slot): target already exists.
-    assert upload.main(argv) == 0
-    assert FakeHfApi.uploads == [TARGET], "second run must not upload again"
+    # Later same-day runs (the four cron slots, whichever fires): target
+    # already exists, so every repeat must be a no-op after the first upload.
+    for _slot in range(4):
+        assert upload.main(argv) == 0
+        assert FakeHfApi.uploads == [TARGET], "same-day repeats must not upload again"
     assert FakeHfApi.present == {TARGET}, "only one issue-date target may ever exist"

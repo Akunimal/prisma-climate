@@ -29,8 +29,14 @@ on:
     # Redundant same-day slots: GitHub schedules are best-effort and can be
     # delayed or dropped under load, so several off-hour attempts reduce the
     # chance a day is lost. The issue-dated target makes repeats no-ops.
-    - cron: "47 6 * * *"
+    # Observed on 2026-11-12: the three schedule runs started at 15:37, 19:52
+    # and 23:44 UTC, hours after their nominal slots (docs/DATA_SOURCES.md).
+    # Attempts are therefore weighted into 09:00-15:00 UTC, where a
+    # multi-hour delay still lands inside the same UTC day (the issue date is
+    # the fetch date), and 18:31 UTC stays as the last chance of the day.
+    - cron: "47 9 * * *"
     - cron: "17 12 * * *"
+    - cron: "43 14 * * *"
     - cron: "31 18 * * *"
   workflow_dispatch:
 
@@ -112,6 +118,17 @@ jobs:
               --notes "Daily Open-Meteo ensemble forecast archive (${ISSUE_DATE}, UTC). Fallback storage while the Hugging Face dataset is not configured."
           fi
           echo "Attached ${FILE} to release ${TAG}"
+
+      - name: Record archive coverage gaps (visibility only)
+        # Runs after the ingest step (which rewrites the status file) and
+        # before the heartbeat so the committed status carries the check.
+        # Visibility only: a missing day is recorded, never repaired here,
+        # and an HF listing failure must not redden the job.
+        if: always()
+        continue-on-error: true
+        run: >
+          uv run --project backend --with huggingface_hub
+          python scripts/archive_watchdog.py
 
       - name: Commit ingest status heartbeat
         if: always()

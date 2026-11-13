@@ -23,7 +23,7 @@ Done:
 - SMN connector (`ingest/smn.py`): catalogue → NRO → observaciones match, daily TMAX/TMIN merged into `data/raw/smn-argentina.parquet`; source `status: active`.
 - ERA5 vs GHCN discrepancy report with t2m_max bias decomposition and precip orography check; SMN leg added over the regtemp capture (19/19 stations by NRO, local-calendar joins, gaps reported, never filled).
 - Verification metrics module + unit tests (`backend/src/prisma/verify/metrics.py`); leaderboard gated until archive ≥ 15 issue dates.
-- Redundant archive cron slots (06:47, 12:17, 18:31 UTC) plus a same-day no-op test; first `event=schedule` run 2026-11-12 (run 43249798026, success — 12:17 UTC slot, delayed ~3h20m; data no-op, that day was archived by a manual `workflow_dispatch` rescue).
+- Redundant archive cron slots (**09:47, 12:17, 14:43, 18:31 UTC** since 2026-11-13; previously 06:47, 12:17, 18:31 — redesigned after every 2026-11-12 schedule run started hours late) plus a same-day no-op test; first `event=schedule` run 2026-11-12 (run 43249798026, success — 12:17 UTC slot, delayed ~3h20m; data no-op, that day was archived by a manual `workflow_dispatch` rescue). Archive-coverage watchdog (`scripts/archive_watchdog.py`) records missing days in `results/ingest_status.json` — visibility only, no repair.
 
 Not started (by design): leaderboard numbers, calibration, API, Flutter app.
 
