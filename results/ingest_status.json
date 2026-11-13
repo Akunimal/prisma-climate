@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-11-13T19:37:34",
+  "last_run": "2026-11-13T20:59:18",
   "region": "argentina",
   "rows": {
     "openmeteo-ensemble": 74784
@@ -7,7 +7,7 @@
   "failures": [],
   "status": "ok",
   "archive_watchdog": {
-    "checked_at": "2026-11-13T19:44:03Z",
+    "checked_at": "2026-11-13T21:07:57Z",
     "since": "2026-11-11",
     "as_of": "2026-11-13",
     "archived_issue_dates": 3,
