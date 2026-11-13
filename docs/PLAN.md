@@ -54,6 +54,8 @@ Lo que la hace distinta de una app del clima común:
 
 > La calibración local (EMOS / quantile mapping) condicionada por ENSO reduce el CRPS de temperatura máxima y precipitación diaria respecto del ensemble crudo, en al menos X % de las estaciones de la región, manteniendo fiabilidad nominal al 90 %.
 
+**Etiqueta (2026-11-13):** esta hipótesis se prueba en la **Fase 2 · Calibración + app** de [`ROADMAP.md`](ROADMAP.md) (gate de salida: "CRPSS > 0 del calibrado vs ensemble crudo"); la **Fase 1 · Verificación** del ROADMAP publica únicamente el leaderboard crudo vs climatología vs persistencia (el "Fase 2 (meses)" de esta sección es la extensión subestacional, equivalente a la Fase 3 del ROADMAP). Donde un texto anterior diga "hipótesis de la Fase 1", léase "hipótesis de la Fase 2 · Calibración". X = 60 % sin cambios.
+
 **Fase 2 (meses):** extender el horizonte a 2–6 semanas (la brecha subestacional, S2S) con modelos de ML, siempre comparados contra climatología, persistencia y el ensemble calibrado de la Fase 1.
 
 Métricas: CRPS / CRPSS, Brier score en eventos (calor extremo, helada, lluvia intensa), diagrama de fiabilidad.
