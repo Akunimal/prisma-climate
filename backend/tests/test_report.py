@@ -745,3 +745,65 @@ def test_honest_reading_controls_sentence() -> None:
     )
     assert "Controls (" not in reading_without
 
+
+def _flag_bias_fixture() -> pd.DataFrame:
+    rows = [
+        ("all years", "G", 32477, -1.37603842719463),
+        ("all years", "I", 51, -3.9549019607843134),
+        ("all years", "S", 80821, -3.4457331634104995),
+        ("1996-2003", "G", 30947, -1.3705948880343815),
+        ("1996-2003", "I", 51, -3.9549019607843134),
+        ("1996-2003", "S", 10882, -3.404429332843227),
+        ("2004", "G", 1530, -1.4861437908496733),
+        ("2004", "S", 2371, -3.4755377477857445),
+        ("2005-2025", "S", 67568, -3.451339391427895),
+    ]
+    return pd.DataFrame(
+        rows, columns=["period", "source_flag", "n_pairs", "mean_bias_era5_minus_ghcn"]
+    )
+
+
+def _flag_counts_fixture() -> pd.DataFrame:
+    rows: list[tuple[str, int, str, str, int]] = []
+    for year in range(1996, 2004):
+        rows.append(("Station A", year, "1996-2003", "G", 74))
+        rows.append(("Station A", year, "1996-2003", "S", 26))
+    rows.append(("Station A", 2004, "2004", "G", 40))
+    rows.append(("Station A", 2004, "2004", "S", 60))
+    for year in range(2005, 2026):
+        rows.append(("Station A", year, "2005-2025", "S", 100))
+    return pd.DataFrame(
+        rows, columns=["location", "year", "period", "source_flag", "n"]
+    )
+
+
+def test_honest_reading_source_flag_sentence() -> None:
+    t2m = pd.DataFrame(_t2m_pair_rows())
+    reading = render_honest_reading(
+        t2m,
+        None,
+        reattribution=_reattribution_fixture(),
+        shared_days=0,
+        per_year=_per_year_fixture(),
+        matched=_matched_fixture(),
+        flag_bias=_flag_bias_fixture(),
+        flag_counts=_flag_counts_fixture(),
+    )
+    assert "**Source-flag association (2026-11-13):**" in reading
+    assert "113,349 paired TMAX days" in reading
+    assert "averages -1.38 °C on G-flag values (n=32,477)" in reading
+    assert "-3.45 °C on S-flag (GSOD-derived) values (n=80,821)" in reading
+    assert "G -1.49 to -1.37 °C; S -3.48 to -3.40 °C" in reading
+    assert "100.0% S-flag from 2005 onward (G share 74.0% in 1996–2003" in reading
+    assert "40.0% in 2004)" in reading
+    assert "coincides with this G→S switch" in reading
+    assert "SMN leg averages -1.00 °C" in reading
+    assert "read as an association: the excess against GHCN is tied to GSOD-derived" in reading
+    assert "mechanism not established" in reading
+    # Without the audit tables the sentence is omitted, correction stays.
+    reading_without = render_honest_reading(
+        t2m, None, reattribution=_reattribution_fixture(), shared_days=0
+    )
+    assert "Source-flag association" not in reading_without
+    assert "**Correction (2026-11-13):**" in reading_without
+

@@ -42,7 +42,7 @@ Human-readable version of [`configs/sources.yaml`](../configs/sources.yaml). If 
 - **License:** public domain (NOAA/NCEI, U.S. Government)
 - **Redistribution:** `yes`
 - **Verified:** 2026-11-11 (inventory: all 19 configured stations report TMAX/TMIN/PRCP through 2025)
-- **Notes:** staleness observed at source: the last valid rows for the 19 region stations are **2025-08-24**, and daily coverage is about **50% of days since 2005**; both facts re-verified **2026-11-12 and 2026-11-13** (raw `.dly` re-read; `results/qc/freshness.md`, `results/discrepancies/`). The nominal `latency: days` stands as the product's intent — the observed lag is recorded next to it, never filled.
+- **Notes:** staleness observed at source: the last valid rows for the 19 region stations are **2025-08-24**, and daily coverage is about **50% of days since 2005**; both facts re-verified **2026-11-12 and 2026-11-13** (raw `.dly` re-read; `results/qc/freshness.md`, `results/discrepancies/`). Source-flag audit (2026-11-13, `results/discrepancies/tmax_source_flag_audit.md`): TMAX is **100% S-flag (GSOD-derived) from 2005 onward** (G share 73.9% in 1996–2003, 39.2% in 2004), and ISD/GSOD share the **same 2025-08-24 cutoff** as GHCN's last valid row (tier-2 section below). The nominal `latency: days` stands as the product's intent — the observed lag is recorded next to it, never filled.
 
 ### NOAA ONI — `noaa-oni`
 

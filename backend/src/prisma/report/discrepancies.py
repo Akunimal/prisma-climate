@@ -422,6 +422,8 @@ def render_decomposition_section(
     shared_days: int | None = None,
     per_year: pd.DataFrame | None = None,
     matched: pd.DataFrame | None = None,
+    flag_bias: pd.DataFrame | None = None,
+    flag_counts: pd.DataFrame | None = None,
 ) -> str:
     """Markdown section with residual bias after each adjustment step."""
     lines = [
@@ -515,6 +517,8 @@ def render_decomposition_section(
             shared_days=shared_days,
             per_year=per_year,
             matched=matched,
+            flag_bias=flag_bias,
+            flag_counts=flag_counts,
         )
     )
     return "\n".join(lines)
@@ -590,6 +594,8 @@ def _leg_dependence_correction(
     shared_days: int | None,
     per_year: pd.DataFrame | None = None,
     matched: pd.DataFrame | None = None,
+    flag_bias: pd.DataFrame | None = None,
+    flag_counts: pd.DataFrame | None = None,
 ) -> list[str]:
     """Dated correction: the residual's size is leg-dependent, not one constant.
 
@@ -632,9 +638,100 @@ def _leg_dependence_correction(
         "(matched-calendar adjacent); none is asserted here as the cause.",
     ]
     controls = _controls_sentence(per_year, matched)
+    flag_line = _source_flag_sentence(
+        flag_bias, flag_counts, smn_mean=float(smn_bias.mean())
+    )
+    lines_out = [lines[0]]
+    if flag_line:
+        lines_out.append(flag_line)
     if controls:
-        lines.append(controls)
-    return lines
+        lines_out.append(controls)
+    return lines_out
+
+
+def _source_flag_sentence(
+    flag_bias: pd.DataFrame | None,
+    flag_counts: pd.DataFrame | None,
+    smn_mean: float,
+) -> str:
+    """One dated sentence: source-flag association, numbers from the audit tables.
+
+    Both inputs come from ``scripts/ghcn_tmax_source_flag_audit.py`` outputs
+    under results/discrepancies/; returns "" when either table is missing.
+    """
+    if flag_bias is None or flag_bias.empty or flag_counts is None or flag_counts.empty:
+        return ""
+    needed_bias = {"period", "source_flag", "n_pairs", "mean_bias_era5_minus_ghcn"}
+    needed_counts = {"year", "period", "source_flag", "n"}
+    if not needed_bias.issubset(flag_bias.columns) or not needed_counts.issubset(
+        flag_counts.columns
+    ):
+        return ""
+    all_years = flag_bias.loc[flag_bias["period"].eq("all years")]
+    g_all = all_years.loc[all_years["source_flag"].eq("G")]
+    s_all = all_years.loc[all_years["source_flag"].eq("S")]
+    if g_all.empty or s_all.empty:
+        return ""
+    g_bias = float(g_all["mean_bias_era5_minus_ghcn"].iloc[0])
+    s_bias = float(s_all["mean_bias_era5_minus_ghcn"].iloc[0])
+    n_g = int(g_all["n_pairs"].iloc[0])
+    n_s = int(s_all["n_pairs"].iloc[0])
+    n_total = n_g + n_s + int(
+        pd.to_numeric(all_years["n_pairs"], errors="coerce")
+        .loc[all_years["source_flag"].ne("G") & all_years["source_flag"].ne("S")]
+        .sum()
+    )
+    g_periods = pd.to_numeric(
+        flag_bias.loc[
+            flag_bias["source_flag"].eq("G") & ~flag_bias["period"].eq("all years"),
+            "mean_bias_era5_minus_ghcn",
+        ],
+        errors="coerce",
+    ).dropna()
+    s_periods = pd.to_numeric(
+        flag_bias.loc[
+            flag_bias["source_flag"].eq("S") & ~flag_bias["period"].eq("all years"),
+            "mean_bias_era5_minus_ghcn",
+        ],
+        errors="coerce",
+    ).dropna()
+    if g_periods.empty or s_periods.empty:
+        return ""
+    counts = flag_counts.copy()
+    counts["n"] = pd.to_numeric(counts["n"], errors="coerce").fillna(0)
+
+    def share(period: str, flag: str) -> float:
+        block = counts.loc[counts["period"].eq(period)]
+        total = float(block["n"].sum())
+        if total <= 0:
+            return float("nan")
+        return 100.0 * float(block.loc[block["source_flag"].eq(flag), "n"].sum()) / total
+
+    share_g_early = share("1996-2003", "G")
+    share_g_2004 = share("2004", "G")
+    since_2005 = counts.loc[pd.to_numeric(counts["year"], errors="coerce").ge(2005)]
+    if since_2005.empty or float(since_2005["n"].sum()) <= 0:
+        return ""
+    share_s_since_2005 = (
+        100.0 * float(since_2005.loc[since_2005["source_flag"].eq("S"), "n"].sum())
+    ) / float(since_2005["n"].sum())
+    return (
+        f"- **Source-flag association ({LEG_CORRECTION_DATE}):** over "
+        f"{n_total:,} paired TMAX days (audit "
+        "`tmax_bias_by_source_flag.csv` and `tmax_source_flag_audit.md`) the "
+        "ERA5−GHCN t2m_max bias "
+        f"averages {g_bias:+.2f} °C on G-flag values (n={n_g:,}) and "
+        f"{s_bias:+.2f} °C on S-flag (GSOD-derived) values (n={n_s:,}), each "
+        f"flag stable across periods (G {float(g_periods.min()):+.2f} to "
+        f"{float(g_periods.max()):+.2f} °C; S {float(s_periods.min()):+.2f} to "
+        f"{float(s_periods.max()):+.2f} °C); GHCN TMAX is "
+        f"{share_s_since_2005:.1f}% S-flag from 2005 onward (G share "
+        f"{share_g_early:.1f}% in 1996–2003 and {share_g_2004:.1f}% in 2004), "
+        "so the 2004–2005 step in the period-mean bias coincides with this "
+        f"G→S switch, while the SMN leg averages {smn_mean:+.2f} °C — read as "
+        "an association: the excess against GHCN is tied to GSOD-derived "
+        "values, mechanism not established."
+    )
 
 
 def _controls_sentence(
@@ -729,6 +826,8 @@ def render_honest_reading(
     shared_days: int | None = None,
     per_year: pd.DataFrame | None = None,
     matched: pd.DataFrame | None = None,
+    flag_bias: pd.DataFrame | None = None,
+    flag_counts: pd.DataFrame | None = None,
 ) -> str:
     """Honest reading computed from the decomposition table (never hand-edited)."""
     lines = [
@@ -802,7 +901,12 @@ def render_honest_reading(
             "grid values at these stations**; no causal claim is made here."
         )
         lines += _leg_dependence_correction(
-            reattribution, shared_days, per_year=per_year, matched=matched
+            reattribution,
+            shared_days,
+            per_year=per_year,
+            matched=matched,
+            flag_bias=flag_bias,
+            flag_counts=flag_counts,
         )
     elif finals.notna().any():
         lines.append(
@@ -1093,6 +1197,12 @@ def main(argv: list[str] | None = None) -> int:
         shared_days = overlap_days(paired_ghcn, paired_smn)
         per_year = per_year_bias(paired_ghcn)
         matched = matched_calendar_table(paired_ghcn, paired_smn)
+        flag_bias_path = args.out_dir / "tmax_bias_by_source_flag.csv"
+        flag_counts_path = args.out_dir / "tmax_source_flag_counts.csv"
+        flag_bias = pd.read_csv(flag_bias_path) if flag_bias_path.is_file() else None
+        flag_counts = pd.read_csv(flag_counts_path) if flag_counts_path.is_file() else None
+        if flag_bias is None or flag_counts is None:
+            print("source-flag audit tables absent; source-flag sentence skipped")
         decomposition_section = render_decomposition_section(
             t2m_table,
             precip_table,
@@ -1102,6 +1212,8 @@ def main(argv: list[str] | None = None) -> int:
             shared_days=shared_days,
             per_year=per_year,
             matched=matched,
+            flag_bias=flag_bias,
+            flag_counts=flag_counts,
         )
         if not t2m_table.empty:
             t2m_table.to_csv(args.out_dir / "era5_vs_ghcn_t2m_max_decomposition.csv", index=False)
