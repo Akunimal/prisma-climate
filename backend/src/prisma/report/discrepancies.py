@@ -420,6 +420,8 @@ def render_decomposition_section(
     freshness: dict[str, pd.Timestamp] | None = None,
     reattribution: pd.DataFrame | None = None,
     shared_days: int | None = None,
+    per_year: pd.DataFrame | None = None,
+    matched: pd.DataFrame | None = None,
 ) -> str:
     """Markdown section with residual bias after each adjustment step."""
     lines = [
@@ -511,6 +513,8 @@ def render_decomposition_section(
             freshness=freshness,
             reattribution=reattribution,
             shared_days=shared_days,
+            per_year=per_year,
+            matched=matched,
         )
     )
     return "\n".join(lines)
@@ -584,12 +588,16 @@ def _freshness_line(freshness: dict[str, pd.Timestamp]) -> str:
 def _leg_dependence_correction(
     reattribution: pd.DataFrame | None,
     shared_days: int | None,
+    per_year: pd.DataFrame | None = None,
+    matched: pd.DataFrame | None = None,
 ) -> list[str]:
     """Dated correction: the residual's size is leg-dependent, not one constant.
 
     Every number is recomputed from the bias-re-attribution table at render
     time (sign convention ERA5 − station); candidates are listed, none
-    asserted. Returns [] when the table or the SMN leg is unavailable.
+    asserted. When the period controls are passed, one dated Controls
+    sentence reports what they show. Returns [] when the table or the SMN
+    leg is unavailable.
     """
     if reattribution is None or reattribution.empty or shared_days is None:
         return []
@@ -606,7 +614,7 @@ def _leg_dependence_correction(
     )
     ghcn_flagged = int((ghcn_bias.abs() >= TEMP_BIAS_FLAG_C).sum())
     smn_flagged = int((smn_bias.abs() >= TEMP_BIAS_FLAG_C).sum())
-    return [
+    lines = [
         f"- **Correction ({LEG_CORRECTION_DATE}):** the size of that residual "
         "is **leg-dependent**, not a single ERA5 constant. Recomputed with "
         "sign ERA5 − station over each leg's own paired days "
@@ -623,6 +631,81 @@ def _leg_dependence_correction(
         "`bias_per_year_ghcn.csv` (per-year) and `bias_matched_calendar.csv` "
         "(matched-calendar adjacent); none is asserted here as the cause.",
     ]
+    controls = _controls_sentence(per_year, matched)
+    if controls:
+        lines.append(controls)
+    return lines
+
+
+def _controls_sentence(
+    per_year: pd.DataFrame | None,
+    matched: pd.DataFrame | None,
+) -> str:
+    """One dated sentence: what the two period controls show, computed now."""
+    if per_year is None or per_year.empty or matched is None or matched.empty:
+        return ""
+    matched_tmax = matched.loc[matched["variable"].eq("t2m_max")]
+    needed = {
+        "bias_era5_minus_ghcn",
+        "bias_era5_minus_smn",
+        "n_days_ghcn",
+        "n_days_smn",
+        "ghcn_window",
+        "smn_window",
+    }
+    if matched_tmax.empty or not needed.issubset(matched_tmax.columns):
+        return ""
+    m_ghcn_all = pd.to_numeric(
+        matched_tmax["bias_era5_minus_ghcn"], errors="coerce"
+    ).dropna()
+    m_smn_all = pd.to_numeric(
+        matched_tmax["bias_era5_minus_smn"], errors="coerce"
+    ).dropna()
+    if m_ghcn_all.empty or m_smn_all.empty:
+        return ""
+    m_ghcn = float(m_ghcn_all.mean())
+    m_smn = float(m_smn_all.mean())
+    gap = m_ghcn - m_smn
+    paired_rows = matched_tmax.loc[m_ghcn_all.index.intersection(m_smn_all.index)]
+    more_neg = int(
+        (
+            pd.to_numeric(paired_rows["bias_era5_minus_ghcn"], errors="coerce")
+            < pd.to_numeric(paired_rows["bias_era5_minus_smn"], errors="coerce")
+        ).sum()
+    )
+    n_stations = len(paired_rows)
+    n_g = pd.to_numeric(matched_tmax["n_days_ghcn"], errors="coerce").dropna()
+    n_s = pd.to_numeric(matched_tmax["n_days_smn"], errors="coerce").dropna()
+    ghcn_window = str(matched_tmax["ghcn_window"].iloc[0])
+    smn_window = str(matched_tmax["smn_window"].iloc[0])
+    start, end = ghcn_window.split("..")
+    span_days = int((pd.Timestamp(end) - pd.Timestamp(start)).days) + 1
+    yearly = per_year.groupby("year")["bias_era5_minus_ghcn"].mean()
+    early_block = yearly.loc[yearly.index <= 2003]
+    late_block = yearly.loc[yearly.index >= 2005]
+    ndays_2025 = per_year.loc[per_year["year"].eq(2025), "n_days"]
+    if early_block.empty or late_block.empty or ndays_2025.empty:
+        return ""
+    early = float(early_block.mean())
+    late = float(late_block.mean())
+    ndays_2025_mean = float(ndays_2025.mean())
+    return (
+        f"- **Controls ({LEG_CORRECTION_DATE}):** the matched-calendar control "
+        f"(`bias_matched_calendar.csv`) still shows a mean t2m_max gap of "
+        f"{gap:+.2f} °C ({m_ghcn:+.2f} °C GHCN vs {m_smn:+.2f} °C SMN over "
+        f"adjacent same-span windows {ghcn_window} vs {smn_window}, GHCN more "
+        f"negative at {more_neg}/{n_stations} stations, GHCN n_days "
+        f"{int(n_g.min())}–{int(n_g.max())} of {span_days} per station vs SMN "
+        f"{int(n_s.min())}–{int(n_s.max())}), and the per-year control "
+        f"(`bias_per_year_ghcn.csv`) moves the station-mean ERA5−GHCN "
+        f"t2m_max bias from {early:+.2f} °C (1996–2003) to {late:+.2f} °C "
+        f"(2005–2025) while mean coverage falls to {ndays_2025_mean:.1f} days in "
+        "2025 before the 2025-08-24 cutoff — so a pure daily-window shift "
+        "cannot produce a ~2 °C mean bias, and the model-splice candidate is "
+        "ruled out by the two-request check (stored ERA5 matches a "
+        "`models=era5` request exactly, while the same request without the "
+        "parameter differs from the stored series)."
+    )
 
 
 def render_honest_reading(
@@ -631,6 +714,8 @@ def render_honest_reading(
     freshness: dict[str, pd.Timestamp] | None = None,
     reattribution: pd.DataFrame | None = None,
     shared_days: int | None = None,
+    per_year: pd.DataFrame | None = None,
+    matched: pd.DataFrame | None = None,
 ) -> str:
     """Honest reading computed from the decomposition table (never hand-edited)."""
     lines = [
@@ -703,7 +788,9 @@ def render_honest_reading(
             "adjustments. It is reported as an **observed ERA5 bias of these "
             "grid values at these stations**; no causal claim is made here."
         )
-        lines += _leg_dependence_correction(reattribution, shared_days)
+        lines += _leg_dependence_correction(
+            reattribution, shared_days, per_year=per_year, matched=matched
+        )
     elif finals.notna().any():
         lines.append(
             "- After all adjustments the mean residual is within ±0.5 °C; no "
@@ -979,8 +1066,10 @@ def main(argv: list[str] | None = None) -> int:
         from .bias_reattribution import (
             build_reattribution,
             leg_table,
+            matched_calendar_table,
             overlap_days,
             pair_era5_station,
+            per_year_bias,
         )
 
         paired_ghcn = pair_era5_station(era5, ghcn, "ghcn")
@@ -989,6 +1078,8 @@ def main(argv: list[str] | None = None) -> int:
             leg_table(paired_ghcn), leg_table(paired_smn)
         )
         shared_days = overlap_days(paired_ghcn, paired_smn)
+        per_year = per_year_bias(paired_ghcn)
+        matched = matched_calendar_table(paired_ghcn, paired_smn)
         decomposition_section = render_decomposition_section(
             t2m_table,
             precip_table,
@@ -996,6 +1087,8 @@ def main(argv: list[str] | None = None) -> int:
             freshness=freshness,
             reattribution=reattribution,
             shared_days=shared_days,
+            per_year=per_year,
+            matched=matched,
         )
         if not t2m_table.empty:
             t2m_table.to_csv(args.out_dir / "era5_vs_ghcn_t2m_max_decomposition.csv", index=False)

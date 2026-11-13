@@ -658,3 +658,82 @@ def test_decomposition_section_passes_correction_through() -> None:
     without = render_decomposition_section(t2m, precip, None)
     assert "Correction (" not in without
 
+
+def _per_year_fixture() -> pd.DataFrame:
+    rows: list[dict[str, object]] = []
+    for year in range(1996, 2004):
+        rows.append(
+            {
+                "location": "Salta Aero",
+                "year": year,
+                "n_days": 300,
+                "bias_era5_minus_ghcn": -2.0,
+                "first_day": f"{year}-01-01",
+                "last_day": f"{year}-12-31",
+            }
+        )
+    for year in range(2005, 2026):
+        rows.append(
+            {
+                "location": "Salta Aero",
+                "year": year,
+                "n_days": 114 if year == 2025 else 180,
+                "bias_era5_minus_ghcn": -3.5,
+                "first_day": f"{year}-01-01",
+                "last_day": f"{year}-12-31",
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _matched_fixture() -> pd.DataFrame:
+    rows: list[dict[str, object]] = []
+    for location, n_ghcn in (("Salta Aero", 120), ("Rosario", 150)):
+        for variable in ("t2m_max", "t2m_min"):
+            rows.append(
+                {
+                    "location": location,
+                    "variable": variable,
+                    "n_days_ghcn": n_ghcn,
+                    "bias_era5_minus_ghcn": -3.5,
+                    "corr_ghcn": 0.95,
+                    "flags_ghcn": "|bias| >= 3 C",
+                    "n_days_smn": 287,
+                    "bias_era5_minus_smn": -1.0,
+                    "corr_smn": 0.99,
+                    "flags_smn": "",
+                    "bias_diff_ghcn_minus_smn": -2.5,
+                    "ghcn_window": "2024-11-11..2025-08-24",
+                    "smn_window": "2025-11-11..2026-08-24",
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def test_honest_reading_controls_sentence() -> None:
+    t2m = pd.DataFrame(_t2m_pair_rows())
+    reading = render_honest_reading(
+        t2m,
+        None,
+        reattribution=_reattribution_fixture(),
+        shared_days=0,
+        per_year=_per_year_fixture(),
+        matched=_matched_fixture(),
+    )
+    assert "**Controls (2026-11-13):**" in reading
+    assert "gap of -2.50 °C" in reading
+    assert "-3.50 °C GHCN vs -1.00 °C SMN" in reading
+    assert "GHCN more negative at 2/2 stations" in reading
+    assert "120–150 of 287" in reading
+    assert "from -2.00 °C (1996–2003) to -3.50 °C (2005–2025)" in reading
+    assert "114.0 days in 2025" in reading
+    assert "pure daily-window shift cannot produce a ~2 °C mean bias" in reading
+    assert "model-splice candidate is ruled out by the two-request check" in reading
+    # Original correction bullet is still present and unchanged in substance.
+    assert "**Correction (2026-11-13):**" in reading
+    # Controls sentence needs both tables; without them it is omitted.
+    reading_without = render_honest_reading(
+        t2m, None, reattribution=_reattribution_fixture(), shared_days=0
+    )
+    assert "Controls (" not in reading_without
+
