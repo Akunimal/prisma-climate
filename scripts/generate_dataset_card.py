@@ -125,9 +125,12 @@ license: cc-by-4.0
 
 Daily archived ensemble forecasts for the 19 configured stations in Argentina,
 produced by [PRISMA](https://github.com/Akunimal/prisma-climate), an open
-forecast-verification project. Past forecasts cannot be re-fetched from the
-provider, so every issue date is archived on the day it is retrieved: a missed
-day is lost verification data.
+forecast-verification project. Past ensemble forecasts are only partially
+re-fetchable from the provider (member data is retained for about 3 days, so a
+very recent missed day can be repaired inside that window), but no deep
+uniform-cycle ensemble backfill exists: every issue date is archived on the day
+it is retrieved, and a missed day beyond the retention window is lost
+verification data.
 
 ## Layout
 

@@ -1,8 +1,11 @@
 # Daily forecast archive.
 #
-# Past ensemble forecasts are not retrievable from the provider: every missed
-# day is lost verification data. This workflow therefore runs daily, stores the
-# forecast with its issue time, and uploads the archive outside git.
+# Past ensemble forecasts are only partially retrievable from the provider:
+# member data is retained for about 3 days, so a very recent missed day can be
+# repaired inside that window; beyond it no uniform-cycle ensemble backfill
+# exists, so a missed day is lost verification data. This workflow therefore
+# runs daily, stores the forecast with its issue time, and uploads the archive
+# outside git.
 #
 # Storage policy:
 #   - Raw/archived data is NEVER committed to this repository.
