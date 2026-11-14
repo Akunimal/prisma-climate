@@ -211,6 +211,23 @@ sources keep their own terms:
   evaluation gate counts distinct issue dates regardless of trigger, so this
   manually rescued date counts.
 
+## Provenance - 2026-11-14 (owner-side dispatch test)
+
+- **Canonical file:** `forecasts/2026-11-14/openmeteo-ensemble_2026-11-14.parquet`,
+  sha256 `00fe47d5212da955f042ebf4b8036c168a456f1d40054ab6027e5e6a1c0e00ac`
+  (111,598 bytes, 74,784 rows), archived by `ingest.yml` run
+  <https://github.com/Akunimal/prisma-climate/actions/runs/43533076811>
+  (conclusion `success`) from the owner-side dispatch test registered in
+  [`docs/OPERATIONS.md`](https://github.com/Akunimal/prisma-climate/blob/main/docs/OPERATIONS.md).
+  The dispatch was queued at 2026-11-14T00:16:33Z and the file's `issue_time`
+  reads 2026-11-14 00:16:46 UTC. Under "first archive of an issue date is
+  canonical and frozen" it is the file of record for the day.
+- **Issue hour:** 00:16 UTC, a fourth distinct issue hour — the earlier dates
+  carry 16:27 (2026-11-11), 08:31 (2026-11-12) and 16:24 (2026-11-13) — and the
+  first midnight fetch. `results/archive_issue_hours/` (sample metadata only)
+  lists the four dates, two in each band of protocol section 3.2.2. No CRPS,
+  Brier or reliability value is computed or published for it.
+
 ## Evaluation gate
 
 Skill metrics and any leaderboard are published only once **15 distinct issue

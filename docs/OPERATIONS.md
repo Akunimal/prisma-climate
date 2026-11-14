@@ -30,3 +30,10 @@ Disabling the task does not touch the script or the log; the log (`%LOCALAPPDATA
 
 **Test execution (2026-11-14, owner-authorized, exactly one manual run of the script).** Both dispatches queued at 2026-11-14T00:16:33Z / 00:16:36Z: ingest [run 43533076811](https://github.com/Akunimal/prisma-climate/actions/runs/43533076811) concluded **success**; observations [run 43533080727](https://github.com/Akunimal/prisma-climate/actions/runs/43533080727) concluded **failure** — both daily payloads (datohorario, observaciones) came back carrying no parseable `FECHA` value at 00:16Z (SMN-side content at fetch time), the workflow's failure path reported "A capture failed; that payload is lost for the day (no backfill)", and the gap-visibility step ran successfully for the first time. The `regtemp` capture step in that run concluded success.
 
+## Issue date 2026-11-14 — provenance of the canonical forecast file
+
+**What archived it.** The 2026-11-14 issue date was archived by the owner-side dispatch test above: `ingest.yml` [run 43533076811](https://github.com/Akunimal/prisma-climate/actions/runs/43533076811), queued 2026-11-14T00:16:33Z and concluded `success`, wrote `forecasts/2026-11-14/openmeteo-ensemble_2026-11-14.parquet` (sha256 `00fe47d5212da955f042ebf4b8036c168a456f1d40054ab6027e5e6a1c0e00ac`, 111,598 bytes, 74,784 rows). The file's own `issue_time` column reads **2026-11-14 00:16:46 UTC** — 13 s after the dispatch was queued. Under the "first archive of an issue date is canonical and frozen" rule this midnight file is the file of record for the day.
+
+**Why the hour matters.** The three earlier issue dates carry issue times 2026-11-11 16:27:24, 2026-11-12 08:31:23 and 2026-11-13 16:24:08 UTC; 00:16:46 is a **fourth, distinct issue hour** and the first midnight fetch, so the issue-hour distribution now holds two dates per protocol section 3.2.2 band (`results/archive_issue_hours/`). This is provenance for **sample metadata only**: no CRPS, Brier or reliability value is computed, printed, logged or written on real data here (the 15-issue-date gate stood at 4/15 on 2026-11-14; earliest open 2026-11-25).
+
+
