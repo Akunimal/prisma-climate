@@ -572,4 +572,217 @@ def test_regtemp_without_data_rows_stays_a_failure(
     err = capsys.readouterr().err
     assert "regtemp: capture failed: regtemp payload carries no parseable FECHA value" in err
     assert "payload diagnostics:" in err
+
+
+REGTEMP_MEMBER = "registro_temperatura365d_smn.txt"
+RELEASE_TAG = "observations-regtemp-2026-11-10"
+
+
+class _FakeHfApi:
+    """Minimal HfApi double: records commits, remembers what is present."""
+
+    present: set[str] = set()
+    commits: list[list[str]] = []
+
+    def __init__(self, token: str | None = None) -> None:
+        self.token = token
+
+    def create_repo(self, repo: str, repo_type: str | None = None, exist_ok: bool = False):
+        return None
+
+    def file_exists(self, repo: str, target: str, repo_type: str | None = None) -> bool:
+        return target in self.present
+
+    def upload_folder(self, folder_path: str, path_in_repo: str, **_kwargs) -> None:
+        files = sorted(p.name for p in Path(folder_path).iterdir())
+        self.commits.append([f"{path_in_repo}/{name}" for name in files])
+        self.present.update(f"{path_in_repo}/{name}" for name in files)
+
+
+def _install_fake_hub(monkeypatch, present: set[str] | None = None):
+    cls = type("FakeHfApi", (_FakeHfApi,), {})
+    cls.present = set(present or ())
+    cls.commits = []
+    fake_hub = types.ModuleType("huggingface_hub")
+    fake_hub.HfApi = cls  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "huggingface_hub", fake_hub)
+    return cls
+
+
+def _release_dir(
+    root: Path,
+    payload: bytes,
+    *,
+    sha256_zip: str | None = None,
+    retrieved_at: str = "2026-11-12T01:41:32Z",
+) -> Path:
+    release = root / "release"
+    release.mkdir(parents=True, exist_ok=True)
+    (release / "regtemp.zip").write_bytes(payload)
+    body = {
+        "sha256_zip": (
+            sha256_zip if sha256_zip is not None else hashlib.sha256(payload).hexdigest()
+        ),
+        "retrieved_at": retrieved_at,
+    }
+    (release / "manifest.json").write_text(json.dumps(body), encoding="utf-8")
+    return release
+
+
+def _release_argv(release: Path, out: Path, payload: bytes, *, upload: bool) -> list[str]:
+    argv = [
+        "--payloads",
+        "regtemp",
+        "--release-assets",
+        str(release),
+        "--release-tag",
+        RELEASE_TAG,
+        "--expected-sha256",
+        hashlib.sha256(payload).hexdigest(),
+        "--out",
+        str(out),
+    ]
+    if upload:
+        argv.append("--upload")
+    return argv
+
+
+def test_member_sha256_hashes_the_member_bytes(capture) -> None:
+    payload = make_zip(REGTEMP_MEMBER, REGTEMP_TEXT)
+    assert capture.member_sha256(payload) == hashlib.sha256(
+        REGTEMP_TEXT.encode("latin-1")
+    ).hexdigest()
+
+
+def test_release_mode_publishes_the_zip_and_a_regenerated_manifest(
+    tmp_path: Path, monkeypatch, capture
+) -> None:
+    monkeypatch.setenv("HF_TOKEN", "test-token")
+    monkeypatch.setenv("HF_DATASET_REPO", "Akunimal/prisma-climate")
+    monkeypatch.setenv("GITHUB_REPOSITORY", "Akunimal/prisma-climate")
+    monkeypatch.delenv("GITHUB_RUN_ID", raising=False)
+    payload = make_zip(REGTEMP_MEMBER, REGTEMP_TEXT)
+    release = _release_dir(tmp_path, payload)
+    api = _install_fake_hub(monkeypatch)
+    out = tmp_path / "staged"
+
+    argv = _release_argv(release, out, payload, upload=True)
+    argv += ["--expected-member-sha256", capture.member_sha256(payload)]
+    assert capture.main(argv) == 0
+
+    assert api.commits == [
+        [
+            "observations/smn/regtemp/2026-11-10/manifest.json",
+            "observations/smn/regtemp/2026-11-10/regtemp.zip",
+        ]
+    ], "payload and manifest must leave in one commit"
+    body = json.loads(
+        (out / "regtemp" / "2026-11-10" / "manifest.json").read_text(encoding="utf-8")
+    )
+    assert body["capture_key"] == "2026-11-10"
+    assert body["sha256_zip"] == hashlib.sha256(payload).hexdigest()
+    assert body["retrieved_at"] == "2026-11-12T01:41:32Z"
+    assert body["requests_used"] == 0
+    assert body["hf_upload"] == "uploaded"
+    assert body["retrieval"]["mode"] == "local"
+    assert body["retrieval"]["retrieved_at"] == "2026-11-12T01:41:32Z"
+    assert body["publication"]["channel"] == "github_release_mirror"
+    assert body["publication"]["release_tag"] == RELEASE_TAG
+    assert body["publication"]["release_url"] == (
+        f"https://github.com/Akunimal/prisma-climate/releases/tag/{RELEASE_TAG}"
+    )
+    assert body["publication"]["release_manifest_sha256"] == hashlib.sha256(
+        (release / "manifest.json").read_bytes()
+    ).hexdigest()
+    assert body["publication"]["published_at"].endswith("Z")
+
+
+def test_release_mode_refuses_a_zip_that_disagrees_with_its_manifest(
+    tmp_path: Path, monkeypatch, capture, capsys
+) -> None:
+    payload = make_zip(REGTEMP_MEMBER, REGTEMP_TEXT)
+    release = _release_dir(tmp_path, payload, sha256_zip="0" * 64)
+    api = _install_fake_hub(monkeypatch)
+
+    code = capture.main(_release_argv(release, tmp_path / "staged", payload, upload=True))
+    assert code == 1
+    assert api.commits == []
+    assert "does not match the sha256_zip recorded in its manifest" in capsys.readouterr().err
+
+
+def test_release_mode_refuses_a_pinned_sha_mismatch(
+    tmp_path: Path, monkeypatch, capture, capsys
+) -> None:
+    payload = make_zip(REGTEMP_MEMBER, REGTEMP_TEXT)
+    release = _release_dir(tmp_path, payload)
+    api = _install_fake_hub(monkeypatch)
+    argv = _release_argv(release, tmp_path / "staged", payload, upload=True)
+    argv[argv.index("--expected-sha256") + 1] = "0" * 64
+
+    assert capture.main(argv) == 1
+    assert api.commits == []
+    assert "does not match the pinned" in capsys.readouterr().err
+
+
+def test_release_mode_refuses_a_member_sha_mismatch(
+    tmp_path: Path, monkeypatch, capture, capsys
+) -> None:
+    payload = make_zip(REGTEMP_MEMBER, REGTEMP_TEXT)
+    release = _release_dir(tmp_path, payload)
+    out = tmp_path / "staged"
+    argv = _release_argv(release, out, payload, upload=False)
+    argv += ["--expected-member-sha256", "0" * 64]
+
+    assert capture.main(argv) == 1
+    assert "does not match the pinned" in capsys.readouterr().err
+    assert not (out / "regtemp" / "2026-11-10").exists()
+
+
+def test_release_mode_skips_a_capture_already_published(
+    tmp_path: Path, monkeypatch, capture
+) -> None:
+    monkeypatch.setenv("HF_TOKEN", "test-token")
+    monkeypatch.setenv("HF_DATASET_REPO", "Akunimal/prisma-climate")
+    monkeypatch.delenv("GITHUB_RUN_ID", raising=False)
+    payload = make_zip(REGTEMP_MEMBER, REGTEMP_TEXT)
+    release = _release_dir(tmp_path, payload)
+    api = _install_fake_hub(
+        monkeypatch,
+        present={
+            "observations/smn/regtemp/2026-11-10/regtemp.zip",
+            "observations/smn/regtemp/2026-11-10/manifest.json",
+        },
+    )
+    argv = _release_argv(release, tmp_path / "staged", payload, upload=True)
+    argv += ["--expected-member-sha256", capture.member_sha256(payload)]
+
+    assert capture.main(argv) == 0
+    assert api.commits == [], "an already-published capture is never overwritten"
+
+
+def test_release_mode_requires_one_payload_and_a_tag(
+    tmp_path: Path, capture, capsys
+) -> None:
+    payload = make_zip(REGTEMP_MEMBER, REGTEMP_TEXT)
+    release = _release_dir(tmp_path, payload)
+    two_payloads = capture.main(
+        [
+            "--payloads",
+            "regtemp",
+            "observaciones",
+            "--release-assets",
+            str(release),
+            "--release-tag",
+            RELEASE_TAG,
+        ]
+    )
+    assert two_payloads == 1
+    no_tag = capture.main(
+        ["--payloads", "regtemp", "--release-assets", str(release)]
+    )
+    assert no_tag == 1
+    err = capsys.readouterr().err
+    assert "exactly one --payloads entry" in err
+    assert "--release-assets requires --release-tag" in err
+
     assert "not available yet" not in err

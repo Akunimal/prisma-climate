@@ -1,10 +1,12 @@
 """Capture SMN open-data payloads and archive them under ``observations/smn/``.
 
-Used by ``.github/workflows/observations.yml`` only. The Hugging Face write token
-stays an Actions secret: every upload happens in CI, this script is never run
-with the token locally, and the workflow never commits to ``main`` — a run's
-identity travels in the manifest it writes to Hugging Face instead of in a
-heartbeat commit.
+Used by ``.github/workflows/observations.yml`` (network captures) and by the
+observations leg of ``.github/workflows/hf-backfill.yml`` (a capture retrieved
+once, published through a GitHub Release and mirrored from those assets). The
+Hugging Face write token stays an Actions secret: every upload happens in CI,
+this script is never run with the token locally, and neither workflow commits to
+``main`` — a run's identity travels in the manifest it writes to Hugging Face
+instead of in a heartbeat commit.
 
 Keying rules, identical for all three payloads:
 
@@ -21,6 +23,13 @@ Keying rules, identical for all three payloads:
 - ``regtemp`` serves a rolling 365-day window, so its key is the window's LAST
   FECHA read from the payload; ``retrieved_at`` lives in ``manifest.json``,
   never in the path.
+
+``--release-assets`` publishes one already-captured ZIP instead of fetching it:
+the ZIP and the staged ``manifest.json`` come from a GitHub Release, the sha256
+of the ZIP and of its text member are re-checked against the pinned values, the
+retrieval instant is read from the Release manifest, and the manifest written to
+Hugging Face is regenerated here (never hand-edited) with ``retrieval`` and
+``publication`` blocks recording the local origin and the Release channel.
 
 Requests: only ``ssl.smn.gob.ar``, a plain HTTP client (default headers), at
 most three per run (``regtemp``, ``datohorario``, ``observaciones``). Licence of
@@ -91,9 +100,10 @@ PRIOR_CAPTURE = {
     "data_rows": 42953,
     "sha256_zip": "28b166d87e618df127cb2e7bb932e4b6c813b0ab4e489e860cc542bf5902af98",
     "note": (
-        "captured locally 2026-11-12T01:41:32Z and uploaded by the repository "
-        "owner through the Hugging Face web interface; it is the file the "
-        "published discrepancy results were computed from and it cannot be "
+        "captured locally 2026-11-12T01:41:32Z and published to the Hugging Face "
+        "dataset through the GitHub Release mirror (tag observations-regtemp-"
+        "2026-11-10); it is the file the published discrepancy results and the "
+        "frozen climatology adjustment were computed from and it cannot be "
         "re-fetched, because the endpoint serves a rolling 365-day window"
     ),
 }
@@ -136,6 +146,23 @@ def read_member(payload: bytes) -> tuple[str, str]:
         if len(members) != 1:
             raise ValueError(f"expected exactly one member in the payload, found {len(members)}")
         return members[0], archive.read(members[0]).decode("latin-1")
+
+
+def member_sha256(payload: bytes) -> str:
+    """sha256 of the ZIP's single member, byte for byte (no decode round-trip)."""
+    with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+        members = archive.namelist()
+        if len(members) != 1:
+            raise ValueError(f"expected exactly one member in the payload, found {len(members)}")
+        return hashlib.sha256(archive.read(members[0])).hexdigest()
+
+
+def read_release_manifest(path: Path) -> dict:
+    """The staged manifest shipped as a Release asset (provenance of a capture)."""
+    body = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(body, dict):
+        raise TypeError(f"{path} does not hold a JSON object")
+    return body
 
 
 def parse_fechas(text: str) -> list[date]:
@@ -318,6 +345,8 @@ def build_manifest(
     upload_status: str,
     requests_used: int = 1,
     env: Mapping[str, str] | None = None,
+    retrieval: Mapping[str, object] | None = None,
+    publication: Mapping[str, object] | None = None,
 ) -> dict:
     """Manifest of one capture: provenance, window, checksum, licence, run."""
     distinct = sorted(set(dates))
@@ -361,6 +390,10 @@ def build_manifest(
         "hf_upload": upload_status,
         "requests_used": requests_used,
     }
+    if retrieval is not None:
+        manifest["retrieval"] = dict(retrieval)
+    if publication is not None:
+        manifest["publication"] = dict(publication)
     prior = prior_capture_block(dato, window["first"], manifest["sha256_zip"])
     if prior is not None:
         manifest["prior_capture"] = prior
@@ -443,6 +476,30 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="UTC retrieval instant to record for --local-zip (default: now)",
     )
+    parser.add_argument(
+        "--release-assets",
+        type=Path,
+        default=None,
+        help=(
+            "publish one already-captured ZIP from a GitHub Release asset directory "
+            "(<dato>.zip plus manifest.json); exactly one --payloads entry"
+        ),
+    )
+    parser.add_argument(
+        "--release-tag",
+        default=None,
+        help="GitHub Release tag the assets came from (recorded in the published manifest)",
+    )
+    parser.add_argument(
+        "--expected-sha256",
+        default=None,
+        help="pinned sha256 the Release ZIP must match before anything is uploaded",
+    )
+    parser.add_argument(
+        "--expected-member-sha256",
+        default=None,
+        help="pinned sha256 the ZIP's text member must match (e.g. a frozen table's input)",
+    )
     args = parser.parse_args(argv)
 
     if args.local_zip is not None and len(args.payloads) != 1:
@@ -451,6 +508,55 @@ def main(argv: list[str] | None = None) -> int:
     if args.local_zip is not None and not args.local_zip.is_file():
         print(f"local ZIP not found: {args.local_zip}", file=sys.stderr)
         return 1
+
+    release_manifest: dict | None = None
+    release_manifest_sha: str | None = None
+    release_url: str | None = None
+    if args.release_assets is not None:
+        if len(args.payloads) != 1:
+            print("--release-assets requires exactly one --payloads entry", file=sys.stderr)
+            return 1
+        if args.local_zip is not None:
+            print("--release-assets and --local-zip are mutually exclusive", file=sys.stderr)
+            return 1
+        if not args.release_tag:
+            print("--release-assets requires --release-tag", file=sys.stderr)
+            return 1
+        asset_zip = args.release_assets / f"{args.payloads[0]}.zip"
+        asset_manifest = args.release_assets / "manifest.json"
+        if not asset_zip.is_file() or not asset_manifest.is_file():
+            print(
+                f"release assets not found: expected {asset_zip.name} and "
+                f"{asset_manifest.name} in {args.release_assets}",
+                file=sys.stderr,
+            )
+            return 1
+        release_manifest = read_release_manifest(asset_manifest)
+        release_manifest_sha = hashlib.sha256(asset_manifest.read_bytes()).hexdigest()
+        recorded = release_manifest.get("sha256_zip")
+        actual = hashlib.sha256(asset_zip.read_bytes()).hexdigest()
+        if recorded != actual:
+            print(
+                f"release asset sha256 {actual} does not match the sha256_zip recorded "
+                f"in its manifest ({recorded}); refusing to publish",
+                file=sys.stderr,
+            )
+            return 1
+        if args.expected_sha256 is not None and actual != args.expected_sha256:
+            print(
+                f"release asset sha256 {actual} does not match the pinned "
+                f"{args.expected_sha256}; refusing to publish",
+                file=sys.stderr,
+            )
+            return 1
+        args.local_zip = asset_zip
+        if args.retrieved_at is None:
+            args.retrieved_at = release_manifest.get("retrieved_at")
+        repository = os.environ.get("GITHUB_REPOSITORY", "")
+        if repository:
+            release_url = (
+                f"https://github.com/{repository}/releases/tag/{args.release_tag}"
+            )
 
     token = os.environ.get("HF_TOKEN")
     repo = os.environ.get("HF_DATASET_REPO")
@@ -477,6 +583,16 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 payload, meta = fetch_payload(dato)
             member, text = read_member(payload)
+            if args.expected_member_sha256 is not None:
+                actual_member = member_sha256(payload)
+                if actual_member != args.expected_member_sha256:
+                    print(
+                        f"{dato}: member {member} sha256 {actual_member} does not match "
+                        f"the pinned {args.expected_member_sha256}; refusing to publish",
+                        file=sys.stderr,
+                    )
+                    failures += 1
+                    continue
             dates = parse_fechas(text)
             if not dates:
                 print_payload_diagnostics(dato, payload, meta, member, text)
@@ -529,6 +645,35 @@ def main(argv: list[str] | None = None) -> int:
                 retrieved_at=retrieved_at,
                 upload_status="uploaded" if api is not None else "staged",
                 requests_used=0 if args.local_zip is not None else 1,
+                retrieval=(
+                    {
+                        "mode": "local",
+                        "retrieved_at": release_manifest.get("retrieved_at"),
+                        "note": (
+                            "retrieved once and kept on the owner's disk; it was not "
+                            "uploaded at capture time because the write token never "
+                            "leaves CI"
+                        ),
+                    }
+                    if release_manifest is not None
+                    else None
+                ),
+                publication=(
+                    {
+                        "channel": "github_release_mirror",
+                        "release_tag": args.release_tag,
+                        "release_url": release_url,
+                        "release_manifest_sha256": release_manifest_sha,
+                        "published_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                        "note": (
+                            "manifest regenerated by scripts/capture_observations.py from "
+                            "the Release assets; the ZIP and its text member were re-verified "
+                            "against their sha256 before upload"
+                        ),
+                    }
+                    if release_manifest is not None
+                    else None
+                ),
             )
             stage_manifest(args.out, dato, key, manifest)
             if api is not None:
