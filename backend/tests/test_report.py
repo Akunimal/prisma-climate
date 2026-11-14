@@ -793,6 +793,7 @@ def test_honest_reading_source_flag_sentence() -> None:
     assert "113,349 paired TMAX days" in reading
     assert "averages -1.38 °C on G-flag values (n=32,477)" in reading
     assert "-3.45 °C on S-flag (GSOD-derived) values (n=80,821)" in reading
+    assert "(n=32,477) and -3.45 °C" in reading, "the G-to-S join must be 'and', never 'y'"
     assert "G -1.49 to -1.37 °C; S -3.48 to -3.40 °C" in reading
     assert "100.0% S-flag from 2005 onward (G share 74.0% in 1996–2003" in reading
     assert "40.0% in 2004)" in reading
