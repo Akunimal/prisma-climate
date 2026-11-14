@@ -8,6 +8,9 @@
 # Triggers:
 #   - workflow_run: after the "Daily forecast archive" workflow completes, so a
 #     newly archived issue date reaches the page without a push.
+#   - push to main limited to app/, site/, the site export script or this
+#     workflow, so an app/site change reaches the page without waiting for an
+#     ingest run.
 #   - workflow_dispatch: manual run.
 #
 # It never commits to main: the deploy is an artifact, and the job only has
@@ -26,6 +29,14 @@ on:
     workflows: ["Daily forecast archive"]
     types: [completed]
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "app/**"
+      - "site/**"
+      - "scripts/export_site_data.py"
+      - ".github/workflows/site.yml"
 
 permissions:
   contents: read
