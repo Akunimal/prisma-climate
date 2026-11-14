@@ -104,6 +104,27 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+      'first visit with no saved choice stays English on a German platform locale',
+      (tester) async {
+    tester.binding.platformDispatcher.localeTestValue =
+        const Locale('de', 'DE');
+    tester.binding.platformDispatcher.localesTestValue = const <Locale>[
+      Locale('de', 'DE'),
+    ];
+    addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
+    addTearDown(tester.binding.platformDispatcher.clearLocalesTestValue);
+    await pumpApp(tester);
+
+    final resolved =
+        Localizations.localeOf(tester.element(find.byType(AppBar)));
+    expect(resolved.languageCode, 'en',
+        reason: 'platform locale leaked into the app locale: $resolved');
+    expect(find.text('Stations'), findsOneWidget);
+    expect(find.text('Stationen'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('the persisted locale is restored and updated on every pick',
       (tester) async {
     SharedPreferences.setMockInitialValues({

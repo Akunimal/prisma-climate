@@ -22,8 +22,9 @@ class PrismaApp extends StatefulWidget {
 class _PrismaAppState extends State<PrismaApp> {
   static const String _prefsKey = 'prisma_ui_locale';
 
-  /// `null` = follow the browser language (auto-detection).
-  Locale? _locale;
+  /// Always set: the app starts in English on a first visit and never resolves
+  /// from the browser/system locale. Only a saved `prisma_ui_locale` moves it.
+  Locale _locale = const Locale('en');
 
   @override
   void initState() {
