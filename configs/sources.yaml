@@ -45,6 +45,13 @@ sources:
     options:
       models: [gfs_seamless, ecmwf_ifs025]
       forecast_days: 16
+      # Nominal delivered member counts for the verification 80% rule
+      # (EVALUATION_PROTOCOL 2026-11-14 amendment, rule 1): member ids 0-30
+      # for gfs_seamless (31 values: control + 30 perturbed) and 0-50 for
+      # ecmwf_ifs025 (51). Verified against every canonical archive parquet
+      # (2026-11-11..13) and the dataset card schema; the notes line above
+      # counts perturbed members only.
+      member_counts: {gfs_seamless: 31, ecmwf_ifs025: 51}
 
   - id: openmeteo-era5
     name: "Open-Meteo Historical Weather API (ERA5)"
