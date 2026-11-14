@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../strings.dart';
 import 'models.dart';
 
 class PrismaRepository {
@@ -41,15 +40,30 @@ class PrismaRepository {
     try {
       response = await _client.get(uri).timeout(timeout);
     } on Exception catch (error) {
-      throw DataException(S.networkError(document, error.toString()));
+      throw DataException(
+        'Could not download $document: $error',
+        kind: DataErrorKind.network,
+        document: document,
+        detail: error.toString(),
+      );
     }
     if (response.statusCode != 200) {
-      throw DataException(S.httpError(document, response.statusCode));
+      throw DataException(
+        'The data source returned HTTP ${response.statusCode} for $document.',
+        kind: DataErrorKind.http,
+        document: document,
+        status: response.statusCode,
+      );
     }
     try {
       return utf8.decode(response.bodyBytes);
     } on FormatException catch (error) {
-      throw DataException(S.parseError(document, error.message));
+      throw DataException(
+        'Document $document is not in the expected format: ${error.message}',
+        kind: DataErrorKind.parse,
+        document: document,
+        detail: error.message,
+      );
     }
   }
 

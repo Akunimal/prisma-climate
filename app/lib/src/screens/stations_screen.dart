@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
 import '../format.dart';
-import '../strings.dart';
+import '../l10n.dart';
 
 String _normalize(String value) {
   const replacements = {
@@ -64,6 +64,7 @@ class _StationsScreenState extends State<StationsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final query = _normalize(_query.trim());
     final stations = widget.latest.stations.where((station) {
       if (query.isEmpty) {
@@ -83,7 +84,7 @@ class _StationsScreenState extends State<StationsScreen> {
             children: [
               Expanded(
                 child: Text(
-                  S.stationCount(widget.latest.stations.length),
+                  l10n.stationCount(widget.latest.stations.length),
                   style: theme.textTheme.titleSmall,
                 ),
               ),
@@ -102,14 +103,14 @@ class _StationsScreenState extends State<StationsScreen> {
             controller: _controller,
             onChanged: (value) => setState(() => _query = value),
             decoration: InputDecoration(
-              hintText: S.searchHint,
+              hintText: l10n.searchHint,
               prefixIcon: const Icon(Icons.search),
               isDense: true,
               border: const OutlineInputBorder(),
               suffixIcon: _query.isEmpty
                   ? null
                   : IconButton(
-                      tooltip: S.clearSearch,
+                      tooltip: l10n.clearSearch,
                       icon: const Icon(Icons.clear),
                       onPressed: () {
                         _controller.clear();
@@ -122,7 +123,7 @@ class _StationsScreenState extends State<StationsScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 2, 16, 4),
           child: Text(
-            S.stationsIntro,
+            l10n.stationsIntro,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -130,7 +131,7 @@ class _StationsScreenState extends State<StationsScreen> {
         ),
         Expanded(
           child: stations.isEmpty
-              ? const EmptyState(message: S.searchNoResults)
+              ? EmptyState(message: l10n.searchNoResults)
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
                   itemCount: stations.length,
@@ -142,7 +143,7 @@ class _StationsScreenState extends State<StationsScreen> {
                       selected: selected,
                       title: Text(station.name),
                       subtitle: Text(
-                        '${station.climateZone} · ${coordinates(station.lat, station.lon)}',
+                        '${station.climateZone} · ${coordinates(station.lat, station.lon, locale: context.localeTag)}',
                       ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => widget.onSelect(station.id),

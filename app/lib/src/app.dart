@@ -1,27 +1,66 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/models.dart';
 import 'data/repository.dart';
+import 'l10n.dart';
 import 'screens/about_screen.dart';
 import 'screens/forecast_screen.dart';
 import 'screens/stations_screen.dart';
-import 'strings.dart';
 import 'widgets/common.dart';
+import 'widgets/language_menu.dart';
 
-class PrismaApp extends StatelessWidget {
+class PrismaApp extends StatefulWidget {
   const PrismaApp({super.key, required this.repository});
 
   final PrismaRepository repository;
 
   @override
+  State<PrismaApp> createState() => _PrismaAppState();
+}
+
+class _PrismaAppState extends State<PrismaApp> {
+  static const String _prefsKey = 'prisma_ui_locale';
+
+  /// `null` = follow the browser language (auto-detection).
+  Locale? _locale;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreLocale();
+  }
+
+  Future<void> _restoreLocale() async {
+    final prefs = await SharedPreferences.getInstance();
+    final code = prefs.getString(_prefsKey);
+    if (!mounted || code == null) {
+      return;
+    }
+    setState(() => _locale = Locale(code));
+  }
+
+  Future<void> _pickLocale(Locale locale) async {
+    setState(() => _locale = locale);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefsKey, locale.languageCode);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: S.appTitle,
+      locale: _locale,
+      supportedLocales: kSupportedLocales,
+      localizationsDelegates: kLocalizationsDelegates,
       debugShowCheckedModeBanner: false,
+      onGenerateTitle: (context) => context.l10n.appTitle,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0B6B45)),
       ),
-      home: HomeShell(repository: repository),
+      home: HomeShell(
+        repository: widget.repository,
+        onLocalePicked: _pickLocale,
+      ),
     );
   }
 }
@@ -34,9 +73,14 @@ class _Bootstrap {
 }
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, required this.repository});
+  const HomeShell({
+    super.key,
+    required this.repository,
+    required this.onLocalePicked,
+  });
 
   final PrismaRepository repository;
+  final ValueChanged<Locale> onLocalePicked;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -78,22 +122,35 @@ class _HomeShellState extends State<HomeShell> {
     });
   }
 
+  List<Widget> _appBarActions(BuildContext context) => [
+        LanguageMenu(onSelected: widget.onLocalePicked),
+      ];
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return FutureBuilder<_Bootstrap>(
       future: _bootstrap,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Scaffold(
-            body: SafeArea(child: LoadingView()),
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(l10n.appTitle),
+              actions: _appBarActions(context),
+            ),
+            body: const SafeArea(child: LoadingView()),
           );
         }
         if (snapshot.hasError) {
           return Scaffold(
+            appBar: AppBar(
+              title: Text(l10n.appTitle),
+              actions: _appBarActions(context),
+            ),
             body: SafeArea(
               child: ErrorView(
-                title: S.errorTitle('latest.json / about.json'),
-                message: describeError(snapshot.error!),
+                title: l10n.errorTitle('latest.json / about.json'),
+                message: describeError(context, snapshot.error!),
                 onRetry: _retry,
               ),
             ),
@@ -102,16 +159,20 @@ class _HomeShellState extends State<HomeShell> {
         final bootstrap = snapshot.data!;
         if (bootstrap.latest.stations.isEmpty) {
           return Scaffold(
-            appBar: AppBar(title: const Text(S.appTitle)),
-            body: const Center(child: Text(S.noData)),
+            appBar: AppBar(
+              title: Text(l10n.appTitle),
+              actions: _appBarActions(context),
+            ),
+            body: Center(child: Text(l10n.noData)),
           );
         }
-        return _buildShell(bootstrap);
+        return _buildShell(context, bootstrap);
       },
     );
   }
 
-  Widget _buildShell(_Bootstrap bootstrap) {
+  Widget _buildShell(BuildContext context, _Bootstrap bootstrap) {
+    final l10n = context.l10n;
     final stationId = _stationId ?? bootstrap.latest.stations.first.id;
     final body = switch (_tab) {
       0 => StationsScreen(
@@ -133,28 +194,29 @@ class _HomeShellState extends State<HomeShell> {
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 840;
         final destinations = [
-          const NavigationDestination(
-            icon: Icon(Icons.list_alt),
-            label: S.tabStations,
+          NavigationDestination(
+            icon: const Icon(Icons.list_alt),
+            label: l10n.tabStations,
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.show_chart),
-            label: S.tabForecast,
+          NavigationDestination(
+            icon: const Icon(Icons.show_chart),
+            label: l10n.tabForecast,
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.info_outline),
-            label: S.tabAbout,
+          NavigationDestination(
+            icon: const Icon(Icons.info_outline),
+            label: l10n.tabAbout,
           ),
         ];
 
         if (!wide) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text(
-                S.appTitle,
+              title: Text(
+                l10n.appTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              actions: _appBarActions(context),
             ),
             body: SafeArea(child: body),
             bottomNavigationBar: NavigationBar(
@@ -166,7 +228,10 @@ class _HomeShellState extends State<HomeShell> {
         }
 
         return Scaffold(
-          appBar: AppBar(title: const Text(S.appTitle)),
+          appBar: AppBar(
+            title: Text(l10n.appTitle),
+            actions: _appBarActions(context),
+          ),
           body: Row(
             children: [
               NavigationRail(

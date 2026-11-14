@@ -2,14 +2,39 @@ import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/models.dart';
-import '../strings.dart';
+import '../l10n.dart';
 
-String describeError(Object error) {
-  if (error is SchemaVersionException) {
-    return S.schemaUnsupported(error.found);
-  }
+/// Localised sentence for a data-layer failure. Kind-specific messages are
+/// translated; the [DataException.message] fallback stays English.
+String describeError(BuildContext context, Object error) {
+  final l10n = context.l10n;
   if (error is DataException) {
-    return error.message;
+    switch (error.kind) {
+      case DataErrorKind.network:
+        return l10n.networkError(error.document!, error.detail!);
+      case DataErrorKind.http:
+        return l10n.httpError(error.status!, error.document!);
+      case DataErrorKind.parse:
+        return l10n.parseError(error.document!, error.detail!);
+      case DataErrorKind.invalidJson:
+        return l10n.invalidJson(error.document!, error.detail!);
+      case DataErrorKind.modelsNonText:
+        return l10n.modelsNonText;
+      case DataErrorKind.schema:
+        return l10n.schemaUnsupported(error.detail!);
+      case DataErrorKind.fieldNotObject:
+        return l10n.fieldNotObject(error.field!);
+      case DataErrorKind.fieldNotArray:
+        return l10n.fieldNotArray(error.field!);
+      case DataErrorKind.missingText:
+        return l10n.missingTextField(error.field!);
+      case DataErrorKind.missingInteger:
+        return l10n.missingIntegerField(error.field!);
+      case DataErrorKind.notNumeric:
+        return l10n.notNumericField(error.field!);
+      case DataErrorKind.missingSchema:
+        return l10n.missingSchemaVersion(error.document!);
+    }
   }
   return error.toString();
 }
@@ -139,7 +164,7 @@ class ErrorView extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text(S.retry),
+                label: Text(context.l10n.retry),
               ),
             ],
           ),
@@ -154,13 +179,13 @@ class LoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 12),
-          Text(S.loading),
+          const CircularProgressIndicator(),
+          const SizedBox(height: 12),
+          Text(context.l10n.loading),
         ],
       ),
     );
@@ -183,10 +208,11 @@ class AttributionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(S.attributionTitle, style: theme.textTheme.titleSmall),
+        Text(l10n.attributionTitle, style: theme.textTheme.titleSmall),
         const SizedBox(height: 6),
         Wrap(
           spacing: 12,
@@ -216,7 +242,13 @@ class AttributionBar extends StatelessWidget {
           ],
         ),
         Text(
-          S.attributionObserved,
+          l10n.attributionNote,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        Text(
+          l10n.attributionObserved,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

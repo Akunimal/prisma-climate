@@ -1,0 +1,158 @@
+{
+  "@@locale": "zh",
+  "appTitle": "PRISMA · 按站点预报",
+  "appTagline": "Open-Meteo 原始集合预报（GFS 与 ECMWF IFS），覆盖阿根廷 19 个站点。",
+  "tabStations": "观测站",
+  "tabForecast": "预报",
+  "tabAbout": "关于 / 状态",
+  "searchHint": "搜索站点",
+  "searchNoResults": "没有站点符合搜索条件。",
+  "stationsIntro": "选择一个站点查看其预报。",
+  "clearSearch": "清除",
+  "retry": "重试",
+  "loading": "正在加载数据…",
+  "labelIssue": "起报",
+  "labelExported": "导出",
+  "labelSmn": "SMN 观测",
+  "labelClimateZone": "气候区",
+  "labelCoordinates": "坐标",
+  "argentinaTimeNote": "阿根廷时间（UTC−3）",
+  "variableT2mMax": "日最高（t2m_max）",
+  "variableT2mMin": "日最低（t2m_min）",
+  "variablePrecip": "降水（成员比例）",
+  "legendBand1090": "10–90% 区间",
+  "legendBand2575": "25–75% 区间",
+  "legendMedian": "中位数",
+  "legendModelsNeverPooled": "每个模型保留各自的成员和各自的分位数；它们从不合并。",
+  "legendLeadAxis": "预报时效",
+  "noData": "无数据",
+  "missingMembersTitle": "无数据",
+  "missingMembers": "无数据（{members}/{nominal} 个成员）",
+  "@missingMembers": {
+    "placeholders": {
+      "members": { "type": "int" },
+      "nominal": { "type": "int" }
+    }
+  },
+  "observedTitle": "SMN 观测 — 最近 30 天",
+  "observedNote": "按 SMN 提供的方式归档的数值；缺测保持为 null，从不填补。",
+  "observedDate": "日期",
+  "observedMax": "最高",
+  "observedMin": "最低",
+  "precipTitle": "降水",
+  "precipGe1": "≥ 1 mm",
+  "precipGe10": "≥ 10 mm",
+  "precipNote": "可用成员中日累计降水达到或超过阈值的比例。",
+  "day": "天",
+  "date": "日期",
+  "model": "模型",
+  "rawBanner": "原始集合预报：未做偏差订正，也未校准。在 15 个起报日期的门槛之前不发布任何检验指标。",
+  "attributionTitle": "数据与来源标注",
+  "attributionObserved": "观测序列：Servicio Meteorológico Nacional，按提供方式归档；缺测保持为 null，从不填补。",
+  "attributionNote": "来源标注行按其许可证要求逐字复制，仅翻译其周围的说明文字。",
+  "aboutTitle": "关于 / 状态",
+  "aboutWhatTitle": "本应用展示什么",
+  "aboutWhat": "PRISMA 为阿根廷 19 个站点发布两个集合（ECMWF IFS 与 GFS）最远 15 天的原始概率预报，以及 SMN 最近 30 天观测的日最高和最低气温。本应用只读取发布在 GitHub Pages 上的静态文件：没有服务器，也没有 API。",
+  "aboutNoSkillTitle": "无技巧评分",
+  "aboutNoSkill": "本应用不显示 CRPS、CRPSS、Brier、可靠性、覆盖率或排行榜。在 15 个起报日期的门槛之前不发布这些数字。",
+  "aboutStatusTitle": "数据状态",
+  "aboutSourcesTitle": "来源与许可",
+  "aboutDataset": "数据集",
+  "aboutSmnSnapshot": "SMN 快照（regtemp）",
+  "aboutRegion": "区域",
+  "aboutSchema": "模式",
+  "statusForecasts": "原始集合成员：未做偏差订正、未校准，除来源的质量标记外未做质量控制。",
+  "statusVerification": "在 docs/EVALUATION_PROTOCOL.md 的 15 个起报日期门槛之前，不发布任何检验结果（CRPS、CRPSS、Brier、可靠性、覆盖率、排行榜）。",
+  "statusObservations": "SMN regtemp 快照按提供方式归档；缺测保持为 null，从不填补。适用 2026-11-14 的产品优先级规则（regtemp 为主）。",
+  "aboutMachineTranslations": "英语以外的翻译均为机器生成，欢迎纠正与改进。",
+  "languageLabel": "语言",
+  "leadDay": "+{lead} d",
+  "@leadDay": {
+    "placeholders": {
+      "lead": { "type": "int" }
+    }
+  },
+  "errorTitle": "无法读取 {document}",
+  "@errorTitle": {
+    "placeholders": {
+      "document": { "type": "String" }
+    }
+  },
+  "schemaUnsupported": "本应用不支持模式版本“{version}”（期望 1.0）。请更新应用或导出数据。",
+  "@schemaUnsupported": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "parseError": "文档 {document} 不是预期的格式：{detail}",
+  "@parseError": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "networkError": "无法下载 {document}：{detail}",
+  "@networkError": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "httpError": "数据源对 {document} 返回 HTTP {status}。",
+  "@httpError": {
+    "placeholders": {
+      "status": { "type": "int" },
+      "document": { "type": "String" }
+    }
+  },
+  "invalidJson": "{document} 中的 JSON 无效：{detail}",
+  "@invalidJson": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "modelsNonText": "“models”字段包含非文本值。",
+  "fieldNotObject": "字段“{field}”不是 JSON 对象。",
+  "@fieldNotObject": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "fieldNotArray": "字段“{field}”不是 JSON 数组。",
+  "@fieldNotArray": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "missingTextField": "缺少文本字段“{field}”或其不是字符串。",
+  "@missingTextField": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "missingIntegerField": "缺少整数“{field}”或其不是数字。",
+  "@missingIntegerField": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "notNumericField": "字段“{field}”不是数值。",
+  "@notNumericField": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "missingSchemaVersion": "{document} 中缺少 schema_version 字段。",
+  "@missingSchemaVersion": {
+    "placeholders": {
+      "document": { "type": "String" }
+    }
+  },
+  "stationCount": "{count, plural, other{{count} 个站点}}",
+  "@stationCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
+}

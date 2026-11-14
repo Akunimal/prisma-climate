@@ -5,11 +5,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:prisma_app/l10n/generated/app_localizations_en.dart';
 import 'package:prisma_app/src/app.dart';
 import 'package:prisma_app/src/data/repository.dart';
-import 'package:prisma_app/src/strings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 String fixture(String name) => File('test/fixtures/$name').readAsStringSync();
+
+/// English strings as the running app renders them under the default locale.
+final AppLocalizationsEn en = AppLocalizationsEn();
 
 Map<String, String> defaultFiles() => {
       'latest.json': fixture('latest.json'),
@@ -54,11 +58,15 @@ Future<void> pumpApp(
 }
 
 Future<void> openForecast(WidgetTester tester) async {
-  await tester.tap(find.text(S.tabForecast));
+  await tester.tap(find.text(en.tabForecast));
   await tester.pumpAndSettle();
 }
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   testWidgets('Stations lists the stations with their climate zone', (tester) async {
     await pumpApp(tester);
     expect(find.text('2 stations'), findsOneWidget);
@@ -80,18 +88,18 @@ void main() {
 
     await tester.enterText(find.byType(TextField), 'zzz');
     await tester.pumpAndSettle();
-    expect(find.text(S.searchNoResults), findsOneWidget);
+    expect(find.text(en.searchNoResults), findsOneWidget);
   });
 
   testWidgets('selecting a station opens the forecast with local issue time', (tester) async {
     await pumpApp(tester, size: const Size(1200, 3000));
     await tester.tap(find.text('La Quiaca Observatorio'));
     await tester.pumpAndSettle();
-    expect(find.text(S.variableT2mMax), findsOneWidget);
-    expect(find.text(S.variableT2mMin), findsOneWidget);
+    expect(find.text(en.variableT2mMax), findsOneWidget);
+    expect(find.text(en.variableT2mMin), findsOneWidget);
     expect(find.textContaining('13/11/2026 21:16'), findsOneWidget);
     expect(find.textContaining('UTC−3'), findsOneWidget);
-    expect(find.textContaining(S.rawBanner), findsOneWidget);
+    expect(find.textContaining(en.rawBanner), findsOneWidget);
   });
 
   testWidgets('forecast shows a missing_members case as no data, never interpolated',
@@ -99,27 +107,33 @@ void main() {
     await pumpApp(tester, size: const Size(1200, 3000));
     await openForecast(tester);
     expect(find.textContaining('0/51 members'), findsWidgets);
-    expect(find.text(S.missingMembersTitle), findsWidgets);
-    expect(find.textContaining(S.legendModelsNeverPooled), findsWidgets);
+    expect(find.text(en.missingMembersTitle), findsWidgets);
+    expect(find.textContaining(en.legendModelsNeverPooled), findsWidgets);
   });
 
   testWidgets('forecast shows precip fractions and the observed series', (tester) async {
     await pumpApp(tester, size: const Size(1200, 3000));
     await openForecast(tester);
-    expect(find.text(S.precipTitle), findsOneWidget);
+    expect(find.text(en.precipTitle), findsOneWidget);
     expect(find.text('71 %'), findsWidgets);
-    expect(find.text(S.observedTitle), findsOneWidget);
-    expect(find.text('2026-10-14'), findsWidgets);
+    expect(find.text(en.observedTitle), findsOneWidget);
+    expect(find.text('14/10/2026'), findsWidgets);
     expect(find.text('21.8 °C'), findsWidgets);
   });
 
   testWidgets('About / Status shows the app status texts and the attribution links',
       (tester) async {
     await pumpApp(tester);
-    await tester.tap(find.text(S.tabAbout));
+    await tester.tap(find.text(en.tabAbout));
     await tester.pumpAndSettle();
-    expect(find.textContaining(S.statusTexts['forecasts']!), findsOneWidget);
+    expect(find.textContaining(en.statusForecasts), findsOneWidget);
     expect(find.textContaining('15-issue-date gate'), findsWidgets);
+    await tester.scrollUntilVisible(
+      find.text(en.aboutMachineTranslations),
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.textContaining(en.aboutMachineTranslations), findsOneWidget);
     expect(find.text('Weather data by Open-Meteo.com'), findsOneWidget);
     expect(find.text('CC BY 2.5 AR'), findsOneWidget);
   });
@@ -129,8 +143,8 @@ void main() {
     await pumpApp(tester, client: client);
     expect(find.textContaining('Could not read'), findsOneWidget);
     expect(find.textContaining('HTTP 500'), findsOneWidget);
-    expect(find.text(S.retry), findsOneWidget);
-    expect(find.text(S.tabStations), findsNothing);
+    expect(find.text(en.retry), findsOneWidget);
+    expect(find.text(en.tabStations), findsNothing);
   });
 
   testWidgets('an unsupported schema version is rejected with a clear message',
@@ -149,25 +163,25 @@ void main() {
     await pumpApp(tester, files: files);
     expect(find.textContaining('Invalid JSON in latest.json'), findsOneWidget);
     expect(find.textContaining('inválido'), findsNothing);
-    expect(find.text(S.retry), findsOneWidget);
+    expect(find.text(en.retry), findsOneWidget);
 
     files['latest.json'] = fixture('latest.json');
-    await tester.tap(find.text(S.retry));
+    await tester.tap(find.text(en.retry));
     await tester.pumpAndSettle();
     expect(find.text('2 stations'), findsOneWidget);
-    expect(find.text(S.tabStations), findsOneWidget);
+    expect(find.text(en.tabStations), findsOneWidget);
   });
 
   testWidgets('phone width stays usable and keeps the three screens', (tester) async {
     await pumpApp(tester, size: const Size(360, 780));
     expect(tester.takeException(), isNull);
-    expect(find.text(S.tabStations), findsOneWidget);
-    expect(find.text(S.tabForecast), findsOneWidget);
-    expect(find.text(S.tabAbout), findsOneWidget);
+    expect(find.text(en.tabStations), findsOneWidget);
+    expect(find.text(en.tabForecast), findsOneWidget);
+    expect(find.text(en.tabAbout), findsOneWidget);
 
-    await tester.tap(find.text(S.tabForecast));
+    await tester.tap(find.text(en.tabForecast));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.text(S.variableT2mMax), findsOneWidget);
+    expect(find.text(en.variableT2mMax), findsOneWidget);
   });
 }

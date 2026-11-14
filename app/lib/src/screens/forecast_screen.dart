@@ -3,7 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import '../data/models.dart';
 import '../data/repository.dart';
 import '../format.dart';
-import '../strings.dart';
+import '../l10n.dart';
+import '../model_labels.dart';
 import '../widgets/band_chart.dart';
 import '../widgets/common.dart';
 
@@ -59,8 +60,8 @@ class _ForecastScreenState extends State<ForecastScreen> {
         }
         if (snapshot.hasError) {
           return ErrorView(
-            title: S.errorTitle('stations/${widget.stationId}.json'),
-            message: describeError(snapshot.error!),
+            title: context.l10n.errorTitle('stations/${widget.stationId}.json'),
+            message: describeError(context, snapshot.error!),
             onRetry: _reload,
           );
         }
@@ -91,8 +92,10 @@ class _ForecastBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final locale = context.localeTag;
     final station = document.station;
-    final modelNames = document.models.map(S.modelLabel).join(' · ');
+    final modelNames = document.models.map(modelLabel).join(' · ');
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
@@ -119,7 +122,7 @@ class _ForecastBody extends StatelessWidget {
               ),
             ),
             Text(
-              '${station.climateZone} · ${coordinates(station.lat, station.lon)}',
+              '${station.climateZone} · ${coordinates(station.lat, station.lon, locale: locale)}',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -128,13 +131,13 @@ class _ForecastBody extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          '${S.labelIssue}: ${argentinaDateTime(document.issueTime)} ${S.argentinaTimeNote}',
+          '${l10n.labelIssue}: ${argentinaDateTime(document.issueTime, locale: locale)} ${l10n.argentinaTimeNote}',
           style: theme.textTheme.bodySmall,
         ),
         Padding(
           padding: const EdgeInsets.only(top: 2),
           child: Text(
-            '${S.labelSmn}: ${about.smnSnapshotDate ?? '—'}',
+            '${l10n.labelSmn}: ${about.smnSnapshotDate ?? '—'}',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -152,7 +155,7 @@ class _ForecastBody extends StatelessWidget {
             children: [
               Icon(Icons.info_outline, size: 18, color: theme.colorScheme.primary),
               const SizedBox(width: 8),
-              Expanded(child: Text(S.rawBanner, style: theme.textTheme.bodySmall)),
+              Expanded(child: Text(l10n.rawBanner, style: theme.textTheme.bodySmall)),
             ],
           ),
         ),
@@ -160,13 +163,13 @@ class _ForecastBody extends StatelessWidget {
         _VariableCard(
           document: document,
           variable: 't2m_max',
-          title: S.variableT2mMax,
+          title: l10n.variableT2mMax,
           subtitle: modelNames,
         ),
         _VariableCard(
           document: document,
           variable: 't2m_min',
-          title: S.variableT2mMin,
+          title: l10n.variableT2mMin,
           subtitle: modelNames,
         ),
         _PrecipCard(document: document),
@@ -197,14 +200,19 @@ Widget _chartFrame(Widget child) {
   );
 }
 
-List<String> _missingNotes(StationDocument document, String variable) {
+List<String> _missingNotes(
+  BuildContext context,
+  StationDocument document,
+  String variable,
+) {
+  final l10n = context.l10n;
   final notes = <String>[];
   for (final model in document.models) {
     for (final item in document.casesFor(variable, model)) {
       if (item.isMissing) {
         notes.add(
-          '${S.modelLabel(model)} · ${S.leadDay(item.leadDay)}: '
-          '${S.missingMembers(item.nMembers, item.nominalMembers)}',
+          '${modelLabel(model)} · ${l10n.leadDay(item.leadDay)}: '
+          '${l10n.missingMembers(item.nMembers, item.nominalMembers)}',
         );
       }
     }
@@ -228,29 +236,31 @@ class _VariableCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final locale = context.localeTag;
     final leads = document.leadDays;
     final dateForLead = <int, String>{};
     final series = <BandSeries>[];
     for (final model in document.models) {
       final cases = document.casesFor(variable, model);
       for (final item in cases) {
-        dateForLead[item.leadDay] = dayMonth(item.validLocalDate);
+        dateForLead[item.leadDay] = dayMonth(item.validLocalDate, locale: locale);
       }
       series.add(
         BandSeries(
-          label: S.modelLabel(model),
+          label: modelLabel(model),
           color: modelColor(context, model),
           cases: cases,
         ),
       );
     }
-    final missing = _missingNotes(document, variable);
+    final missing = _missingNotes(context, document, variable);
 
     return SectionCard(
       title: title,
       subtitle: subtitle,
       child: series.isEmpty || leads.isEmpty
-          ? const EmptyNote(message: S.noData)
+          ? EmptyNote(message: l10n.noData)
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -264,7 +274,7 @@ class _VariableCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${S.legendBand1090} · ${S.legendBand2575} · ${S.legendMedian}',
+                  '${l10n.legendBand1090} · ${l10n.legendBand2575} · ${l10n.legendMedian}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -275,11 +285,12 @@ class _VariableCard extends StatelessWidget {
                     leads: leads,
                     series: series,
                     dateForLead: dateForLead,
+                    noDataLabel: l10n.noData,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  S.legendModelsNeverPooled,
+                  l10n.legendModelsNeverPooled,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -310,7 +321,7 @@ class _MissingBox extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            S.missingMembersTitle,
+            context.l10n.missingMembersTitle,
             style: theme.textTheme.labelLarge?.copyWith(
               color: theme.colorScheme.onErrorContainer,
             ),
@@ -336,18 +347,19 @@ class _PrecipCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final models = document.models
         .where((model) => document.casesFor('precip', model).isNotEmpty)
         .toList();
     if (models.isEmpty) {
       return SectionCard(
-        title: S.precipTitle,
-        child: const EmptyNote(message: S.noData),
+        title: l10n.precipTitle,
+        child: EmptyNote(message: l10n.noData),
       );
     }
     return SectionCard(
-      title: S.precipTitle,
-      subtitle: S.precipNote,
+      title: l10n.precipTitle,
+      subtitle: l10n.precipNote,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -356,14 +368,14 @@ class _PrecipCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 6),
               child: LegendDot(
                 color: modelColor(context, model),
-                label: S.modelLabel(model),
+                label: modelLabel(model),
               ),
             ),
             _PrecipTable(cases: document.casesFor('precip', model)),
             const SizedBox(height: 14),
           ],
           Text(
-            S.legendModelsNeverPooled,
+            l10n.legendModelsNeverPooled,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -382,6 +394,8 @@ class _PrecipTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final locale = context.localeTag;
     final header = theme.textTheme.labelSmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
@@ -389,10 +403,10 @@ class _PrecipTable extends StatelessWidget {
       children: [
         Row(
           children: [
-            SizedBox(width: 40, child: Text(S.day, style: header)),
-            SizedBox(width: 62, child: Text(S.date, style: header)),
-            Expanded(child: Text(S.precipGe1, style: header, textAlign: TextAlign.right)),
-            Expanded(child: Text(S.precipGe10, style: header, textAlign: TextAlign.right)),
+            SizedBox(width: 40, child: Text(l10n.day, style: header)),
+            SizedBox(width: 62, child: Text(l10n.date, style: header)),
+            Expanded(child: Text(l10n.precipGe1, style: header, textAlign: TextAlign.right)),
+            Expanded(child: Text(l10n.precipGe10, style: header, textAlign: TextAlign.right)),
           ],
         ),
         const Divider(height: 10),
@@ -403,12 +417,12 @@ class _PrecipTable extends StatelessWidget {
               children: [
                 SizedBox(
                   width: 40,
-                  child: Text(S.leadDay(item.leadDay), style: theme.textTheme.bodySmall),
+                  child: Text(l10n.leadDay(item.leadDay), style: theme.textTheme.bodySmall),
                 ),
                 SizedBox(
                   width: 62,
                   child: Text(
-                    dayMonth(item.validLocalDate),
+                    dayMonth(item.validLocalDate, locale: locale),
                     style: theme.textTheme.bodySmall,
                   ),
                 ),
@@ -416,7 +430,7 @@ class _PrecipTable extends StatelessWidget {
                   Expanded(
                     flex: 2,
                     child: Text(
-                      S.missingMembers(item.nMembers, item.nominalMembers),
+                      l10n.missingMembers(item.nMembers, item.nominalMembers),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.error,
                       ),
@@ -425,14 +439,14 @@ class _PrecipTable extends StatelessWidget {
                 else ...[
                   Expanded(
                     child: Text(
-                      percent(item.fractionGe1mm),
+                      percent(item.fractionGe1mm, locale: locale),
                       textAlign: TextAlign.right,
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
                   Expanded(
                     child: Text(
-                      percent(item.fractionGe10mm),
+                      percent(item.fractionGe10mm, locale: locale),
                       textAlign: TextAlign.right,
                       style: theme.textTheme.bodySmall,
                     ),
@@ -454,17 +468,19 @@ class _ObservedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final locale = context.localeTag;
     final days = document.observed;
     if (days.isEmpty) {
       return SectionCard(
-        title: S.observedTitle,
-        subtitle: S.observedNote,
-        child: const EmptyNote(message: S.noData),
+        title: l10n.observedTitle,
+        subtitle: l10n.observedNote,
+        child: EmptyNote(message: l10n.noData),
       );
     }
     return SectionCard(
-      title: S.observedTitle,
-      subtitle: S.observedNote,
+      title: l10n.observedTitle,
+      subtitle: l10n.observedNote,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -472,12 +488,17 @@ class _ObservedCard extends StatelessWidget {
             spacing: 16,
             runSpacing: 6,
             children: [
-              LegendDot(color: theme.colorScheme.error, label: S.observedMax),
-              LegendDot(color: theme.colorScheme.primary, label: S.observedMin),
+              LegendDot(color: theme.colorScheme.error, label: l10n.observedMax),
+              LegendDot(color: theme.colorScheme.primary, label: l10n.observedMin),
             ],
           ),
           const SizedBox(height: 6),
-          _chartFrame(ObservedChart(days: days)),
+          _chartFrame(
+            ObservedChart(
+              days: days,
+              dateLabel: (isoDate) => dayMonth(isoDate, locale: locale),
+            ),
+          ),
           const SizedBox(height: 8),
           Container(
             height: 220,
@@ -494,11 +515,16 @@ class _ObservedCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 3),
                   child: Row(
                     children: [
-                      Expanded(child: Text(day.date, style: theme.textTheme.bodySmall)),
+                      Expanded(
+                        child: Text(
+                          dayMonthYear(day.date, locale: locale),
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ),
                       SizedBox(
                         width: 64,
                         child: Text(
-                          degrees(day.t2mMax),
+                          degrees(day.t2mMax, locale: locale),
                           textAlign: TextAlign.right,
                           style: theme.textTheme.bodySmall,
                         ),
@@ -506,7 +532,7 @@ class _ObservedCard extends StatelessWidget {
                       SizedBox(
                         width: 64,
                         child: Text(
-                          degrees(day.t2mMin),
+                          degrees(day.t2mMin, locale: locale),
                           textAlign: TextAlign.right,
                           style: theme.textTheme.bodySmall,
                         ),

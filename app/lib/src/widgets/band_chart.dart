@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
-import '../strings.dart';
 
 class BandSeries {
   const BandSeries({required this.label, required this.color, required this.cases});
@@ -18,11 +17,15 @@ class ForecastBandChart extends StatelessWidget {
     super.key,
     required this.leads,
     required this.series,
+    required this.noDataLabel,
     this.dateForLead = const {},
   });
 
   final List<int> leads;
   final List<BandSeries> series;
+
+  /// Localised `no data` drawn on the canvas when there is nothing to plot.
+  final String noDataLabel;
   final Map<int, String> dateForLead;
 
   @override
@@ -33,6 +36,7 @@ class ForecastBandChart extends StatelessWidget {
         leads: leads,
         series: series,
         dateForLead: dateForLead,
+        noDataLabel: noDataLabel,
         ink: theme.colorScheme.onSurface,
         muted: theme.colorScheme.onSurfaceVariant,
         grid: theme.colorScheme.outlineVariant,
@@ -47,6 +51,7 @@ class _BandPainter extends CustomPainter {
     required this.leads,
     required this.series,
     required this.dateForLead,
+    required this.noDataLabel,
     required this.ink,
     required this.muted,
     required this.grid,
@@ -55,6 +60,7 @@ class _BandPainter extends CustomPainter {
   final List<int> leads;
   final List<BandSeries> series;
   final Map<int, String> dateForLead;
+  final String noDataLabel;
   final Color ink;
   final Color muted;
   final Color grid;
@@ -91,7 +97,7 @@ class _BandPainter extends CustomPainter {
     }
 
     if (values.isEmpty) {
-      _drawText(canvas, S.noData, plot.center, muted, 13, align: TextAlign.center);
+      _drawText(canvas, noDataLabel, plot.center, muted, 13, align: TextAlign.center);
       return;
     }
 
@@ -320,9 +326,12 @@ class _BandPainter extends CustomPainter {
 }
 
 class ObservedChart extends StatelessWidget {
-  const ObservedChart({super.key, required this.days});
+  const ObservedChart({super.key, required this.days, required this.dateLabel});
 
   final List<ObservedDay> days;
+
+  /// Formats an ISO date (`yyyy-MM-dd`) for the axis in the active locale.
+  final String Function(String isoDate) dateLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -330,6 +339,7 @@ class ObservedChart extends StatelessWidget {
     return CustomPaint(
       painter: _ObservedPainter(
         days: days,
+        dateLabel: dateLabel,
         maxColor: theme.colorScheme.error,
         minColor: theme.colorScheme.primary,
         muted: theme.colorScheme.onSurfaceVariant,
@@ -343,6 +353,7 @@ class ObservedChart extends StatelessWidget {
 class _ObservedPainter extends CustomPainter {
   _ObservedPainter({
     required this.days,
+    required this.dateLabel,
     required this.maxColor,
     required this.minColor,
     required this.muted,
@@ -350,6 +361,7 @@ class _ObservedPainter extends CustomPainter {
   });
 
   final List<ObservedDay> days;
+  final String Function(String isoDate) dateLabel;
   final Color maxColor;
   final Color minColor;
   final Color muted;
@@ -391,9 +403,12 @@ class _ObservedPainter extends CustomPainter {
     }
 
     for (var index = 0; index < days.length; index += 5) {
-      final parts = days[index].date.split('-');
-      final label = parts.length == 3 ? '${parts[2]}/${parts[1]}' : days[index].date;
-      _label(canvas, label, Offset(x(index), plot.bottom + 6), align: TextAlign.center);
+      _label(
+        canvas,
+        dateLabel(days[index].date),
+        Offset(x(index), plot.bottom + 6),
+        align: TextAlign.center,
+      );
     }
 
     _line(canvas, (day) => day.t2mMax, x, y, maxColor);

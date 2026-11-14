@@ -3,7 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../data/models.dart';
 import '../format.dart';
-import '../strings.dart';
+import '../l10n.dart';
 import '../widgets/common.dart';
 
 Future<void> _open(String url) async {
@@ -23,35 +23,41 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final statusTexts = <String, String>{
+      'forecasts': l10n.statusForecasts,
+      'verification': l10n.statusVerification,
+      'observations': l10n.statusObservations,
+    };
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       children: [
         SectionCard(
-          title: S.aboutWhatTitle,
-          child: Text(S.aboutWhat),
+          title: l10n.aboutWhatTitle,
+          child: Text(l10n.aboutWhat),
         ),
         SectionCard(
-          title: S.aboutNoSkillTitle,
-          child: Text(S.aboutNoSkill),
+          title: l10n.aboutNoSkillTitle,
+          child: Text(l10n.aboutNoSkill),
         ),
         SectionCard(
-          title: S.aboutStatusTitle,
+          title: l10n.aboutStatusTitle,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (final key in S.statusTexts.keys)
+              for (final key in aboutStatusKeys)
                 if (about.status.containsKey(key))
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(S.statusTexts[key]!),
+                    child: Text(statusTexts[key]!),
                   ),
-              if (!about.status.keys.any(S.statusTexts.containsKey))
-                const EmptyNote(message: S.noData),
+              if (!aboutStatusKeys.any(about.status.containsKey))
+                EmptyNote(message: l10n.noData),
             ],
           ),
         ),
         SectionCard(
-          title: S.aboutSourcesTitle,
+          title: l10n.aboutSourcesTitle,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -96,7 +102,7 @@ class AboutScreen extends StatelessWidget {
           ),
         ),
         SectionCard(
-          title: S.aboutDataset,
+          title: l10n.aboutDataset,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -104,17 +110,29 @@ class AboutScreen extends StatelessWidget {
                 onPressed: () => _open(about.datasetUrl),
                 child: Text(about.datasetUrl),
               ),
-              _MetadataRow(label: S.aboutRegion, value: about.region.name),
+              _MetadataRow(label: l10n.aboutRegion, value: about.region.name),
               _MetadataRow(
-                label: S.labelExported,
-                value: argentinaDateTime(about.generatedAt),
+                label: l10n.labelExported,
+                value: argentinaDateTime(
+                  about.generatedAt,
+                  locale: context.localeTag,
+                ),
               ),
               _MetadataRow(
-                label: S.aboutSmnSnapshot,
+                label: l10n.aboutSmnSnapshot,
                 value: about.smnSnapshotDate ?? '—',
               ),
-              _MetadataRow(label: S.aboutSchema, value: latest.schemaVersion),
+              _MetadataRow(label: l10n.aboutSchema, value: latest.schemaVersion),
             ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            l10n.aboutMachineTranslations,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       ],

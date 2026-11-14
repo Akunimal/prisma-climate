@@ -1,0 +1,158 @@
+{
+  "@@locale": "de",
+  "appTitle": "PRISMA · Vorhersage nach Station",
+  "appTagline": "Rohes Open-Meteo-Ensemble (GFS und ECMWF IFS) für 19 Stationen in Argentinien.",
+  "tabStations": "Stationen",
+  "tabForecast": "Vorhersage",
+  "tabAbout": "Über / Status",
+  "searchHint": "Stationen suchen",
+  "searchNoResults": "Keine Station passt zur Suche.",
+  "stationsIntro": "Wählen Sie eine Station, um deren Vorhersage zu sehen.",
+  "clearSearch": "Leeren",
+  "retry": "Erneut versuchen",
+  "loading": "Daten werden geladen…",
+  "labelIssue": "Abgabe",
+  "labelExported": "Exportiert",
+  "labelSmn": "SMN-Beobachtungen",
+  "labelClimateZone": "Klimazone",
+  "labelCoordinates": "Koordinaten",
+  "argentinaTimeNote": "Argentinische Zeit (UTC−3)",
+  "variableT2mMax": "Tagesmaximum (t2m_max)",
+  "variableT2mMin": "Tagesminimum (t2m_min)",
+  "variablePrecip": "Niederschlag (Mitgliedsanteil)",
+  "legendBand1090": "10–90-%-Band",
+  "legendBand2575": "25–75-%-Band",
+  "legendMedian": "Median",
+  "legendModelsNeverPooled": "Jedes Modell behält seine eigenen Mitglieder und seine eigenen Perzentile; sie werden nie zusammengelegt.",
+  "legendLeadAxis": "Vorhersagetag",
+  "noData": "keine Daten",
+  "missingMembersTitle": "Keine Daten",
+  "missingMembers": "keine Daten ({members}/{nominal} Mitglieder)",
+  "@missingMembers": {
+    "placeholders": {
+      "members": { "type": "int" },
+      "nominal": { "type": "int" }
+    }
+  },
+  "observedTitle": "SMN-Beobachtung — letzte 30 Tage",
+  "observedNote": "Archivierte Werte so, wie der SMN sie liefert; Lücken bleiben null und werden nie aufgefüllt.",
+  "observedDate": "Datum",
+  "observedMax": "Maximum",
+  "observedMin": "Minimum",
+  "precipTitle": "Niederschlag",
+  "precipGe1": "≥ 1 mm",
+  "precipGe10": "≥ 10 mm",
+  "precipNote": "Anteil der nutzbaren Mitglieder mit täglichem akkumuliertem Niederschlag über oder gleich dem Schwellenwert.",
+  "day": "Tag",
+  "date": "Datum",
+  "model": "Modell",
+  "rawBanner": "Rohes Ensemble: nicht bias-korrigiert und nicht kalibriert. Vor dem Schwellenwert von 15 Abgabedaten werden keine Verifikationsmetriken veröffentlicht.",
+  "attributionTitle": "Daten und Attribution",
+  "attributionObserved": "Beobachtete Reihen: Servicio Meteorológico Nacional, archiviert so, wie sie geliefert wurden; Lücken bleiben null und werden nie aufgefüllt.",
+  "attributionNote": "Attributionszeilen werden wörtlich so wiedergeben, wie es ihre Lizenzen verlangen; nur die umgebende Erklärung wird übersetzt.",
+  "aboutTitle": "Über / Status",
+  "aboutWhatTitle": "Was diese App zeigt",
+  "aboutWhat": "PRISMA veröffentlicht für 19 Stationen in Argentinien die rohe probabilistische Vorhersage zweier Ensembles (ECMWF IFS und GFS) bis zu 15 Tage im Voraus sowie die vom SMN beobachteten täglichen Maximal- und Minimaltemperaturen der letzten 30 Tage. Die App liest nur statische Dateien, die auf GitHub Pages veröffentlicht sind: Es gibt keinen Server und keine API.",
+  "aboutNoSkillTitle": "Keine Skill-Metriken",
+  "aboutNoSkill": "Die App zeigt weder CRPS, CRPSS, Brier, Zuverlässigkeit, Abdeckung noch ein Ranking. Diese Zahlen werden vor dem Schwellenwert von 15 Abgabedaten nicht veröffentlicht.",
+  "aboutStatusTitle": "Datenstatus",
+  "aboutSourcesTitle": "Quellen und Lizenzen",
+  "aboutDataset": "Datensatz",
+  "aboutSmnSnapshot": "SMN-Snapshot (regtemp)",
+  "aboutRegion": "Region",
+  "aboutSchema": "Schema",
+  "statusForecasts": "Rohes Ensemble-Material: nicht bias-korrigiert, nicht kalibriert und über das Qualitätsflag der Quelle hinaus nicht qualitätskontrolliert.",
+  "statusVerification": "Es werden keine Verifikationsergebnisse (CRPS, CRPSS, Brier, Zuverlässigkeit, Abdeckung, Ranking) vor dem Schwellenwert von 15 Abgabedaten in docs/EVALUATION_PROTOCOL.md veröffentlicht.",
+  "statusObservations": "Der SMN- regtemp-Snapshot wird so archiviert, wie er geliefert wird; Lücken bleiben null und werden nie aufgefüllt. Die Produktvorrangsregel vom 2026-11-14 gilt (regtemp primär).",
+  "aboutMachineTranslations": "Übersetzungen außer Englisch sind maschinell erzeugt; Korrekturen und Verbesserungen sind willkommen.",
+  "languageLabel": "Sprache",
+  "leadDay": "+{lead} d",
+  "@leadDay": {
+    "placeholders": {
+      "lead": { "type": "int" }
+    }
+  },
+  "errorTitle": "Konnte {document} nicht lesen",
+  "@errorTitle": {
+    "placeholders": {
+      "document": { "type": "String" }
+    }
+  },
+  "schemaUnsupported": "Die Schema-Version \"{version}\" wird von dieser App nicht unterstützt (erwartet 1.0). Aktualisieren Sie die App oder den Export.",
+  "@schemaUnsupported": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "parseError": "Dokument {document} hat nicht das erwartete Format: {detail}",
+  "@parseError": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "networkError": "Konnte {document} nicht herunterladen: {detail}",
+  "@networkError": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "httpError": "Die Datenquelle hat HTTP {status} für {document} zurückgegeben.",
+  "@httpError": {
+    "placeholders": {
+      "status": { "type": "int" },
+      "document": { "type": "String" }
+    }
+  },
+  "invalidJson": "Ungültiges JSON in {document}: {detail}",
+  "@invalidJson": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "modelsNonText": "Das Feld \"models\" enthält einen nicht-textuellen Wert.",
+  "fieldNotObject": "Feld \"{field}\" ist kein JSON-Objekt.",
+  "@fieldNotObject": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "fieldNotArray": "Feld \"{field}\" ist kein JSON-Array.",
+  "@fieldNotArray": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "missingTextField": "Textfeld \"{field}\" fehlt oder ist keine Zeichenkette.",
+  "@missingTextField": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "missingIntegerField": "Ganzzahl \"{field}\" fehlt oder ist keine Zahl.",
+  "@missingIntegerField": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "notNumericField": "Feld \"{field}\" ist nicht numerisch.",
+  "@notNumericField": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "missingSchemaVersion": "Feld schema_version fehlt in {document}.",
+  "@missingSchemaVersion": {
+    "placeholders": {
+      "document": { "type": "String" }
+    }
+  },
+  "stationCount": "{count, plural, one{{count} Station} other{{count} Stationen}}",
+  "@stationCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
+}

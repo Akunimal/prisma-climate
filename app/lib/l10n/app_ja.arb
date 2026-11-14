@@ -1,0 +1,158 @@
+{
+  "@@locale": "ja",
+  "appTitle": "PRISMA · 観測所ごとの予報",
+  "appTagline": "アルゼンチンの19観測所による Open-Meteo の生アンサンブル（GFS および ECMWF IFS）。",
+  "tabStations": "観測所",
+  "tabForecast": "予報",
+  "tabAbout": "情報 / 状態",
+  "searchHint": "観測所を検索",
+  "searchNoResults": "検索に一致する観測所はありません。",
+  "stationsIntro": "観測所を選ぶと、その予報が表示されます。",
+  "clearSearch": "クリア",
+  "retry": "再試行",
+  "loading": "データを読み込み中…",
+  "labelIssue": "発表",
+  "labelExported": "エクスポート",
+  "labelSmn": "SMN 観測",
+  "labelClimateZone": "気候区分",
+  "labelCoordinates": "座標",
+  "argentinaTimeNote": "アルゼンチン時間（UTC−3）",
+  "variableT2mMax": "日最高（t2m_max）",
+  "variableT2mMin": "日最低（t2m_min）",
+  "variablePrecip": "降水量（メンバーの割合）",
+  "legendBand1090": "10–90% 帯",
+  "legendBand2575": "25–75% 帯",
+  "legendMedian": "中央値",
+  "legendModelsNeverPooled": "各モデルはそれぞれのメンバーとそれぞれのパーセンタイルを保持し、それらが統合されることはありません。",
+  "legendLeadAxis": "予報日数",
+  "noData": "データなし",
+  "missingMembersTitle": "データなし",
+  "missingMembers": "データなし（{members}/{nominal} メンバー）",
+  "@missingMembers": {
+    "placeholders": {
+      "members": { "type": "int" },
+      "nominal": { "type": "int" }
+    }
+  },
+  "observedTitle": "SMN 観測 — 過去30日",
+  "observedNote": "SMN が提供した通りにアーカイブした値。欠測は null のままで、決して補間されません。",
+  "observedDate": "日付",
+  "observedMax": "最高",
+  "observedMin": "最低",
+  "precipTitle": "降水量",
+  "precipGe1": "≥ 1 mm",
+  "precipGe10": "≥ 10 mm",
+  "precipNote": "利用可能なメンバーのうち、日累積降水量がしきい値以上であるものの割合。",
+  "day": "日",
+  "date": "日付",
+  "model": "モデル",
+  "rawBanner": "生のアンサンブル予報：バイアス補正も校正も行っていません。15発表日の門前を超えるまで、検証指標は一切公開されません。",
+  "attributionTitle": "データと出典",
+  "attributionObserved": "観測系列：Servicio Meteorológico Nacional、提供された通りにアーカイブ。欠測は null のままで、決して補間されません。",
+  "attributionNote": "出典行はライセンスの要求により原文のまま再現し、翻訳するのは周囲の説明のみです。",
+  "aboutTitle": "情報 / 状態",
+  "aboutWhatTitle": "このアプリが表示するもの",
+  "aboutWhat": "PRISMA は、アルゼンチンの19観測所について、2つのアンサンブル（ECMWF IFS と GFS）の最長15日先までの生の確率予報と、SMN が観測した過去30日間の日最高・最低気温を公開します。アプリは GitHub Pages 上の静的ファイルのみを読み込みます。サーバーも API もありません。",
+  "aboutNoSkillTitle": "スキル指標なし",
+  "aboutNoSkill": "アプリは CRPS、CRPSS、Brier、信頼性、カバレッジ、リーダーボードを一切表示しません。これらの数値は15発表日の門前まで公開されません。",
+  "aboutStatusTitle": "データの状態",
+  "aboutSourcesTitle": "ソースとライセンス",
+  "aboutDataset": "データセット",
+  "aboutSmnSnapshot": "SMN スナップショット（regtemp）",
+  "aboutRegion": "地域",
+  "aboutSchema": "スキーマ",
+  "statusForecasts": "生のアンサンブルメンバー：バイアス補正なし、校正なし、ソースの品質フラグを超える品質管理もありません。",
+  "statusVerification": "docs/EVALUATION_PROTOCOL.md の15発表日の門前までは、検証結果（CRPS、CRPSS、Brier、信頼性、カバレッジ、リーダーボード）は公開されません。",
+  "statusObservations": "SMN regtemp のスナップショットは提供された通りにアーカイブされます。欠測は null のままで、決して補間されません。2026-11-14 の製品優先規則が適用されます（regtemp が第一）。",
+  "aboutMachineTranslations": "英語以外の翻訳は機械生成ものです。修正や改善を歓迎します。",
+  "languageLabel": "言語",
+  "leadDay": "+{lead} d",
+  "@leadDay": {
+    "placeholders": {
+      "lead": { "type": "int" }
+    }
+  },
+  "errorTitle": "{document} を読み取れませんでした",
+  "@errorTitle": {
+    "placeholders": {
+      "document": { "type": "String" }
+    }
+  },
+  "schemaUnsupported": "スキーマバージョン「{version}」はこのアプリではサポートされていません（期待値 1.0）。アプリまたはエクスポートを更新してください。",
+  "@schemaUnsupported": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "parseError": "文書 {document} が期待される形式ではありません：{detail}",
+  "@parseError": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "networkError": "{document} をダウンロードできませんでした：{detail}",
+  "@networkError": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "httpError": "データソースが {document} に対して HTTP {status} を返しました。",
+  "@httpError": {
+    "placeholders": {
+      "status": { "type": "int" },
+      "document": { "type": "String" }
+    }
+  },
+  "invalidJson": "{document} の JSON が無効です：{detail}",
+  "@invalidJson": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "modelsNonText": "「models」フィールドにテキスト以外の値が含まれています。",
+  "fieldNotObject": "フィールド「{field}」は JSON オブジェクトではありません。",
+  "@fieldNotObject": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "fieldNotArray": "フィールド「{field}」は JSON 配列ではありません。",
+  "@fieldNotArray": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "missingTextField": "テキストフィールド「{field}」が存在しないか、文字列ではありません。",
+  "@missingTextField": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "missingIntegerField": "整数「{field}」が存在しないか、数値ではありません。",
+  "@missingIntegerField": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "notNumericField": "フィールド「{field}」は数値ではありません。",
+  "@notNumericField": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "missingSchemaVersion": "{document} に schema_version フィールドがありません。",
+  "@missingSchemaVersion": {
+    "placeholders": {
+      "document": { "type": "String" }
+    }
+  },
+  "stationCount": "{count, plural, other{{count} 観測所}}",
+  "@stationCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
+}

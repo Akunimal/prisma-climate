@@ -31,9 +31,11 @@ data/about.json
 data/stations/<station_id>.json
 ```
 
-The deploy root contains `index.html` plus this `data/` directory, so with the
-Pages base URL `https://<owner>.github.io/<repo>/data/` the app fetches
-`latest.json`, `about.json` and `stations/<station_id>.json` relatively.
+The deploy root is the Flutter web build (`app/` at the root, so `index.html`
+is the app) plus this `data/` directory and the earlier static English page at
+`/basic/`; with the Pages base URL `https://<owner>.github.io/<repo>/data/`
+the app fetches `latest.json`, `about.json` and
+`stations/<station_id>.json` relatively.
 
 ### `latest.json`
 
@@ -154,14 +156,15 @@ Excerpt of `stations/buenos_aires.json`, `forecast.t2m_max`, lead day 0:
 ## Publishing
 
 `.github/workflows/site.yml` runs on completion of **Daily forecast archive**
-(`workflow_run`) and on `workflow_dispatch`; it exports the tree, adds the
-static `site/index.html`, and deploys the result to GitHub Pages. It has
-`contents: read` and never commits to `main`.
+(`workflow_run`), on a push to `main` that touches `app/`, `site/`,
+`scripts/export_site_data.py` or the workflow itself, and on
+`workflow_dispatch`; it exports the tree, builds the Flutter web app with
+`--base-href /<repo>/`, places the static `site/index.html` at `/basic/`, and
+deploys the result to GitHub Pages. It has `contents: read` and never commits
+to `main`.
 
-**Owner action:** in *Settings → Pages → Source* the repository must be set to
-**GitHub Actions**. On 2026-11-14 the Pages API returned `404 Not Found`
-(OBSERVED), i.e. Pages was **not** enabled; the workflow will fail at the deploy
-step until the owner flips that switch. The workflow does not work around it.
+Pages is enabled with source *GitHub Actions* (verified 2026-11-14); the
+deploy job publishes through that source without any manual step.
 
 ## Licences and attribution
 

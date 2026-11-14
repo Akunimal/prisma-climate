@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prisma_app/src/data/models.dart';
-import 'package:prisma_app/src/strings.dart';
 
 String fixture(String name) => File('test/fixtures/$name').readAsStringSync();
 
@@ -121,7 +120,7 @@ void main() {
     });
 
     test('has a UI text for every status field in the document', () {
-      expect(about.status.keys.toSet(), S.statusTexts.keys.toSet());
+      expect(about.status.keys.toSet(), aboutStatusKeys.toSet());
       expect(about.smnSnapshotDate, '2026-11-12');
       expect(about.region.timezone, 'America/Argentina/Cordoba');
     });

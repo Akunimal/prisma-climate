@@ -1,0 +1,158 @@
+{
+  "@@locale": "hi",
+  "appTitle": "PRISMA · स्टेशन के अनुसार पूर्वानुमान",
+  "appTagline": "अर्जेंटीना के 19 स्टेशनों के लिए Open-Meteo का कच्चा एन्सेम्बल (GFS और ECMWF IFS)।",
+  "tabStations": "स्टेशन",
+  "tabForecast": "पूर्वानुमान",
+  "tabAbout": "जानकारी / स्थिति",
+  "searchHint": "स्टेशन खोजें",
+  "searchNoResults": "कोई स्टेशन खोज से मेल नहीं खाता।",
+  "stationsIntro": "पूर्वानुमान देखने के लिए कोई स्टेशन चुनें।",
+  "clearSearch": "साफ़ करें",
+  "retry": "पुनः प्रयास",
+  "loading": "डेटा लोड हो रहा है…",
+  "labelIssue": "जारी",
+  "labelExported": "निर्यात",
+  "labelSmn": "SMN अवलोकन",
+  "labelClimateZone": "जलवायु क्षेत्र",
+  "labelCoordinates": "निर्देशांक",
+  "argentinaTimeNote": "अर्जेंटीना समय (UTC−3)",
+  "variableT2mMax": "दैनिक अधिकतम (t2m_max)",
+  "variableT2mMin": "दैनिक न्यूनतम (t2m_min)",
+  "variablePrecip": "वर्षा (सदस्य अंश)",
+  "legendBand1090": "10–90% श्रेणी",
+  "legendBand2575": "25–75% श्रेणी",
+  "legendMedian": "माध्यिका",
+  "legendModelsNeverPooled": "हर मॉडल अपने सदस्यों और अपने पर्सेंटाइल रखता है; उन्हें कभी नहीं मिलाया जाता।",
+  "legendLeadAxis": "लीड दिवस",
+  "noData": "कोई डेटा नहीं",
+  "missingMembersTitle": "कोई डेटा नहीं",
+  "missingMembers": "कोई डेटा नहीं ({members}/{nominal} सदस्य)",
+  "@missingMembers": {
+    "placeholders": {
+      "members": { "type": "int" },
+      "nominal": { "type": "int" }
+    }
+  },
+  "observedTitle": "SMN अवलोकन — पिछले 30 दिन",
+  "observedNote": "SMN द्वारा प्रदान किए गए अनुसार संग्रहित मान; अंतराल null रहते हैं और कभी भरे नहीं जाते।",
+  "observedDate": "तिथि",
+  "observedMax": "अधिकतम",
+  "observedMin": "न्यूनतम",
+  "precipTitle": "वर्षा",
+  "precipGe1": "≥ 1 mm",
+  "precipGe10": "≥ 10 mm",
+  "precipNote": "उपयोगी सदस्यों का वह अंश जिनकी दैनिक संचित वर्षा सीमा के बराबर या उससे अधिक है।",
+  "day": "दिन",
+  "date": "तिथि",
+  "model": "मॉडल",
+  "rawBanner": "कच्चा एन्सेम्बल पूर्वानुमान: पूर्वाग्रह-सुधार नहीं, कैलिब्रेशन नहीं। 15 जारी तिथियों के द्वार से पहले कोई सत्यापन मेट्रिक प्रकाशित नहीं होता।",
+  "attributionTitle": "डेटा और श्रेय",
+  "attributionObserved": "अवलोकित श्रृंखलाएँ: Servicio Meteorológico Nacional, प्रदान किए गए अनुसार संग्रहित; अंतराल null रहते हैं और कभी भरे नहीं जाते।",
+  "attributionNote": "श्रेय पंक्तियाँ उनकी लाइसेंस की आवश्यकता के अनुसार शब्दशः दोहराई जाती हैं; केवल आसपास की व्याख्या अनूदित की जाती है।",
+  "aboutTitle": "जानकारी / स्थिति",
+  "aboutWhatTitle": "यह ऐप क्या दिखाता है",
+  "aboutWhat": "PRISMA अर्जेंटीना के 19 स्टेशनों के लिए दो एन्सेम्बल (ECMWF IFS और GFS) का 15 दिन आगे तक कच्चा संभाव्य पूर्वानुमान प्रकाशित करता है, साथ ही पिछले 30 दिनों में SMN द्वारा अवलोकित दैनिक अधिकतम और न्यूनतम तापमान। ऐप केवल GitHub Pages पर प्रकाशित स्थिर फ़ाइलें पढ़ता है: कोई सर्वर नहीं, कोई API नहीं।",
+  "aboutNoSkillTitle": "कोई स्किल मेट्रिक नहीं",
+  "aboutNoSkill": "ऐप CRPS, CRPSS, Brier, विश्वसनीयता, कवरेज या लीडरबोर्ड नहीं दिखाता। ये संख्याएँ 15 जारी तिथियों के द्वार से पहले प्रकाशित नहीं होतीं।",
+  "aboutStatusTitle": "डेटा की स्थिति",
+  "aboutSourcesTitle": "स्रोत और लाइसेंस",
+  "aboutDataset": "डेटासेट",
+  "aboutSmnSnapshot": "SMN स्नैपशॉट (regtemp)",
+  "aboutRegion": "क्षेत्र",
+  "aboutSchema": "स्कीमा",
+  "statusForecasts": "कच्चे एन्सेम्बल सदस्य: पूर्वाग्रह-सुधार नहीं, कैलिब्रेशन नहीं, और स्रोत के गुणवत्ता फ़्लैग से आगे गुणवत्ता नियंत्रण नहीं।",
+  "statusVerification": "docs/EVALUATION_PROTOCOL.md में 15 जारी तिथियों के द्वार से पहले कोई सत्यापन परिणाम (CRPS, CRPSS, Brier, विश्वसनीयता, कवरेज, लीडरबोर्ड) प्रकाशित नहीं होता।",
+  "statusObservations": "SMN regtemp स्नैपशॉट प्रदान किए गए अनुसार संग्रहित है; अंतराल null रहते हैं और कभी भरे नहीं जाते। 2026-11-14 का उत्पाद प्राथमिकता नियम लागू है (regtemp प्राथमिक)।",
+  "aboutMachineTranslations": "अंग्रेज़ी के अलावा की अन्य अनुवाद मशीन से बने हैं; सुधार और बेहतरी का स्वागत है।",
+  "languageLabel": "भाषा",
+  "leadDay": "+{lead} d",
+  "@leadDay": {
+    "placeholders": {
+      "lead": { "type": "int" }
+    }
+  },
+  "errorTitle": "{document} पढ़ा नहीं जा सका",
+  "@errorTitle": {
+    "placeholders": {
+      "document": { "type": "String" }
+    }
+  },
+  "schemaUnsupported": "स्कीमा संस्करण \"{version}\" इस ऐप द्वारा समर्थित नहीं है (अपेक्षित 1.0)। ऐप या एक्सपोर्ट अपडेट करें।",
+  "@schemaUnsupported": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "parseError": "दस्तावेज़ {document} अपेक्षित प्रारूप में नहीं है: {detail}",
+  "@parseError": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "networkError": "{document} डाउनलोड नहीं हो सका: {detail}",
+  "@networkError": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "httpError": "डेटा स्रोत ने {document} के लिए HTTP {status} लौटाया।",
+  "@httpError": {
+    "placeholders": {
+      "status": { "type": "int" },
+      "document": { "type": "String" }
+    }
+  },
+  "invalidJson": "{document} में अमान्य JSON: {detail}",
+  "@invalidJson": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "modelsNonText": "\"models\" फ़ील्ड में गैर-पाठ मान है।",
+  "fieldNotObject": "फ़ील्ड \"{field}\" JSON ऑब्जेक्ट नहीं है।",
+  "@fieldNotObject": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "fieldNotArray": "फ़ील्ड \"{field}\" JSON सरणी नहीं है।",
+  "@fieldNotArray": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "missingTextField": "पाठ फ़ील्ड \"{field}\" अनुपलब्ध है या वह स्ट्रिंग नहीं है।",
+  "@missingTextField": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "missingIntegerField": "पूर्णांक \"{field}\" अनुपलब्ध है या वह संख्या नहीं है।",
+  "@missingIntegerField": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "notNumericField": "फ़ील्ड \"{field}\" संख्यात्मक नहीं है।",
+  "@notNumericField": {
+    "placeholders": {
+      "field": { "type": "String" }
+    }
+  },
+  "missingSchemaVersion": "{document} में schema_version फ़ील्ड अनुपलब्ध है।",
+  "@missingSchemaVersion": {
+    "placeholders": {
+      "document": { "type": "String" }
+    }
+  },
+  "stationCount": "{count, plural, other{{count} स्टेशन}}",
+  "@stationCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
+}

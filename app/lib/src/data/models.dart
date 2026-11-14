@@ -1,38 +1,86 @@
 import 'dart:convert';
 
-import '../strings.dart';
-
 const String supportedSchemaVersion = '1.0';
 
-class DataException implements Exception {
-  const DataException(this.message);
+/// Keys of `about.json`'s `status` block that the app shows as presentation
+/// copy. `smn_snapshot_date` is data, not copy, and is parsed separately.
+const List<String> aboutStatusKeys = <String>[
+  'forecasts',
+  'verification',
+  'observations',
+];
 
+/// How a [DataException] should be worded in the UI. The English [DataException.message]
+/// is kept for logs and tests; `describeError` picks the localised sentence.
+enum DataErrorKind {
+  network,
+  http,
+  parse,
+  invalidJson,
+  modelsNonText,
+  schema,
+  fieldNotObject,
+  fieldNotArray,
+  missingText,
+  missingInteger,
+  notNumeric,
+  missingSchema,
+}
+
+class DataException implements Exception {
+  const DataException(
+    this.message, {
+    required this.kind,
+    this.document,
+    this.detail,
+    this.status,
+    this.field,
+  });
+
+  /// English sentence; used for logs, tests and unknown kinds.
   final String message;
+  final DataErrorKind kind;
+  final String? document;
+  final String? detail;
+  final int? status;
+  final String? field;
 
   @override
   String toString() => message;
 }
 
 class SchemaVersionException extends DataException {
-  SchemaVersionException({required this.found, required this.document})
-      : super('unsupported schema_version');
+  SchemaVersionException({required this.found, required String document})
+      : super(
+          'unsupported schema_version',
+          kind: DataErrorKind.schema,
+          document: document,
+          detail: found,
+        );
 
   final String found;
-  final String document;
 }
 
 Map<String, dynamic> _map(Object? value, String field) {
   if (value is Map<String, dynamic>) {
     return value;
   }
-  throw DataException('Field "$field" is not a JSON object.');
+  throw DataException(
+    'Field "$field" is not a JSON object.',
+    kind: DataErrorKind.fieldNotObject,
+    field: field,
+  );
 }
 
 List<dynamic> _list(Object? value, String field) {
   if (value is List<dynamic>) {
     return value;
   }
-  throw DataException('Field "$field" is not a JSON array.');
+  throw DataException(
+    'Field "$field" is not a JSON array.',
+    kind: DataErrorKind.fieldNotArray,
+    field: field,
+  );
 }
 
 String _string(Map<String, dynamic> json, String field) {
@@ -40,7 +88,11 @@ String _string(Map<String, dynamic> json, String field) {
   if (value is String) {
     return value;
   }
-  throw DataException('Missing text field "$field" or it is not a string.');
+  throw DataException(
+    'Missing text field "$field" or it is not a string.',
+    kind: DataErrorKind.missingText,
+    field: field,
+  );
 }
 
 int _integer(Map<String, dynamic> json, String field) {
@@ -51,7 +103,11 @@ int _integer(Map<String, dynamic> json, String field) {
   if (value is num) {
     return value.toInt();
   }
-  throw DataException('Missing integer "$field" or it is not a number.');
+  throw DataException(
+    'Missing integer "$field" or it is not a number.',
+    kind: DataErrorKind.missingInteger,
+    field: field,
+  );
 }
 
 double? _doubleOrNull(Map<String, dynamic> json, String field) {
@@ -62,13 +118,21 @@ double? _doubleOrNull(Map<String, dynamic> json, String field) {
   if (value is num) {
     return value.toDouble();
   }
-  throw DataException('Field "$field" is not numeric.');
+  throw DataException(
+    'Field "$field" is not numeric.',
+    kind: DataErrorKind.notNumeric,
+    field: field,
+  );
 }
 
 void _checkSchema(Map<String, dynamic> json, String document) {
   final version = json['schema_version'];
   if (version is! String) {
-    throw DataException('Missing schema_version field in $document.');
+    throw DataException(
+      'Missing schema_version field in $document.',
+      kind: DataErrorKind.missingSchema,
+      document: document,
+    );
   }
   if (version != supportedSchemaVersion) {
     throw SchemaVersionException(found: version, document: document);
@@ -117,7 +181,12 @@ class LatestDocument {
     try {
       decoded = jsonDecode(body);
     } on FormatException catch (error) {
-      throw DataException(S.invalidJson(document, error.message));
+      throw DataException(
+        'Invalid JSON in $document: ${error.message}',
+        kind: DataErrorKind.invalidJson,
+        document: document,
+        detail: error.message,
+      );
     }
     final json = _map(decoded, document);
     _checkSchema(json, document);
@@ -130,7 +199,10 @@ class LatestDocument {
         if (model is String) {
           return model;
         }
-        throw const DataException(S.modelsNonText);
+        throw const DataException(
+          'The "models" field contains a non-text value.',
+          kind: DataErrorKind.modelsNonText,
+        );
       }).toList(),
       stations: _list(json['stations'], 'stations')
           .map((station) => StationSummary.fromJson(station))
@@ -245,7 +317,12 @@ class StationDocument {
     try {
       decoded = jsonDecode(body);
     } on FormatException catch (error) {
-      throw DataException(S.invalidJson(document, error.message));
+      throw DataException(
+        'Invalid JSON in $document: ${error.message}',
+        kind: DataErrorKind.invalidJson,
+        document: document,
+        detail: error.message,
+      );
     }
     final json = _map(decoded, document);
     _checkSchema(json, document);
@@ -270,7 +347,10 @@ class StationDocument {
         if (model is String) {
           return model;
         }
-        throw const DataException(S.modelsNonText);
+        throw const DataException(
+          'The "models" field contains a non-text value.',
+          kind: DataErrorKind.modelsNonText,
+        );
       }).toList(),
       station: StationSummary.fromJson(json['station']),
       forecast: forecast,
@@ -384,7 +464,12 @@ class AboutDocument {
     try {
       decoded = jsonDecode(body);
     } on FormatException catch (error) {
-      throw DataException(S.invalidJson(document, error.message));
+      throw DataException(
+        'Invalid JSON in $document: ${error.message}',
+        kind: DataErrorKind.invalidJson,
+        document: document,
+        detail: error.message,
+      );
     }
     final json = _map(decoded, document);
     _checkSchema(json, document);
