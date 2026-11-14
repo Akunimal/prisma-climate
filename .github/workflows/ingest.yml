@@ -148,7 +148,23 @@ jobs:
             echo "ingest status unchanged"
           else
             git commit -m "chore: ingest status ${ISSUE_DATE:-$(date -u +%F)} [skip ci]"
-            git push
+            # A concurrent push must not redden an archive run that already
+            # succeeded: rebase onto the remote, retry a few times, and if the
+            # status still cannot land, say so clearly and leave the run green.
+            pushed=0
+            for attempt in 1 2 3; do
+              if git pull --rebase && git push; then
+                pushed=1
+                break
+              fi
+              echo "heartbeat push attempt ${attempt}/3 failed; retrying in 5s"
+              git rebase --abort >/dev/null 2>&1 || true
+              sleep 5
+            done
+            if [ "$pushed" -ne 1 ]; then
+              echo "::warning title=Ingest status heartbeat not pushed::the archive completed but results/ingest_status.json could not be pushed to main after 3 attempts (concurrent push or rebase conflict); origin keeps the concurrent version. The archive itself is unaffected."
+              exit 0
+            fi
           fi
 
       - name: Fail the job if ingest failed
