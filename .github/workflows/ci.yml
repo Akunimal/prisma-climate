@@ -1,7 +1,7 @@
-# Lint and tests for the Python backend.
+# Lint and tests for the Python backend and the Flutter web app.
 #
-# The Flutter app job is added in Phase 2 (docs/PLAN.md section 7); until then
-# the app directory only holds a .gitkeep.
+# The app job builds the static site data contract only: it runs the analyzer
+# and the widget tests, never a platform build.
 
 name: CI
 
@@ -29,3 +29,28 @@ jobs:
 
       - name: Test
         run: uv run --project backend pytest
+
+  flutter:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.50.0
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test

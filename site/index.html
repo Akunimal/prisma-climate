@@ -110,15 +110,15 @@
 <footer id="attribution"></footer>
 
 <script>
-const DATA = "data/";
+const DATA = "../data/";
 const MODEL_LABEL = { gfs_seamless: "GFS", ecmwf_ifs025: "ECMWF IFS" };
 const FALLBACK_ATTRIBUTION = [
   { text: "Weather data by Open-Meteo.com", url: "https://open-meteo.com/", licence: "CC BY 4.0", licence_url: "https://creativecommons.org/licenses/by/4.0/" },
   { text: "Servicio Meteorológico Nacional (SMN), Argentina", url: "https://www.smn.gob.ar/", licence: "CC BY 2.5 AR", licence_url: "https://creativecommons.org/licenses/by/2.5/ar/" }
 ];
 const FALLBACK_STATUS = {
-  forecasts: "Los pronósticos son miembros crudos del ensemble: sin corrección de sesgo y sin calibración.",
-  verification: "No se publican resultados de verificación (CRPS, CRPSS, Brier, confiabilidad, cobertura, ranking) antes de la compuerta de 15 fechas de emisión (docs/EVALUATION_PROTOCOL.md)."
+  forecasts: "Raw ensemble members: not bias-corrected and not calibrated.",
+  verification: "No verification results (CRPS, CRPSS, Brier, reliability, coverage, leaderboard) are published before the 15-issue-date gate (docs/EVALUATION_PROTOCOL.md).",
 };
 
 const state = { latest: null, about: null, stations: {}, current: null };

@@ -2,7 +2,8 @@
 #
 # The app reads plain JSON files from GitHub Pages; there is no server and no
 # API. This workflow runs the export against the public archives and deploys
-# the result together with the static page in site/index.html.
+# the result together with the Flutter web app (site root) and the plain page
+# kept at /basic/.
 #
 # Triggers:
 #   - workflow_run: after the "Daily forecast archive" workflow completes, so a
@@ -13,8 +14,7 @@
 # contents: read.
 #
 # Owner action required: Settings -> Pages -> Source must be "GitHub Actions".
-# On 2026-11-14 the Pages API returned 404 (not enabled); the deploy step will
-# fail until the owner sets it. Nothing here works around that.
+# Pages is enabled (verified 2026-11-14); the deploy step targets that source.
 #
 # The Hugging Face dataset is read unauthenticated: no HF_TOKEN is defined in
 # this workflow, and the export passes token=False to huggingface_hub.
@@ -64,10 +64,24 @@ jobs:
           python scripts/export_site_data.py
           --out-dir _site/data
 
-      - name: Add the static page
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.50.0
+          cache: true
+
+      - name: Build the Flutter web app
+        working-directory: app
         run: |
-          mkdir -p _site
-          cp site/index.html _site/index.html
+          flutter pub get
+          flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+
+      - name: Assemble the Pages root
+        run: |
+          mkdir -p _site/basic
+          cp -R app/build/web/. _site/
+          cp site/index.html _site/basic/index.html
 
       - name: Configure Pages
         uses: actions/configure-pages@v6

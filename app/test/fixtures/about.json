@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-11-14T09:52:11Z",
+  "dataset_url": "https://huggingface.co/datasets/Akunimal/prisma-climate",
+  "region": {
+    "id": "argentina",
+    "name": "Argentina",
+    "timezone": "America/Argentina/Cordoba"
+  },
+  "sources": [
+    {
+      "id": "openmeteo-ensemble",
+      "name": "Open-Meteo Ensemble API",
+      "role": "raw ensemble forecast members (GFS and ECMWF IFS)",
+      "licence": "CC BY 4.0",
+      "licence_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "Weather data by Open-Meteo.com",
+      "attribution_url": "https://open-meteo.com/",
+      "note": "free tier is non-commercial only; attribution link required next to the data"
+    },
+    {
+      "id": "smn-argentina",
+      "name": "Servicio Meteorológico Nacional (Argentina)",
+      "role": "station observations (regtemp 365-day snapshot)",
+      "licence": "CC BY 2.5 AR",
+      "licence_url": "https://creativecommons.org/licenses/by/2.5/ar/",
+      "attribution": "Servicio Meteorológico Nacional (SMN), Argentina",
+      "attribution_url": "https://www.smn.gob.ar/",
+      "note": "values archived as served; gaps are never filled"
+    }
+  ],
+  "status": {
+    "forecasts": "raw ensemble members: not bias-corrected, not calibrated, not quality-controlled beyond the source quality flag",
+    "verification": "no verification results (CRPS, CRPSS, Brier, reliability, coverage, leaderboard) are published before the 15-issue-date gate in docs/EVALUATION_PROTOCOL.md",
+    "observations": "SMN regtemp snapshot archived as served; gaps stay null and are never filled; the 2026-11-14 product precedence rule applies (regtemp primary)",
+    "smn_snapshot_date": "2026-11-12"
+  }
+}

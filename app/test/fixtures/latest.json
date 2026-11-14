@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-11-14T09:52:11Z",
+  "issue_date": "2026-11-14",
+  "issue_time": "2026-11-14T00:16:46Z",
+  "models": [
+    "ecmwf_ifs025",
+    "gfs_seamless"
+  ],
+  "stations": [
+    {
+      "id": "la_quiaca",
+      "name": "La Quiaca Observatorio",
+      "lat": -22.1,
+      "lon": -65.6,
+      "climate_zone": "NOA / Puna"
+    },
+    {
+      "id": "buenos_aires",
+      "name": "Buenos Aires Observatorio",
+      "lat": -34.583,
+      "lon": -58.483,
+      "climate_zone": "Pampa"
+    }
+  ]
+}
