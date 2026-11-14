@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es-AR">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PRISMA · Pronóstico por estación</title>
+<title>PRISMA · Forecast by station</title>
 <style>
   :root {
     --bg: #f6f7f4;
@@ -79,28 +79,28 @@
 </head>
 <body>
 <header>
-  <h1>PRISMA · Pronóstico por estación</h1>
-  <p>Ensemble crudo de Open-Meteo (GFS y ECMWF IFS) para 19 estaciones de Argentina.</p>
+  <h1>PRISMA · Forecast by station</h1>
+  <p>Raw Open-Meteo ensemble (GFS and ECMWF IFS) for 19 stations in Argentina.</p>
   <div class="meta">
-    <span>Emisión: <strong id="issue">—</strong></span>
-    <span>Exportado: <strong id="exported">—</strong></span>
-    <span>Observaciones SMN: <strong id="smn">—</strong></span>
+    <span>Issue: <strong id="issue">—</strong></span>
+    <span>Exported: <strong id="exported">—</strong></span>
+    <span>SMN observations: <strong id="smn">—</strong></span>
   </div>
 </header>
 
 <main>
   <aside>
-    <h2>Estaciones</h2>
+    <h2>Stations</h2>
     <ul id="stations"></ul>
   </aside>
 
   <section>
     <div id="status" class="status"></div>
-    <h2 id="title">Máxima diaria (t2m_max)</h2>
+    <h2 id="title">Daily maximum (t2m_max)</h2>
     <div class="table-wrap">
       <table>
         <thead><tr id="head"></tr></thead>
-        <tbody id="rows"><tr><td class="skip">Elegí una estación.</td></tr></tbody>
+        <tbody id="rows"><tr><td class="skip">Pick a station.</td></tr></tbody>
       </table>
     </div>
     <p class="note" id="note"></p>
@@ -165,7 +165,7 @@ function renderAttribution() {
     : FALLBACK_ATTRIBUTION;
   const footer = document.getElementById("attribution");
   footer.replaceChildren(
-    el("p", { text: "Datos y atribución:" }),
+    el("p", { text: "Data and attribution:" }),
     ...lines.map((line) =>
       el("p", {}, [
         el("a", { href: line.url, rel: "noopener", target: "_blank", text: line.text }),
@@ -173,7 +173,7 @@ function renderAttribution() {
         el("a", { href: line.licence_url, rel: "noopener", target: "_blank", text: line.licence })
       ])
     ),
-    el("p", { text: "Serie observada: Servicio Meteorológico Nacional, archivada tal como se sirve; los huecos quedan nulos y no se rellenan." })
+    el("p", { text: "Observed series: Servicio Meteorológico Nacional, archived as served; gaps stay null and are never filled." })
   );
 }
 
@@ -201,7 +201,7 @@ function rangeCell(caseData) {
   if (!caseData || caseData.status !== "ok") {
     const missing = caseData ? caseData.n_members + "/" + caseData.nominal_members : "0";
     return el("td", {}, [
-      el("span", { class: "missing", text: "sin datos (" + missing + " miembros)" })
+      el("span", { class: "missing", text: "no data (" + missing + " members)" })
     ]);
   }
   const scale = state.scale || { lo: 0, hi: 1 };
@@ -209,7 +209,7 @@ function rangeCell(caseData) {
   const left = ((caseData.p10 - scale.lo) / span) * 100;
   const width = Math.max(0, ((caseData.p90 - caseData.p10) / span) * 100);
   const dot = ((caseData.p50 - scale.lo) / span) * 100;
-  const bar = el("div", { class: "bar", title: "mín " + fmt(caseData.min) + " · máx " + fmt(caseData.max) }, [
+  const bar = el("div", { class: "bar", title: "min " + fmt(caseData.min) + " · max " + fmt(caseData.max) }, [
     el("span", { class: "fill", style: "left:" + left + "%;width:" + width + "%" }),
     el("span", { class: "dot", style: "left:" + dot + "%" })
   ]);
@@ -217,7 +217,7 @@ function rangeCell(caseData) {
     el("div", { class: "range" }, [
       el("b", { text: fmt(caseData.p10) + "–" + fmt(caseData.p90) + " °C" }),
       bar,
-      el("span", { class: "med", text: "med " + fmt(caseData.p50) })
+      el("span", { class: "med", text: "median " + fmt(caseData.p50) })
     ])
   ]);
 }
@@ -227,7 +227,7 @@ function renderForecast(stationDoc) {
   const forecast = stationDoc.forecast.t2m_max || {};
   const head = document.getElementById("head");
   head.replaceChildren(
-    el("th", { text: "Fecha local" }),
+    el("th", { text: "Local date" }),
     el("th", { text: "Lead" }),
     ...models.map((model) => el("th", { text: (MODEL_LABEL[model] || model) + " · 10–90 %" }))
   );
@@ -271,8 +271,8 @@ function renderForecast(stationDoc) {
 
   const count = leads.length;
   document.getElementById("note").textContent =
-    count + " días de pronóstico · barras: rango 10–90 % y mediana por modelo · " +
-    "los modelos no se combinan entre sí.";
+    count + " forecast days · bars: 10–90 % range and median per model · " +
+    "the models are never pooled.";
 }
 
 async function selectStation(id) {
@@ -282,12 +282,12 @@ async function selectStation(id) {
   try {
     if (!state.stations[id]) state.stations[id] = await getJSON(DATA + "stations/" + id + ".json");
     const document_ = state.stations[id];
-    title.textContent = "Máxima diaria (t2m_max) — " + document_.station.name;
+    title.textContent = "Daily maximum (t2m_max) — " + document_.station.name;
     renderForecast(document_);
   } catch (error) {
-    title.textContent = "Máxima diaria (t2m_max)";
+    title.textContent = "Daily maximum (t2m_max)";
     document.getElementById("rows").replaceChildren(
-      el("tr", {}, [el("td", { class: "missing", colspan: "4", text: "No se pudo cargar la estación: " + error.message })])
+      el("tr", {}, [el("td", { class: "missing", colspan: "4", text: "Could not load the station: " + error.message })])
     );
   }
 }
@@ -316,8 +316,8 @@ async function boot() {
   } catch (error) {
     statusBox.classList.add("error");
     statusBox.replaceChildren(
-      el("p", { text: "No se pudo cargar el árbol de datos (" + error.message + ")." }),
-      el("p", { text: "Si estás viendo esto en GitHub Pages, revisá que el workflow Site data export haya desplegado y que Pages use GitHub Actions como origen." })
+      el("p", { text: "Could not load the data tree (" + error.message + ")." }),
+      el("p", { text: "If you are seeing this on GitHub Pages, check that the Site data export workflow has deployed and that Pages uses GitHub Actions as its source." })
     );
     renderAttribution();
   }

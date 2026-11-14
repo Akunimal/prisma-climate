@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import '../strings.dart';
+
 const String supportedSchemaVersion = '1.0';
 
 class DataException implements Exception {
@@ -115,7 +117,7 @@ class LatestDocument {
     try {
       decoded = jsonDecode(body);
     } on FormatException catch (error) {
-      throw DataException('Invalid JSON in $document: ${error.message}');
+      throw DataException(S.invalidJson(document, error.message));
     }
     final json = _map(decoded, document);
     _checkSchema(json, document);
@@ -128,7 +130,7 @@ class LatestDocument {
         if (model is String) {
           return model;
         }
-        throw const DataException('The "models" field contains a non-text value.');
+        throw const DataException(S.modelsNonText);
       }).toList(),
       stations: _list(json['stations'], 'stations')
           .map((station) => StationSummary.fromJson(station))
@@ -243,7 +245,7 @@ class StationDocument {
     try {
       decoded = jsonDecode(body);
     } on FormatException catch (error) {
-      throw DataException('Invalid JSON in $document: ${error.message}');
+      throw DataException(S.invalidJson(document, error.message));
     }
     final json = _map(decoded, document);
     _checkSchema(json, document);
@@ -268,7 +270,7 @@ class StationDocument {
         if (model is String) {
           return model;
         }
-        throw const DataException('The "models" field contains a non-text value.');
+        throw const DataException(S.modelsNonText);
       }).toList(),
       station: StationSummary.fromJson(json['station']),
       forecast: forecast,
@@ -382,7 +384,7 @@ class AboutDocument {
     try {
       decoded = jsonDecode(body);
     } on FormatException catch (error) {
-      throw DataException('Invalid JSON in $document: ${error.message}');
+      throw DataException(S.invalidJson(document, error.message));
     }
     final json = _map(decoded, document);
     _checkSchema(json, document);

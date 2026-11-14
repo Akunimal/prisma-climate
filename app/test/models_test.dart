@@ -140,10 +140,36 @@ void main() {
       );
     });
 
-    test('rejects malformed JSON', () {
+    test('rejects malformed JSON with the English message and the document', () {
       expect(
-        () => LatestDocument.parse('{not json'),
-        throwsA(isA<DataException>()),
+        () => LatestDocument.parse('{not json', document: 'latest.json'),
+        throwsA(
+          isA<DataException>().having(
+            (error) => error.message,
+            'message',
+            allOf(
+              startsWith('Invalid JSON in latest.json: '),
+              isNot(contains('inválido')),
+            ),
+          ),
+        ),
+      );
+    });
+
+    test('rejects a non-text models entry with the English message', () {
+      final body = fixture('latest.json').replaceFirst(
+        '"ecmwf_ifs025"',
+        '42',
+      );
+      expect(
+        () => LatestDocument.parse(body, document: 'latest.json'),
+        throwsA(
+          isA<DataException>().having(
+            (error) => error.message,
+            'message',
+            'The "models" field contains a non-text value.',
+          ),
+        ),
       );
     });
 

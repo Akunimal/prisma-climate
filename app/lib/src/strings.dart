@@ -128,6 +128,12 @@ class S {
   static String httpError(String document, int status) =>
       'The data source returned HTTP $status for $document.';
 
+  static String invalidJson(String document, String detail) =>
+      'Invalid JSON in $document: $detail';
+
+  static const String modelsNonText =
+      'The "models" field contains a non-text value.';
+
   static String attributionLicence(String licence) => licence;
 
   static String datasetLinkLabel(String url) => url;

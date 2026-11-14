@@ -65,7 +65,10 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   void _retry() {
-    setState(() => _bootstrap = _load());
+    final future = _load();
+    setState(() {
+      _bootstrap = future;
+    });
   }
 
   void _selectStation(String id) {

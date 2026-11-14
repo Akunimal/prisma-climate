@@ -142,6 +142,22 @@ void main() {
     expect(find.textContaining('"2.0"'), findsOneWidget);
   });
 
+  testWidgets('a corrupted latest.json shows the English error and a working Retry',
+      (tester) async {
+    final files = defaultFiles();
+    files['latest.json'] = '{not json';
+    await pumpApp(tester, files: files);
+    expect(find.textContaining('Invalid JSON in latest.json'), findsOneWidget);
+    expect(find.textContaining('inválido'), findsNothing);
+    expect(find.text(S.retry), findsOneWidget);
+
+    files['latest.json'] = fixture('latest.json');
+    await tester.tap(find.text(S.retry));
+    await tester.pumpAndSettle();
+    expect(find.text('2 stations'), findsOneWidget);
+    expect(find.text(S.tabStations), findsOneWidget);
+  });
+
   testWidgets('phone width stays usable and keeps the three screens', (tester) async {
     await pumpApp(tester, size: const Size(360, 780));
     expect(tester.takeException(), isNull);
