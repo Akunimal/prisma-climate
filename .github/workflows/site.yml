@@ -1,0 +1,89 @@
+# Static site data for the app (GitHub Pages).
+#
+# The app reads plain JSON files from GitHub Pages; there is no server and no
+# API. This workflow runs the export against the public archives and deploys
+# the result together with the static page in site/index.html.
+#
+# Triggers:
+#   - workflow_run: after the "Daily forecast archive" workflow completes, so a
+#     newly archived issue date reaches the page without a push.
+#   - workflow_dispatch: manual run.
+#
+# It never commits to main: the deploy is an artifact, and the job only has
+# contents: read.
+#
+# Owner action required: Settings -> Pages -> Source must be "GitHub Actions".
+# On 2026-11-14 the Pages API returned 404 (not enabled); the deploy step will
+# fail until the owner sets it. Nothing here works around that.
+#
+# The Hugging Face dataset is read unauthenticated: no HF_TOKEN is defined in
+# this workflow, and the export passes token=False to huggingface_hub.
+
+name: Site data export
+
+on:
+  workflow_run:
+    workflows: ["Daily forecast archive"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO || 'Akunimal/prisma-climate' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the default branch
+        # Pinned to the default branch: a workflow_run event carries the head of
+        # the triggering workflow, which must never be deployed from a branch.
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+
+      - name: Install project
+        run: uv sync --project backend
+
+      - name: Export the static JSON tree
+        run: >
+          uv run --project backend --with huggingface_hub
+          python scripts/export_site_data.py
+          --out-dir _site/data
+
+      - name: Add the static page
+        run: |
+          mkdir -p _site
+          cp site/index.html _site/index.html
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload the Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

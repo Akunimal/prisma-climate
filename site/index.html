@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRISMA · Pronóstico por estación</title>
+<style>
+  :root {
+    --bg: #f6f7f4;
+    --panel: #ffffff;
+    --ink: #16221c;
+    --muted: #5c6b63;
+    --line: #d9ded8;
+    --accent: #0b6b45;
+    --accent-soft: #dcefe5;
+    --warm: #b4531f;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.5 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  header {
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+    padding: 20px 24px 16px;
+  }
+  header h1 { margin: 0 0 4px; font-size: 20px; letter-spacing: -.01em; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  .meta { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); }
+  .meta strong { color: var(--ink); font-weight: 600; }
+  main { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 20px; padding: 20px 24px; max-width: 1180px; }
+  aside, section { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+  aside { padding: 12px; align-self: start; }
+  aside h2, section h2 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  #stations { list-style: none; margin: 0; padding: 0; max-height: 62vh; overflow: auto; }
+  #stations button {
+    display: block; width: 100%; text-align: left; padding: 7px 9px; margin: 0 0 2px;
+    border: 1px solid transparent; border-radius: 7px; background: none; color: inherit;
+    font: inherit; font-size: 14px; cursor: pointer;
+  }
+  #stations button:hover { background: var(--bg); }
+  #stations button[aria-current="true"] { background: var(--accent-soft); border-color: #b7dbc9; font-weight: 600; }
+  #stations small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
+  section { padding: 16px; min-width: 0; }
+  .skip { color: var(--muted); }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  tbody tr:hover { background: var(--bg); }
+  td.date { white-space: nowrap; font-weight: 550; }
+  td.lead { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .range { display: flex; align-items: center; gap: 8px; min-width: 190px; }
+  .range b { font-weight: 600; white-space: nowrap; }
+  .bar { position: relative; flex: 1; height: 6px; min-width: 64px; background: #ecefea; border-radius: 3px; }
+  .bar .fill { position: absolute; top: 0; bottom: 0; background: var(--accent); opacity: .35; border-radius: 3px; }
+  .bar .dot { position: absolute; top: -2px; width: 3px; height: 10px; background: var(--accent); border-radius: 1px; }
+  .med { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .missing { color: var(--warm); font-size: 12px; }
+  .note { margin: 12px 0 0; font-size: 12px; color: var(--muted); }
+  footer { max-width: 1180px; margin: 0 auto; padding: 4px 24px 32px; color: var(--muted); font-size: 12px; }
+  footer p { margin: 4px 0; }
+  footer a { color: var(--accent); }
+  .status { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; font-size: 13px; }
+  .status p { margin: 0 0 6px; }
+  .status p:last-child { margin: 0; }
+  .error { background: #fdf0e8; border-color: #efd3c2; color: #7a3b17; }
+  @media (max-width: 760px) {
+    main { grid-template-columns: 1fr; padding: 14px; }
+    #stations { max-height: none; display: flex; flex-wrap: wrap; gap: 4px; }
+    #stations li { flex: 0 0 auto; }
+    #stations button { width: auto; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>PRISMA · Pronóstico por estación</h1>
+  <p>Ensemble crudo de Open-Meteo (GFS y ECMWF IFS) para 19 estaciones de Argentina.</p>
+  <div class="meta">
+    <span>Emisión: <strong id="issue">—</strong></span>
+    <span>Exportado: <strong id="exported">—</strong></span>
+    <span>Observaciones SMN: <strong id="smn">—</strong></span>
+  </div>
+</header>
+
+<main>
+  <aside>
+    <h2>Estaciones</h2>
+    <ul id="stations"></ul>
+  </aside>
+
+  <section>
+    <div id="status" class="status"></div>
+    <h2 id="title">Máxima diaria (t2m_max)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="head"></tr></thead>
+        <tbody id="rows"><tr><td class="skip">Elegí una estación.</td></tr></tbody>
+      </table>
+    </div>
+    <p class="note" id="note"></p>
+  </section>
+</main>
+
+<footer id="attribution"></footer>
+
+<script>
+const DATA = "data/";
+const MODEL_LABEL = { gfs_seamless: "GFS", ecmwf_ifs025: "ECMWF IFS" };
+const FALLBACK_ATTRIBUTION = [
+  { text: "Weather data by Open-Meteo.com", url: "https://open-meteo.com/", licence: "CC BY 4.0", licence_url: "https://creativecommons.org/licenses/by/4.0/" },
+  { text: "Servicio Meteorológico Nacional (SMN), Argentina", url: "https://www.smn.gob.ar/", licence: "CC BY 2.5 AR", licence_url: "https://creativecommons.org/licenses/by/2.5/ar/" }
+];
+const FALLBACK_STATUS = {
+  forecasts: "Los pronósticos son miembros crudos del ensemble: sin corrección de sesgo y sin calibración.",
+  verification: "No se publican resultados de verificación (CRPS, CRPSS, Brier, confiabilidad, cobertura, ranking) antes de la compuerta de 15 fechas de emisión (docs/EVALUATION_PROTOCOL.md)."
+};
+
+const state = { latest: null, about: null, stations: {}, current: null };
+
+async function getJSON(path) {
+  const response = await fetch(path, { cache: "no-store" });
+  if (!response.ok) throw new Error(path + " → HTTP " + response.status);
+  return response.json();
+}
+
+const fmt = (value, digits = 1) =>
+  value === null || value === undefined ? "—" : Number(value).toFixed(digits).replace(/\.0$/, "");
+
+function el(tag, attrs = {}, children = []) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (key === "class") node.className = value;
+    else if (key === "text") node.textContent = value;
+    else if (key === "title") node.title = value;
+    else node.setAttribute(key, value);
+  }
+  for (const child of children) node.append(child);
+  return node;
+}
+
+function renderStatus() {
+  const status = (state.about && state.about.status) || FALLBACK_STATUS;
+  const box = document.getElementById("status");
+  box.replaceChildren(
+    el("p", { text: status.forecasts }),
+    el("p", { text: status.verification })
+  );
+}
+
+function renderAttribution() {
+  const sources = (state.about && state.about.sources) || [];
+  const lines = sources.length
+    ? sources.map((s) => ({
+        text: s.attribution,
+        url: s.attribution_url,
+        licence: s.licence,
+        licence_url: s.licence_url
+      }))
+    : FALLBACK_ATTRIBUTION;
+  const footer = document.getElementById("attribution");
+  footer.replaceChildren(
+    el("p", { text: "Datos y atribución:" }),
+    ...lines.map((line) =>
+      el("p", {}, [
+        el("a", { href: line.url, rel: "noopener", target: "_blank", text: line.text }),
+        document.createTextNode(" · "),
+        el("a", { href: line.licence_url, rel: "noopener", target: "_blank", text: line.licence })
+      ])
+    ),
+    el("p", { text: "Serie observada: Servicio Meteorológico Nacional, archivada tal como se sirve; los huecos quedan nulos y no se rellenan." })
+  );
+}
+
+function renderStationList() {
+  const list = document.getElementById("stations");
+  list.replaceChildren(
+    ...state.latest.stations.map((station) =>
+      el("li", {}, [
+        el("button", {
+          type: "button",
+          "data-id": station.id,
+          "aria-current": station.id === state.current ? "true" : "false",
+          text: station.name
+        }),
+        el("small", { text: station.climate_zone })
+      ])
+    )
+  );
+  list.querySelectorAll("button").forEach((button) =>
+    button.addEventListener("click", () => selectStation(button.dataset.id))
+  );
+}
+
+function rangeCell(caseData) {
+  if (!caseData || caseData.status !== "ok") {
+    const missing = caseData ? caseData.n_members + "/" + caseData.nominal_members : "0";
+    return el("td", {}, [
+      el("span", { class: "missing", text: "sin datos (" + missing + " miembros)" })
+    ]);
+  }
+  const scale = state.scale || { lo: 0, hi: 1 };
+  const span = scale.hi - scale.lo || 1;
+  const left = ((caseData.p10 - scale.lo) / span) * 100;
+  const width = Math.max(0, ((caseData.p90 - caseData.p10) / span) * 100);
+  const dot = ((caseData.p50 - scale.lo) / span) * 100;
+  const bar = el("div", { class: "bar", title: "mín " + fmt(caseData.min) + " · máx " + fmt(caseData.max) }, [
+    el("span", { class: "fill", style: "left:" + left + "%;width:" + width + "%" }),
+    el("span", { class: "dot", style: "left:" + dot + "%" })
+  ]);
+  return el("td", {}, [
+    el("div", { class: "range" }, [
+      el("b", { text: fmt(caseData.p10) + "–" + fmt(caseData.p90) + " °C" }),
+      bar,
+      el("span", { class: "med", text: "med " + fmt(caseData.p50) })
+    ])
+  ]);
+}
+
+function renderForecast(stationDoc) {
+  const models = stationDoc.models || [];
+  const forecast = stationDoc.forecast.t2m_max || {};
+  const head = document.getElementById("head");
+  head.replaceChildren(
+    el("th", { text: "Fecha local" }),
+    el("th", { text: "Lead" }),
+    ...models.map((model) => el("th", { text: (MODEL_LABEL[model] || model) + " · 10–90 %" }))
+  );
+
+  const byLead = new Map();
+  for (const model of models) {
+    for (const caseData of forecast[model] || []) {
+      if (!byLead.has(caseData.lead_day)) byLead.set(caseData.lead_day, {});
+      byLead.get(caseData.lead_day)[model] = caseData;
+    }
+  }
+  const leads = [...byLead.keys()].sort((a, b) => a - b);
+
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const entry of byLead.values()) {
+    for (const caseData of Object.values(entry)) {
+      if (caseData.status === "ok") {
+        lo = Math.min(lo, caseData.p10, caseData.min);
+        hi = Math.max(hi, caseData.p90, caseData.max);
+      }
+    }
+  }
+  state.scale = Number.isFinite(lo) && Number.isFinite(hi) && hi > lo
+    ? { lo: lo - 0.5, hi: hi + 0.5 }
+    : null;
+
+  const body = document.getElementById("rows");
+  body.replaceChildren(
+    ...leads.map((lead) => {
+      const entry = byLead.get(lead);
+      const sample = entry[models[0]] || Object.values(entry)[0];
+      const date = sample ? sample.valid_local_date : "—";
+      return el("tr", {}, [
+        el("td", { class: "date", text: date }),
+        el("td", { class: "lead", text: "+" + lead + " d" }),
+        ...models.map((model) => rangeCell(entry[model]))
+      ]);
+    })
+  );
+
+  const count = leads.length;
+  document.getElementById("note").textContent =
+    count + " días de pronóstico · barras: rango 10–90 % y mediana por modelo · " +
+    "los modelos no se combinan entre sí.";
+}
+
+async function selectStation(id) {
+  state.current = id;
+  renderStationList();
+  const title = document.getElementById("title");
+  try {
+    if (!state.stations[id]) state.stations[id] = await getJSON(DATA + "stations/" + id + ".json");
+    const document_ = state.stations[id];
+    title.textContent = "Máxima diaria (t2m_max) — " + document_.station.name;
+    renderForecast(document_);
+  } catch (error) {
+    title.textContent = "Máxima diaria (t2m_max)";
+    document.getElementById("rows").replaceChildren(
+      el("tr", {}, [el("td", { class: "missing", colspan: "4", text: "No se pudo cargar la estación: " + error.message })])
+    );
+  }
+}
+
+async function boot() {
+  const statusBox = document.getElementById("status");
+  try {
+    const [latest, about] = await Promise.all([
+      getJSON(DATA + "latest.json"),
+      getJSON(DATA + "about.json").catch(() => null)
+    ]);
+    state.latest = latest;
+    state.about = about;
+
+    document.getElementById("issue").textContent =
+      latest.issue_date + " · " + latest.issue_time.slice(11, 16) + " UTC";
+    document.getElementById("exported").textContent = latest.generated_at;
+    document.getElementById("smn").textContent =
+      (about && about.status && about.status.smn_snapshot_date) || "—";
+
+    renderStatus();
+    renderAttribution();
+    state.current = latest.stations[0].id;
+    renderStationList();
+    await selectStation(state.current);
+  } catch (error) {
+    statusBox.classList.add("error");
+    statusBox.replaceChildren(
+      el("p", { text: "No se pudo cargar el árbol de datos (" + error.message + ")." }),
+      el("p", { text: "Si estás viendo esto en GitHub Pages, revisá que el workflow Site data export haya desplegado y que Pages use GitHub Actions como origen." })
+    );
+    renderAttribution();
+  }
+}
+
+boot();
+</script>
+</body>
+</html>

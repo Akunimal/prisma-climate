@@ -5,6 +5,13 @@ data/cache/
 data/smn_probe/
 data/precip_probe/
 data/observations/
+# Generated site data: built and deployed by .github/workflows/site.yml
+data/latest.json
+data/about.json
+data/stations/
+_site/
+# Scratch Hugging Face downloads
+tmp_hf/
 !data/.gitkeep
 *.parquet
 
