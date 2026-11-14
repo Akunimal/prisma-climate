@@ -30,8 +30,12 @@
   "missingMembers": "нет данных ({members}/{nominal} членов)",
   "@missingMembers": {
     "placeholders": {
-      "members": { "type": "int" },
-      "nominal": { "type": "int" }
+      "members": {
+        "type": "int"
+      },
+      "nominal": {
+        "type": "int"
+      }
     }
   },
   "observedTitle": "Наблюдения SMN — последние 30 дней",
@@ -69,90 +73,134 @@
   "leadDay": "+{lead} d",
   "@leadDay": {
     "placeholders": {
-      "lead": { "type": "int" }
+      "lead": {
+        "type": "int"
+      }
     }
   },
   "errorTitle": "Не удалось прочитать {document}",
   "@errorTitle": {
     "placeholders": {
-      "document": { "type": "String" }
+      "document": {
+        "type": "String"
+      }
     }
   },
   "schemaUnsupported": "Версия схемы \"{version}\" не поддерживается этим приложением (ожидается 1.0). Обновите приложение или экспорт.",
   "@schemaUnsupported": {
     "placeholders": {
-      "version": { "type": "String" }
+      "version": {
+        "type": "String"
+      }
     }
   },
   "parseError": "Документ {document} имеет неожиданный формат: {detail}",
   "@parseError": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "networkError": "Не удалось скачать {document}: {detail}",
   "@networkError": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "httpError": "Источник данных вернул HTTP {status} для {document}.",
   "@httpError": {
     "placeholders": {
-      "status": { "type": "int" },
-      "document": { "type": "String" }
+      "status": {
+        "type": "int"
+      },
+      "document": {
+        "type": "String"
+      }
     }
   },
   "invalidJson": "Некорректный JSON в {document}: {detail}",
   "@invalidJson": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "modelsNonText": "Поле \"models\" содержит нетекстовое значение.",
   "fieldNotObject": "Поле \"{field}\" не является JSON-объектом.",
   "@fieldNotObject": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "fieldNotArray": "Поле \"{field}\" не является JSON-массивом.",
   "@fieldNotArray": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingTextField": "Отсутствует текстовое поле \"{field}\" или оно не строка.",
   "@missingTextField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingIntegerField": "Отсутствует целое \"{field}\" или это не число.",
   "@missingIntegerField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "notNumericField": "Поле \"{field}\" не числовое.",
   "@notNumericField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingSchemaVersion": "В {document} отсутствует поле schema_version.",
   "@missingSchemaVersion": {
     "placeholders": {
-      "document": { "type": "String" }
+      "document": {
+        "type": "String"
+      }
     }
   },
   "stationCount": "{count, plural, one{{count} станция} few{{count} станции} many{{count} станций} other{{count} станции}}",
   "@stationCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
-  }
+  },
+  "stationsViewList": "Список",
+  "stationsViewMap": "Карта",
+  "stationsViewForecast": "Смотреть прогноз",
+  "mapLegend": "Легенда",
+  "mapReportProblem": "Сообщить о проблеме карты",
+  "mapTilesFailed": "Не удалось загрузить тайлы карты. Станции показаны на нейтральном фоне.",
+  "aboutMapTilesTitle": "Тайлы карты",
+  "aboutMapTilesNote": "Карта загружает тайлы напрямую с серверов OpenStreetMap."
 }

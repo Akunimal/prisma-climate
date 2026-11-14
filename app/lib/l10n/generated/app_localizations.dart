@@ -563,6 +563,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 station} other{{count} stations}}'**
   String stationCount(int count);
+
+  /// No description provided for @stationsViewList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get stationsViewList;
+
+  /// No description provided for @stationsViewMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get stationsViewMap;
+
+  /// No description provided for @stationsViewForecast.
+  ///
+  /// In en, this message translates to:
+  /// **'View forecast'**
+  String get stationsViewForecast;
+
+  /// No description provided for @mapLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Legend'**
+  String get mapLegend;
+
+  /// No description provided for @mapReportProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a map problem'**
+  String get mapReportProblem;
+
+  /// No description provided for @mapTilesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Map tiles could not be loaded. Showing stations on a neutral background.'**
+  String get mapTilesFailed;
+
+  /// No description provided for @aboutMapTilesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Map tiles'**
+  String get aboutMapTilesTitle;
+
+  /// No description provided for @aboutMapTilesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The map loads its tiles directly from OpenStreetMap servers.'**
+  String get aboutMapTilesNote;
 }
 
 class _AppLocalizationsDelegate

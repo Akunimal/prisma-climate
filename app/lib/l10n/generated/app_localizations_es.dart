@@ -283,4 +283,30 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get stationsViewList => 'Lista';
+
+  @override
+  String get stationsViewMap => 'Mapa';
+
+  @override
+  String get stationsViewForecast => 'Ver pronostico';
+
+  @override
+  String get mapLegend => 'Leyenda';
+
+  @override
+  String get mapReportProblem => 'Informar un problema del mapa';
+
+  @override
+  String get mapTilesFailed =>
+      'No se pudieron cargar los mosaicos del mapa. Se muestran las estaciones sobre un fondo neutro.';
+
+  @override
+  String get aboutMapTilesTitle => 'Mosaicos del mapa';
+
+  @override
+  String get aboutMapTilesNote =>
+      'El mapa carga sus mosaicos directamente desde los servidores de OpenStreetMap.';
 }

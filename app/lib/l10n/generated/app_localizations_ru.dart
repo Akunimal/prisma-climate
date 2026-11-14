@@ -284,4 +284,30 @@ class AppLocalizationsRu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get stationsViewList => 'Список';
+
+  @override
+  String get stationsViewMap => 'Карта';
+
+  @override
+  String get stationsViewForecast => 'Смотреть прогноз';
+
+  @override
+  String get mapLegend => 'Легенда';
+
+  @override
+  String get mapReportProblem => 'Сообщить о проблеме карты';
+
+  @override
+  String get mapTilesFailed =>
+      'Не удалось загрузить тайлы карты. Станции показаны на нейтральном фоне.';
+
+  @override
+  String get aboutMapTilesTitle => 'Тайлы карты';
+
+  @override
+  String get aboutMapTilesNote =>
+      'Карта загружает тайлы напрямую с серверов OpenStreetMap.';
 }

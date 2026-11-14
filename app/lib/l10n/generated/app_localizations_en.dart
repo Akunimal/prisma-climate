@@ -282,4 +282,30 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get stationsViewList => 'List';
+
+  @override
+  String get stationsViewMap => 'Map';
+
+  @override
+  String get stationsViewForecast => 'View forecast';
+
+  @override
+  String get mapLegend => 'Legend';
+
+  @override
+  String get mapReportProblem => 'Report a map problem';
+
+  @override
+  String get mapTilesFailed =>
+      'Map tiles could not be loaded. Showing stations on a neutral background.';
+
+  @override
+  String get aboutMapTilesTitle => 'Map tiles';
+
+  @override
+  String get aboutMapTilesNote =>
+      'The map loads its tiles directly from OpenStreetMap servers.';
 }

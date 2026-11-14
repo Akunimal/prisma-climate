@@ -273,4 +273,28 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get stationsViewList => '列表';
+
+  @override
+  String get stationsViewMap => '地图';
+
+  @override
+  String get stationsViewForecast => '查看预报';
+
+  @override
+  String get mapLegend => '图例';
+
+  @override
+  String get mapReportProblem => '报告地图问题';
+
+  @override
+  String get mapTilesFailed => '无法加载地图瓦片。在中性背景上显示站点。';
+
+  @override
+  String get aboutMapTilesTitle => '地图瓦片';
+
+  @override
+  String get aboutMapTilesNote => '地图直接从 OpenStreetMap 服务器加载瓦片。';
 }

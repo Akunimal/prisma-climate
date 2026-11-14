@@ -281,4 +281,30 @@ class AppLocalizationsHi extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get stationsViewList => 'सूची';
+
+  @override
+  String get stationsViewMap => 'मानचित्र';
+
+  @override
+  String get stationsViewForecast => 'पूर्वानुमान देखें';
+
+  @override
+  String get mapLegend => 'लीजेंड';
+
+  @override
+  String get mapReportProblem => 'मानचित्र समस्या रिपोर्ट करें';
+
+  @override
+  String get mapTilesFailed =>
+      'मानचित्र टाइल लोड नहीं हो सके। न्यूट्रल पृष्ठभूमि पर स्टेशन दिखाए जा रहे हैं।';
+
+  @override
+  String get aboutMapTilesTitle => 'मानचित्र टाइल';
+
+  @override
+  String get aboutMapTilesNote =>
+      'मानचित्र सीधे OpenStreetMap सर्वर से टाइल लोड करता है।';
 }

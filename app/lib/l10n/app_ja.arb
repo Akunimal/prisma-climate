@@ -30,8 +30,12 @@
   "missingMembers": "データなし（{members}/{nominal} メンバー）",
   "@missingMembers": {
     "placeholders": {
-      "members": { "type": "int" },
-      "nominal": { "type": "int" }
+      "members": {
+        "type": "int"
+      },
+      "nominal": {
+        "type": "int"
+      }
     }
   },
   "observedTitle": "SMN 観測 — 過去 30 日",
@@ -69,90 +73,134 @@
   "leadDay": "+{lead} d",
   "@leadDay": {
     "placeholders": {
-      "lead": { "type": "int" }
+      "lead": {
+        "type": "int"
+      }
     }
   },
   "errorTitle": "{document} を読み取れませんでした",
   "@errorTitle": {
     "placeholders": {
-      "document": { "type": "String" }
+      "document": {
+        "type": "String"
+      }
     }
   },
   "schemaUnsupported": "スキーマバージョン「{version}」はこのアプリではサポートされていません（期待値 1.0）。アプリまたはエクスポートを更新してください。",
   "@schemaUnsupported": {
     "placeholders": {
-      "version": { "type": "String" }
+      "version": {
+        "type": "String"
+      }
     }
   },
   "parseError": "ドキュメント {document} が期待した形式ではありません：{detail}",
   "@parseError": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "networkError": "{document} をダウンロードできませんでした：{detail}",
   "@networkError": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "httpError": "データソースが {document} に対して HTTP {status} を返しました。",
   "@httpError": {
     "placeholders": {
-      "status": { "type": "int" },
-      "document": { "type": "String" }
+      "status": {
+        "type": "int"
+      },
+      "document": {
+        "type": "String"
+      }
     }
   },
   "invalidJson": "{document} の JSON が無効です：{detail}",
   "@invalidJson": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "modelsNonText": "「models」フィールドにテキスト以外の値が含まれています。",
   "fieldNotObject": "フィールド「{field}」は JSON オブジェクトではありません。",
   "@fieldNotObject": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "fieldNotArray": "フィールド「{field}」は JSON 配列ではありません。",
   "@fieldNotArray": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingTextField": "テキストフィールド「{field}」が欠落しているか、文字列ではありません。",
   "@missingTextField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingIntegerField": "整数「{field}」が欠落しているか、数値ではありません。",
   "@missingIntegerField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "notNumericField": "フィールド「{field}」は数値ではありません。",
   "@notNumericField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingSchemaVersion": "{document} に schema_version フィールドがありません。",
   "@missingSchemaVersion": {
     "placeholders": {
-      "document": { "type": "String" }
+      "document": {
+        "type": "String"
+      }
     }
   },
   "stationCount": "{count, plural, other{{count} ステーション}}",
   "@stationCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
-  }
+  },
+  "stationsViewList": "リスト",
+  "stationsViewMap": "地図",
+  "stationsViewForecast": "予報を表示",
+  "mapLegend": "凡例",
+  "mapReportProblem": "地図の問題を報告",
+  "mapTilesFailed": "地図タイルを読み込めませんでした。中性背景に観測点を表示しています。",
+  "aboutMapTilesTitle": "地図タイル",
+  "aboutMapTilesNote": "地図は OpenStreetMap サーバーから直接タイルを読み込みます。"
 }

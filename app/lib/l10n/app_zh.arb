@@ -30,8 +30,12 @@
   "missingMembers": "无数据（{members}/{nominal} 个成员）",
   "@missingMembers": {
     "placeholders": {
-      "members": { "type": "int" },
-      "nominal": { "type": "int" }
+      "members": {
+        "type": "int"
+      },
+      "nominal": {
+        "type": "int"
+      }
     }
   },
   "observedTitle": "SMN 观测 — 最近 30 天",
@@ -69,90 +73,134 @@
   "leadDay": "+{lead} d",
   "@leadDay": {
     "placeholders": {
-      "lead": { "type": "int" }
+      "lead": {
+        "type": "int"
+      }
     }
   },
   "errorTitle": "无法读取 {document}",
   "@errorTitle": {
     "placeholders": {
-      "document": { "type": "String" }
+      "document": {
+        "type": "String"
+      }
     }
   },
   "schemaUnsupported": "本应用不支持架构版本“{version}”（预期 1.0）。请更新应用或导出文件。",
   "@schemaUnsupported": {
     "placeholders": {
-      "version": { "type": "String" }
+      "version": {
+        "type": "String"
+      }
     }
   },
   "parseError": "文档 {document} 不是预期的格式：{detail}",
   "@parseError": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "networkError": "无法下载 {document}：{detail}",
   "@networkError": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "httpError": "数据源对 {document} 返回了 HTTP {status}。",
   "@httpError": {
     "placeholders": {
-      "status": { "type": "int" },
-      "document": { "type": "String" }
+      "status": {
+        "type": "int"
+      },
+      "document": {
+        "type": "String"
+      }
     }
   },
   "invalidJson": "{document} 中的 JSON 无效：{detail}",
   "@invalidJson": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "modelsNonText": "“models”字段包含非文本值。",
   "fieldNotObject": "字段“{field}”不是 JSON 对象。",
   "@fieldNotObject": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "fieldNotArray": "字段“{field}”不是 JSON 数组。",
   "@fieldNotArray": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingTextField": "缺少文本字段“{field}”或其不是字符串。",
   "@missingTextField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingIntegerField": "缺少整数“{field}”或其不是数字。",
   "@missingIntegerField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "notNumericField": "字段“{field}”不是数值。",
   "@notNumericField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingSchemaVersion": "{document} 中缺少 schema_version 字段。",
   "@missingSchemaVersion": {
     "placeholders": {
-      "document": { "type": "String" }
+      "document": {
+        "type": "String"
+      }
     }
   },
   "stationCount": "{count, plural, other{{count} 个站点}}",
   "@stationCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
-  }
+  },
+  "stationsViewList": "列表",
+  "stationsViewMap": "地图",
+  "stationsViewForecast": "查看预报",
+  "mapLegend": "图例",
+  "mapReportProblem": "报告地图问题",
+  "mapTilesFailed": "无法加载地图瓦片。在中性背景上显示站点。",
+  "aboutMapTilesTitle": "地图瓦片",
+  "aboutMapTilesNote": "地图直接从 OpenStreetMap 服务器加载瓦片。"
 }

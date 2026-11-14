@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../data/models.dart';
 import '../format.dart';
 import '../l10n.dart';
+import '../map_tiles.dart';
 import '../widgets/common.dart';
 
 Future<void> _open(String url) async {
@@ -123,6 +124,20 @@ class AboutScreen extends StatelessWidget {
                 value: about.smnSnapshotDate ?? '—',
               ),
               _MetadataRow(label: l10n.aboutSchema, value: latest.schemaVersion),
+            ],
+          ),
+        ),
+        SectionCard(
+          title: l10n.aboutMapTilesTitle,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.aboutMapTilesNote),
+              const SizedBox(height: 4),
+              TextButton(
+                onPressed: () => _open('https://www.openstreetmap.org/copyright'),
+                child: const Text(kPrismaTileAttribution),
+              ),
             ],
           ),
         ),

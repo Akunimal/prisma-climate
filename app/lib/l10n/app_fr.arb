@@ -30,8 +30,12 @@
   "missingMembers": "aucune donnée ({members}/{nominal} membres)",
   "@missingMembers": {
     "placeholders": {
-      "members": { "type": "int" },
-      "nominal": { "type": "int" }
+      "members": {
+        "type": "int"
+      },
+      "nominal": {
+        "type": "int"
+      }
     }
   },
   "observedTitle": "Observé SMN — 30 derniers jours",
@@ -69,90 +73,134 @@
   "leadDay": "+{lead} d",
   "@leadDay": {
     "placeholders": {
-      "lead": { "type": "int" }
+      "lead": {
+        "type": "int"
+      }
     }
   },
   "errorTitle": "Impossible de lire {document}",
   "@errorTitle": {
     "placeholders": {
-      "document": { "type": "String" }
+      "document": {
+        "type": "String"
+      }
     }
   },
   "schemaUnsupported": "La version de schéma \"{version}\" n'est pas prise en charge par cette app (attendu 1.0). Mettez à jour l'app ou l'export.",
   "@schemaUnsupported": {
     "placeholders": {
-      "version": { "type": "String" }
+      "version": {
+        "type": "String"
+      }
     }
   },
   "parseError": "Le document {document} n'est pas au format attendu : {detail}",
   "@parseError": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "networkError": "Impossible de télécharger {document} : {detail}",
   "@networkError": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "httpError": "La source de données a renvoyé HTTP {status} pour {document}.",
   "@httpError": {
     "placeholders": {
-      "status": { "type": "int" },
-      "document": { "type": "String" }
+      "status": {
+        "type": "int"
+      },
+      "document": {
+        "type": "String"
+      }
     }
   },
   "invalidJson": "JSON invalide dans {document} : {detail}",
   "@invalidJson": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "modelsNonText": "Le champ \"models\" contient une valeur non textuelle.",
   "fieldNotObject": "Le champ \"{field}\" n'est pas un objet JSON.",
   "@fieldNotObject": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "fieldNotArray": "Le champ \"{field}\" n'est pas un tableau JSON.",
   "@fieldNotArray": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingTextField": "Champ texte \"{field}\" manquant ou il n'est pas une chaîne.",
   "@missingTextField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingIntegerField": "Entier \"{field}\" manquant ou ce n'est pas un nombre.",
   "@missingIntegerField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "notNumericField": "Le champ \"{field}\" n'est pas numérique.",
   "@notNumericField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingSchemaVersion": "Champ schema_version manquant dans {document}.",
   "@missingSchemaVersion": {
     "placeholders": {
-      "document": { "type": "String" }
+      "document": {
+        "type": "String"
+      }
     }
   },
   "stationCount": "{count, plural, one{{count} station} other{{count} stations}}",
   "@stationCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
-  }
+  },
+  "stationsViewList": "Liste",
+  "stationsViewMap": "Carte",
+  "stationsViewForecast": "Voir la prevision",
+  "mapLegend": "Legende",
+  "mapReportProblem": "Signaler un probleme de carte",
+  "mapTilesFailed": "Impossible de charger les tuiles de la carte. Les stations sont affichees sur un fond neutre.",
+  "aboutMapTilesTitle": "Tuiles de la carte",
+  "aboutMapTilesNote": "La carte charge ses tuiles directement depuis les serveurs OpenStreetMap."
 }

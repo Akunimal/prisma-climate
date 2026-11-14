@@ -277,4 +277,28 @@ class AppLocalizationsJa extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get stationsViewList => 'リスト';
+
+  @override
+  String get stationsViewMap => '地図';
+
+  @override
+  String get stationsViewForecast => '予報を表示';
+
+  @override
+  String get mapLegend => '凡例';
+
+  @override
+  String get mapReportProblem => '地図の問題を報告';
+
+  @override
+  String get mapTilesFailed => '地図タイルを読み込めませんでした。中性背景に観測点を表示しています。';
+
+  @override
+  String get aboutMapTilesTitle => '地図タイル';
+
+  @override
+  String get aboutMapTilesNote => '地図は OpenStreetMap サーバーから直接タイルを読み込みます。';
 }

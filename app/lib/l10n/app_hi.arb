@@ -30,8 +30,12 @@
   "missingMembers": "कोई डेटा नहीं ({members}/{nominal} सदस्य)",
   "@missingMembers": {
     "placeholders": {
-      "members": { "type": "int" },
-      "nominal": { "type": "int" }
+      "members": {
+        "type": "int"
+      },
+      "nominal": {
+        "type": "int"
+      }
     }
   },
   "observedTitle": "SMN अवलोकन — पिछले 30 दिन",
@@ -69,90 +73,134 @@
   "leadDay": "+{lead} d",
   "@leadDay": {
     "placeholders": {
-      "lead": { "type": "int" }
+      "lead": {
+        "type": "int"
+      }
     }
   },
   "errorTitle": "{document} पढ़ा नहीं जा सका",
   "@errorTitle": {
     "placeholders": {
-      "document": { "type": "String" }
+      "document": {
+        "type": "String"
+      }
     }
   },
   "schemaUnsupported": "स्कीमा संस्करण \"{version}\" इस ऐप द्वारा समर्थित नहीं है (अपेक्षित 1.0)। ऐप या एक्सपोर्ट अपडेट करें।",
   "@schemaUnsupported": {
     "placeholders": {
-      "version": { "type": "String" }
+      "version": {
+        "type": "String"
+      }
     }
   },
   "parseError": "दस्तावेज़ {document} अपेक्षित प्रारूप में नहीं है: {detail}",
   "@parseError": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "networkError": "{document} डाउनलोड नहीं हो सका: {detail}",
   "@networkError": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "httpError": "डेटा स्रोत ने {document} के लिए HTTP {status} लौटाया।",
   "@httpError": {
     "placeholders": {
-      "status": { "type": "int" },
-      "document": { "type": "String" }
+      "status": {
+        "type": "int"
+      },
+      "document": {
+        "type": "String"
+      }
     }
   },
   "invalidJson": "{document} में अमान्य JSON: {detail}",
   "@invalidJson": {
     "placeholders": {
-      "document": { "type": "String" },
-      "detail": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "modelsNonText": "\"models\" फ़ील्ड में गैर-पाठ मान है।",
   "fieldNotObject": "फ़ील्ड \"{field}\" JSON ऑब्जेक्ट नहीं है।",
   "@fieldNotObject": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "fieldNotArray": "फ़ील्ड \"{field}\" JSON सरणी नहीं है।",
   "@fieldNotArray": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingTextField": "पाठ फ़ील्ड \"{field}\" अनुपस्थित है या वह स्ट्रिंग नहीं है।",
   "@missingTextField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingIntegerField": "पूर्णांक \"{field}\" अनुपस्थित है या वह संख्या नहीं है।",
   "@missingIntegerField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "notNumericField": "फ़ील्ड \"{field}\" संख्यात्मक नहीं है।",
   "@notNumericField": {
     "placeholders": {
-      "field": { "type": "String" }
+      "field": {
+        "type": "String"
+      }
     }
   },
   "missingSchemaVersion": "{document} में schema_version फ़ील्ड अनुपस्थित है।",
   "@missingSchemaVersion": {
     "placeholders": {
-      "document": { "type": "String" }
+      "document": {
+        "type": "String"
+      }
     }
   },
   "stationCount": "{count, plural, other{{count} स्टेशन}}",
   "@stationCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
-  }
+  },
+  "stationsViewList": "सूची",
+  "stationsViewMap": "मानचित्र",
+  "stationsViewForecast": "पूर्वानुमान देखें",
+  "mapLegend": "लीजेंड",
+  "mapReportProblem": "मानचित्र समस्या रिपोर्ट करें",
+  "mapTilesFailed": "मानचित्र टाइल लोड नहीं हो सके। न्यूट्रल पृष्ठभूमि पर स्टेशन दिखाए जा रहे हैं।",
+  "aboutMapTilesTitle": "मानचित्र टाइल",
+  "aboutMapTilesNote": "मानचित्र सीधे OpenStreetMap सर्वर से टाइल लोड करता है।"
 }

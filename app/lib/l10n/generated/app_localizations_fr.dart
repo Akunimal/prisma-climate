@@ -283,4 +283,30 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get stationsViewList => 'Liste';
+
+  @override
+  String get stationsViewMap => 'Carte';
+
+  @override
+  String get stationsViewForecast => 'Voir la prevision';
+
+  @override
+  String get mapLegend => 'Legende';
+
+  @override
+  String get mapReportProblem => 'Signaler un probleme de carte';
+
+  @override
+  String get mapTilesFailed =>
+      'Impossible de charger les tuiles de la carte. Les stations sont affichees sur un fond neutre.';
+
+  @override
+  String get aboutMapTilesTitle => 'Tuiles de la carte';
+
+  @override
+  String get aboutMapTilesNote =>
+      'La carte charge ses tuiles directement depuis les serveurs OpenStreetMap.';
 }

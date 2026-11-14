@@ -284,4 +284,30 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get stationsViewList => 'Liste';
+
+  @override
+  String get stationsViewMap => 'Karte';
+
+  @override
+  String get stationsViewForecast => 'Vorhersage ansehen';
+
+  @override
+  String get mapLegend => 'Legende';
+
+  @override
+  String get mapReportProblem => 'Kartenproblem melden';
+
+  @override
+  String get mapTilesFailed =>
+      'Kartenkacheln konnten nicht geladen werden. Stationen werden auf neutralem Hintergrund angezeigt.';
+
+  @override
+  String get aboutMapTilesTitle => 'Kartenkacheln';
+
+  @override
+  String get aboutMapTilesNote =>
+      'Die Karte laedt ihre Kacheln direkt von den OpenStreetMap-Servern.';
 }
