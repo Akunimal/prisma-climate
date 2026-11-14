@@ -27,6 +27,16 @@ most three per run (``regtemp``, ``datohorario``, ``observaciones``). Licence of
 the payloads: CC BY 2.5 AR with attribution to the Servicio Meteorológico
 Nacional — the dataset-level cc-by-4.0 tag covers ``forecasts/`` only.
 
+Failure diagnostics: when a payload yields no parseable FECHA, the run log
+receives the HTTP status, content type, byte size, sha256, the ZIP member
+names and the first 5 lines of each member BEFORE the outcome is decided —
+printed to the log only, never written to Actions artifacts. A DAILY payload
+with no data rows yet (an empty or header-only member: the served file can
+exist before the local day's rows are written) is reported distinctly as
+``not available yet`` and does not fail the run: it is not a lost day —
+``scripts/check_observation_gaps.py`` flags those — and a later slot simply
+retries.
+
     uv run --project backend --with huggingface_hub \\
         python scripts/capture_observations.py --payloads datohorario observaciones --upload
 """
@@ -98,14 +108,25 @@ def url_for(dato: str) -> str:
     return BASE_URL + dato
 
 
-def fetch_payload(dato: str, *, get: Callable[..., requests.Response] = requests.get) -> bytes:
-    """Plain GET with default headers against ssl.smn.gob.ar only."""
+def fetch_payload(
+    dato: str, *, get: Callable[..., requests.Response] = requests.get
+) -> tuple[bytes, dict[str, str]]:
+    """Plain GET with default headers against ssl.smn.gob.ar only.
+
+    Returns the body plus the response metadata the failure diagnostics need
+    (HTTP status and content type), so an unparseable payload can be judged
+    from the run log alone.
+    """
     url = url_for(dato)
     if urlsplit(url).hostname != SMN_HOST:
         raise ValueError(f"refusing to fetch {url}: only {SMN_HOST} is allowed")
     response = get(url, timeout=TIMEOUT)
     response.raise_for_status()
-    return response.content
+    meta = {
+        "http_status": str(response.status_code),
+        "content_type": response.headers.get("Content-Type", ""),
+    }
+    return response.content, meta
 
 
 def read_member(payload: bytes) -> tuple[str, str]:
@@ -142,6 +163,40 @@ def fields_of(text: str) -> list[str]:
         if "FECHA" in line:
             return line.split()
     raise ValueError("no header line with FECHA found in the payload")
+
+
+def has_no_data_rows(text: str) -> bool:
+    """Empty member, or an SMN skeleton: header present, data rows not written yet.
+
+    Only meaningful once ``parse_fechas`` has found nothing — then either the
+    member is blank or it holds the FECHA header with zero rows, which is the
+    shape of a payload served before the local day's rows exist.
+    """
+    return not text.strip() or "FECHA" in text
+
+
+def print_payload_diagnostics(
+    dato: str, payload: bytes, meta: Mapping[str, str], member: str, text: str
+) -> None:
+    """Log everything needed to judge an unparseable payload, before the outcome.
+
+    Run log only: nothing here is written to Actions artifacts, and the raw
+    payload itself is never printed — only its size, checksum and leading lines.
+    """
+    lines = text.splitlines()
+    out = [
+        f"{dato}: payload diagnostics:",
+        f"  http_status: {meta.get('http_status', 'n/a')}",
+        f"  content_type: {meta.get('content_type', 'n/a')}",
+        f"  byte_size: {len(payload)}",
+        f"  sha256: {hashlib.sha256(payload).hexdigest()}",
+        f"  zip_members: {member}",
+        f"  member {member}: {len(lines)} line(s); first 5 lines:",
+    ]
+    if not lines:
+        out.append("    (no lines)")
+    out.extend(f"    line{i}: {line!r}" for i, line in enumerate(lines[:5], start=1))
+    print("\n".join(out), file=sys.stderr)
 
 
 def target_dir(dato: str, key: str) -> str:
@@ -418,10 +473,32 @@ def main(argv: list[str] | None = None) -> int:
         try:
             if args.local_zip is not None:
                 payload = args.local_zip.read_bytes()
+                meta = {"http_status": "n/a (local zip)", "content_type": "n/a (local zip)"}
             else:
-                payload = fetch_payload(dato)
+                payload, meta = fetch_payload(dato)
             member, text = read_member(payload)
             dates = parse_fechas(text)
+            if not dates:
+                print_payload_diagnostics(dato, payload, meta, member, text)
+                if dato in DAILY_DATOS and has_no_data_rows(text):
+                    # Before the local day closes the served daily file can hold
+                    # no rows yet; that is not a lost day (the gap report flags
+                    # those), so it is reported distinctly and a later slot
+                    # retries. regtemp is a rolling 365-day window with no
+                    # same-day retry — an empty one stays a failure.
+                    print(
+                        f"{dato}: not available yet: payload carries no data rows "
+                        f"({member}); not a lost day, a later slot will retry",
+                        file=sys.stderr,
+                    )
+                    continue
+                print(
+                    f"{dato}: capture failed: "
+                    f"{dato} payload carries no parseable FECHA value",
+                    file=sys.stderr,
+                )
+                failures += 1
+                continue
             key = key_for(dato, dates)
             fields = fields_of(text)
 

@@ -291,6 +291,8 @@ def test_fetch_is_one_plain_request_to_ssl_smn(capture) -> None:
 
     class FakeResponse:
         content = make_zip("observaciones20261110.txt", OBSERVACIONES_TEXT)
+        status_code = 200
+        headers = {"Content-Type": "application/zip"}
 
         def raise_for_status(self) -> None:
             return None
@@ -300,9 +302,10 @@ def test_fetch_is_one_plain_request_to_ssl_smn(capture) -> None:
         assert timeout == 60
         return FakeResponse()
 
-    payload = capture.fetch_payload("observaciones", get=fake_get)
+    payload, meta = capture.fetch_payload("observaciones", get=fake_get)
     assert calls == ["https://ssl.smn.gob.ar/dpd/zipopendata.php?dato=observaciones"]
     assert payload == FakeResponse.content
+    assert meta == {"http_status": "200", "content_type": "application/zip"}
 
 
 def test_main_requires_the_actions_secret_to_upload(tmp_path: Path, monkeypatch, capture) -> None:
@@ -468,3 +471,105 @@ def test_main_completes_a_half_written_folder_in_one_commit(
     # A repeat now sees both files and must be a no-op.
     assert capture.main(argv) == 0
     assert len(HalfWrittenApi.commits) == 1
+
+
+def test_empty_daily_payload_is_reported_as_not_available_yet(
+    tmp_path: Path, monkeypatch, capture, capsys
+) -> None:
+    """An empty member (payload served before the day's rows exist) is not a loss."""
+    monkeypatch.delenv("HF_TOKEN", raising=False)
+    monkeypatch.delenv("HF_DATASET_REPO", raising=False)
+    zip_path = tmp_path / "src.zip"
+    zip_path.write_bytes(make_zip("datohorario20261113.txt", ""))
+    out = tmp_path / "staged"
+    code = capture.main(
+        ["--payloads", "datohorario", "--local-zip", str(zip_path), "--out", str(out)]
+    )
+    assert code == 0, "no data rows yet must not fail the run"
+    err = capsys.readouterr().err
+    assert "datohorario: not available yet: payload carries no data rows" in err
+    assert "not a lost day, a later slot will retry" in err
+    assert "http_status: n/a (local zip)" in err
+    assert f"byte_size: {len(zip_path.read_bytes())}" in err
+    assert "sha256: " in err
+    assert "zip_members: datohorario20261113.txt" in err
+    assert not (out / "datohorario").exists(), "a not-available payload is never staged"
+
+
+def test_no_fecha_logs_http_status_content_type_size_sha_and_members(
+    tmp_path: Path, monkeypatch, capture, capsys
+) -> None:
+    """Header-only daily payload: full diagnostics before the distinct report."""
+    payload = make_zip("datohorario20261113.txt", "FECHA HORA TEMP NOMBRE\n")
+    monkeypatch.setattr(
+        capture,
+        "fetch_payload",
+        lambda _dato, **_kwargs: (
+            payload,
+            {"http_status": "200", "content_type": "application/octet-stream"},
+        ),
+    )
+    out = tmp_path / "staged"
+    code = capture.main(["--payloads", "datohorario", "--out", str(out)])
+    assert code == 0, "a header-only daily skeleton is not available yet, not a failure"
+    err = capsys.readouterr().err
+    assert "payload diagnostics:" in err
+    assert "http_status: 200" in err
+    assert "content_type: application/octet-stream" in err
+    assert f"byte_size: {len(payload)}" in err
+    assert f"sha256: {hashlib.sha256(payload).hexdigest()}" in err
+    assert "zip_members: datohorario20261113.txt" in err
+    assert "not available yet" in err
+
+
+def test_unexpected_daily_payload_fails_with_diagnostics_and_five_lines(
+    tmp_path: Path, monkeypatch, capture, capsys
+) -> None:
+    """Content that is neither empty nor an SMN skeleton stays a hard failure."""
+    junk = "".join(f"line {i}\n" for i in range(1, 9))
+    payload = make_zip("datohorario20261113.txt", junk)
+    monkeypatch.setattr(
+        capture,
+        "fetch_payload",
+        lambda _dato, **_kwargs: (
+            payload,
+            {"http_status": "200", "content_type": "text/plain"},
+        ),
+    )
+    out = tmp_path / "staged"
+    code = capture.main(["--payloads", "datohorario", "--out", str(out)])
+    assert code == 1
+    err = capsys.readouterr().err
+    assert (
+        "datohorario: capture failed: datohorario payload carries no parseable FECHA value"
+        in err
+    )
+    assert "payload diagnostics:" in err
+    assert "http_status: 200" in err
+    assert "line5: 'line 5'" in err
+    assert "line6:" not in err, "only the first 5 member lines are logged"
+    assert "not available yet" not in err
+
+
+def test_regtemp_without_data_rows_stays_a_failure(
+    tmp_path: Path, monkeypatch, capture, capsys
+) -> None:
+    """regtemp is a rolling 365-day window with no same-day retry: empty fails."""
+    payload = make_zip(
+        "registro_temperatura365d_smn.txt", "FECHA TMAX TMIN NOMBRE\n"
+    )
+    monkeypatch.setattr(
+        capture,
+        "fetch_payload",
+        lambda _dato, **_kwargs: (
+            payload,
+            {"http_status": "200", "content_type": "application/octet-stream"},
+        ),
+    )
+    out = tmp_path / "staged"
+    code = capture.main(["--payloads", "regtemp", "--out", str(out)])
+    assert code == 1
+    err = capsys.readouterr().err
+    assert "regtemp: capture failed: regtemp payload carries no parseable FECHA value" in err
+    assert "payload diagnostics:" in err
+    assert "not available yet" not in err
