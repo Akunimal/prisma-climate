@@ -154,14 +154,17 @@ instant instead (plan section 3.3, `docs/PLAN.md`). Two files with different
   Datos del SMN*, §4.A, which classifies web-accessible SMN data as *Datos
   Abiertos* under that licence); both are recorded in `docs/DATA_SOURCES.md`.
 
-The `forecasts/` files redistribute derived forecast values; the underlying
-sources keep their own terms:
+The `forecasts/` files redistribute the raw ensemble member values under CC BY
+4.0; the underlying sources keep their own terms:
 
 - **Weather data by Open-Meteo.com (CC BY 4.0)** - <https://open-meteo.com/>.
-  The Open-Meteo licence page states that API data are offered under
-  Attribution 4.0 International (CC BY 4.0) and requires a link next to any
-  location where Open-Meteo data are displayed. Its **free tier is
-  non-commercial only**; commercial use of the API requires a paid plan.
+  The Open-Meteo licence page offers the API data under Attribution 4.0
+  International (CC BY 4.0): "You are free to share: copy and redistribute the
+  material in any medium or format", with attribution and "a link next to any
+  location" where Open-Meteo data are displayed. Its **free tier is
+  non-commercial only**; commercial use of the API requires a paid plan. The
+  archive stores the raw member values under that licence (registry reconciled
+  on 2026-11-14, `docs/DATA_SOURCES.md`).
 - **ECMWF open data (IFS ensemble)** - the ECMWF open-data page states that the
   free IFS/AIFS forecast subset "is governed by the Creative Commons CC-BY-4.0
   licence and the ECMWF Terms of Use", that it "may be redistributed and used

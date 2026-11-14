@@ -18,7 +18,7 @@ Human-readable version of [`configs/sources.yaml`](../configs/sources.yaml). If 
 - **Cadence:** every 6 hours; latency hours
 - **Day convention:** `local_calendar`
 - **License:** Open-Meteo CC BY 4.0; the free tier is non-commercial only
-- **Redistribution:** `derived_only` — derived values only, no bulk republishing of their API responses
+- **Redistribution:** `yes` — the Open-Meteo licence page offers the API data under CC BY 4.0 and states: "You are free to share: copy and redistribute the material in any medium or format". The archived ensemble members are therefore redistributable with attribution; the free-tier **non-commercial** condition is a separate contract term, recorded in `License` above and respected by the public research dataset. Reconciled on 2026-11-14 against <https://open-meteo.com/en/licence> and <https://open-meteo.com/en/terms>; the former `derived_only` value was too strict.
 - **Verified:** 2026-11-11
 - **Notes:** the API does not expose the model cycle time; `issue_time` is recorded as the fetch time (UTC) as a proxy.
 

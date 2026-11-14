@@ -39,7 +39,11 @@ sources:
     latency: "hours"
     update_frequency: "6 hours"
     license: "Open-Meteo CC BY 4.0; free tier is non-commercial only"
-    redistributable: derived_only
+    # CC BY 4.0 grants redistribution of the API data with attribution; the
+    # non-commercial condition belongs to the free-tier contract, not to the
+    # data licence. Reconciled 2026-11-14 against the Open-Meteo licence and
+    # terms pages (docs/DATA_SOURCES.md).
+    redistributable: yes
     verified_on: "2026-11-11"
     notes: "GFS ensemble has 30 members, ECMWF IFS 0.25 has 50."
     options:
