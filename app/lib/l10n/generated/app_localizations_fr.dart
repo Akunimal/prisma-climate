@@ -10,11 +10,11 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get appTitle => 'PRISMA · Prévisions par station';
+  String get appTitle => 'PRISMA · Prévision par station';
 
   @override
   String get appTagline =>
-      'Ensemble brut d\'Open-Meteo (GFS et ECMWF IFS) pour 19 stations en Argentine.';
+      'Ensamble brut d\'Open-Meteo (GFS et ECMWF IFS) pour 19 stations en Argentine.';
 
   @override
   String get tabStations => 'Stations';
@@ -32,8 +32,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get searchNoResults => 'Aucune station ne correspond à la recherche.';
 
   @override
-  String get stationsIntro =>
-      'Choisissez une station pour voir ses prévisions.';
+  String get stationsIntro => 'Choisissez une station pour voir sa prévision.';
 
   @override
   String get clearSearch => 'Effacer';
@@ -69,7 +68,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get variableT2mMin => 'Minimum quotidien (t2m_min)';
 
   @override
-  String get variablePrecip => 'Précipitations (fraction des membres)';
+  String get variablePrecip => 'Précipitation (fraction des membres)';
 
   @override
   String get legendBand1090 => 'Bande 10–90 %';
@@ -82,7 +81,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get legendModelsNeverPooled =>
-      'Chaque modèle conserve ses propres membres et ses propres percentiles ; ils ne sont jamais mis en commun.';
+      'Chaque modèle conserve ses propres membres et ses propres centiles ; ils ne sont jamais mélangés.';
 
   @override
   String get legendLeadAxis => 'Jour de prévision';
@@ -125,7 +124,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get precipNote =>
-      'Fraction des membres utilisables avec des précipitations quotidiennes accumulées égales ou supérieures au seuil.';
+      'Fraction des membres utilisables avec une précipitation journalière cumulée égale ou supérieure au seuil.';
 
   @override
   String get day => 'Jour';
@@ -138,7 +137,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get rawBanner =>
-      'Prévision d\'ensemble brute : non corrigée du biais et non calibrée. Aucune métrique de vérification n\'est publiée avant la limite des 15 dates d\'émission.';
+      'Prévision d\'ensemble brute : non corrigée des biais et non calibrée. Aucune métrique de vérification n\'est publiée avant le seuil des 15 dates d\'émission.';
 
   @override
   String get attributionTitle => 'Données et attribution';
@@ -149,7 +148,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attributionNote =>
-      'Les lignes d\'attribution sont reproduites verbatim comme l\'exigent leurs licences ; seule la explication environnante est traduite.';
+      'Les lignes d\'attribution sont reproduites telles quelles comme l\'exigent leurs licences ; seule l\'explication environnante est traduite.';
 
   @override
   String get aboutTitle => 'À propos / État';
@@ -159,14 +158,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA publie, pour 19 stations en Argentine, la prévision probabilistique brute de deux ensembles (ECMWF IFS et GFS) jusqu\'à 15 jours à l\'avance, plus les températures maximales et minimales quotidiennes observées par le SMN sur les 30 derniers jours. L\'app ne lit que des fichiers statiques publiés sur GitHub Pages : il n\'y a ni serveur ni API.';
+      'PRISMA publie, pour 19 stations en Argentine, la prévision probabiliste brute de deux ensembles (ECMWF IFS et GFS) jusqu\'à 15 jours de prévision, ainsi que les températures maximales et minimales observées par le SMN sur les 30 derniers jours. L\'app ne lit que des fichiers statiques publiés sur GitHub Pages : il n\'y a ni serveur ni API.';
 
   @override
   String get aboutNoSkillTitle => 'Aucune métrique de skill';
 
   @override
   String get aboutNoSkill =>
-      'L\'app n\'affiche ni CRPS, ni CRPSS, ni Brier, ni fiabilité, ni couverture, ni classement. Ces chiffres ne sont pas publiés avant la limite des 15 dates d\'émission.';
+      'L\'app n\'affiche ni CRPS, ni CRPSS, ni score de Brier, ni fiabilité, ni couverture, ni classement. Ces chiffres ne sont pas publiés avant le seuil des 15 dates d\'émission.';
 
   @override
   String get aboutStatusTitle => 'État des données';
@@ -188,15 +187,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statusForecasts =>
-      'Membres d\'ensemble bruts : non corrigés du biais, non calibrés et non contrôlés au-delà de l\'indicateur de qualité de la source.';
+      'Membres d\'ensemble bruts : non corrigés des biais, non calibrés et sans contrôle de qualité au-delà du flag de qualité de la source.';
 
   @override
   String get statusVerification =>
-      'Aucun résultat de vérification (CRPS, CRPSS, Brier, fiabilité, couverture, classement) n\'est publié avant la limite des 15 dates d\'émission dans docs/EVALUATION_PROTOCOL.md.';
+      'Aucun résultat de vérification (CRPS, CRPSS, Brier, fiabilité, couverture, classement) n\'est publié avant le seuil des 15 dates d\'émission dans docs/EVALUATION_PROTOCOL.md.';
 
   @override
   String get statusObservations =>
-      'L\'instantané SMN regtemp est archivé tel que servi ; les trous restent null et ne sont jamais comblés. La règle de précédence de produit du 2026-11-14 s\'applique (regtemp primaire).';
+      'L\'instantané SMN regtemp est archivé tel que servi ; les trous restent null et ne sont jamais comblés. La règle de précédence des produits du 2026-11-14 s\'applique (regtemp primaire).';
 
   @override
   String get aboutMachineTranslations =>
@@ -217,7 +216,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String schemaUnsupported(String version) {
-    return 'La version de schéma \"$version\" n\'est pas prise en charge par cette app (1.0 attendue). Mettez à jour l\'app ou l\'export.';
+    return 'La version de schéma \"$version\" n\'est pas prise en charge par cette app (attendu 1.0). Mettez à jour l\'app ou l\'export.';
   }
 
   @override
@@ -242,31 +241,31 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get modelsNonText =>
-      'Le champ « models » contient une valeur non textuelle.';
+      'Le champ \"models\" contient une valeur non textuelle.';
 
   @override
   String fieldNotObject(String field) {
-    return 'Le champ « $field » n\'est pas un objet JSON.';
+    return 'Le champ \"$field\" n\'est pas un objet JSON.';
   }
 
   @override
   String fieldNotArray(String field) {
-    return 'Le champ « $field » n\'est pas un tableau JSON.';
+    return 'Le champ \"$field\" n\'est pas un tableau JSON.';
   }
 
   @override
   String missingTextField(String field) {
-    return 'Champ de texte « $field » manquant ou ce n\'est pas une chaîne.';
+    return 'Champ texte \"$field\" manquant ou il n\'est pas une chaîne.';
   }
 
   @override
   String missingIntegerField(String field) {
-    return 'Entier « $field » manquant ou ce n\'est pas un nombre.';
+    return 'Entier \"$field\" manquant ou ce n\'est pas un nombre.';
   }
 
   @override
   String notNumericField(String field) {
-    return 'Le champ « $field » n\'est pas numérique.';
+    return 'Le champ \"$field\" n\'est pas numérique.';
   }
 
   @override

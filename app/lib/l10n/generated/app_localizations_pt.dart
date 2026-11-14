@@ -14,7 +14,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get appTagline =>
-      'Ensemble bruto do Open-Meteo (GFS e ECMWF IFS) para 19 estações da Argentina.';
+      'Ensamble bruto do Open-Meteo (GFS e ECMWF IFS) para 19 estações na Argentina.';
 
   @override
   String get tabStations => 'Estações';
@@ -32,7 +32,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get searchNoResults => 'Nenhuma estação corresponde à busca.';
 
   @override
-  String get stationsIntro => 'Escolha uma estação para ver a previsão dela.';
+  String get stationsIntro => 'Escolha uma estação para ver a previsão.';
 
   @override
   String get clearSearch => 'Limpar';
@@ -50,7 +50,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get labelExported => 'Exportado';
 
   @override
-  String get labelSmn => 'Observações do SMN';
+  String get labelSmn => 'Observações SMN';
 
   @override
   String get labelClimateZone => 'Zona climática';
@@ -81,7 +81,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get legendModelsNeverPooled =>
-      'Cada modelo mantém os próprios membros e os próprios percentis; eles nunca são combinados.';
+      'Cada modelo mantém seus próprios membros e seus próprios percentis; eles nunca são combinados.';
 
   @override
   String get legendLeadAxis => 'Dia de antecedência';
@@ -102,7 +102,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get observedNote =>
-      'Valores arquivados como servidos pelo SMN; as lacunas permanecem null e nunca são preenchidas.';
+      'Valores arquivados como servidos pelo SMN; lacunas permanecem null e nunca são preenchidas.';
 
   @override
   String get observedDate => 'Data';
@@ -124,7 +124,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get precipNote =>
-      'Fração dos membros utilizáveis com precipitação diária acumulada igual ou acima do limite.';
+      'Fração de membros utilizáveis com precipitação diária acumulada igual ou acima do limiar.';
 
   @override
   String get day => 'Dia';
@@ -137,18 +137,18 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get rawBanner =>
-      'Previsão de ensemble bruta: sem correção de viés e não calibrada. Nenhuma métrica de verificação é publicada antes do limite de 15 datas de emissão.';
+      'Previsão de ensamble bruta: sem correção de viés e não calibrada. Nenhuma métrica de verificação é publicada antes do limiar de 15 datas de emissão.';
 
   @override
   String get attributionTitle => 'Dados e atribuição';
 
   @override
   String get attributionObserved =>
-      'Séries observadas: Servicio Meteorológico Nacional, arquivadas como servidas; as lacunas permanecem null e nunca são preenchidas.';
+      'Séries observadas: Servicio Meteorológico Nacional, arquivadas como servidas; lacunas permanecem null e nunca são preenchidas.';
 
   @override
   String get attributionNote =>
-      'As linhas de atribuição são reproduzidas textualmente conforme exigem suas licenças; apenas a explicação ao redor é traduzida.';
+      'As linhas de atribuição são reproduzidas literalmente como exigem suas licenças; apenas a explicação ao redor é traduzida.';
 
   @override
   String get aboutTitle => 'Sobre / Estado';
@@ -158,14 +158,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'O PRISMA publica, para 19 estações da Argentina, a previsão probabilística bruta de dois ensembles (ECMWF IFS e GFS) até 15 dias adiante, além das temperaturas máxima e mínima diárias observadas pelo SMN nos últimos 30 dias. O app lê apenas arquivos estáticos publicados no GitHub Pages: não há servidor nem API.';
+      'O PRISMA publica, para 19 estações da Argentina, a previsão probabilística bruta de dois ensambles (ECMWF IFS e GFS) até 15 dias de antecedência, além das temperaturas máxima e mínima observadas pelo SMN nos últimos 30 dias. O app lê apenas arquivos estáticos publicados no GitHub Pages: não há servidor nem API.';
 
   @override
   String get aboutNoSkillTitle => 'Sem métricas de skill';
 
   @override
   String get aboutNoSkill =>
-      'O app não mostra CRPS, CRPSS, Brier, confiabilidade, cobertura nem ranking. Esses números não são publicados antes do limite de 15 datas de emissão.';
+      'O app não mostra CRPS, CRPSS, escore de Brier, confiabilidade, cobertura nem ranking. Esses números não são publicados antes do limiar de 15 datas de emissão.';
 
   @override
   String get aboutStatusTitle => 'Estado dos dados';
@@ -177,7 +177,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get aboutDataset => 'Conjunto de dados';
 
   @override
-  String get aboutSmnSnapshot => 'Instantâneo do SMN (regtemp)';
+  String get aboutSmnSnapshot => 'Instantâneo SMN (regtemp)';
 
   @override
   String get aboutRegion => 'Região';
@@ -187,15 +187,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get statusForecasts =>
-      'Membros de ensemble brutos: sem correção de viés, não calibrados e sem controle de qualidade além do indicador de qualidade da fonte.';
+      'Membros de ensamble brutos: sem correção de viés, não calibrados e sem controle de qualidade além do flag de qualidade da fonte.';
 
   @override
   String get statusVerification =>
-      'Nenhum resultado de verificação (CRPS, CRPSS, Brier, confiabilidade, cobertura, ranking) é publicado antes do limite de 15 datas de emissão em docs/EVALUATION_PROTOCOL.md.';
+      'Nenhum resultado de verificação (CRPS, CRPSS, Brier, confiabilidade, cobertura, ranking) é publicado antes do limiar de 15 datas de emissão em docs/EVALUATION_PROTOCOL.md.';
 
   @override
   String get statusObservations =>
-      'O instantâneo SMN regtemp é arquivado como servido; as lacunas permanecem null e nunca são preenchidas. Aplica-se a regra de precedência de produto de 2026-11-14 (regtemp principal).';
+      'O instantâneo SMN regtemp é arquivado como servido; lacunas permanecem null e nunca são preenchidas. Aplica-se a regra de precedência de produtos de 2026-11-14 (regtemp primário).';
 
   @override
   String get aboutMachineTranslations =>
@@ -216,7 +216,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String schemaUnsupported(String version) {
-    return 'A versão do esquema \"$version\" não é suportada por este app (esperado 1.0). Atualize o app ou a exportação.';
+    return 'A versão do esquema \"$version\" não é suportada por este app (esperado 1.0). Atualize o app ou o export.';
   }
 
   @override
@@ -255,12 +255,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String missingTextField(String field) {
-    return 'Campo de texto \"$field\" ausente ou não é uma string.';
+    return 'Falta o campo de texto \"$field\" ou não é uma string.';
   }
 
   @override
   String missingIntegerField(String field) {
-    return 'Inteiro \"$field\" ausente ou não é um número.';
+    return 'Falta o inteiro \"$field\" ou não é um número.';
   }
 
   @override
@@ -270,7 +270,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String missingSchemaVersion(String document) {
-    return 'Campo schema_version ausente em $document.';
+    return 'Falta o campo schema_version em $document.';
   }
 
   @override

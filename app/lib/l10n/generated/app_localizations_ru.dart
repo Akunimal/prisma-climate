@@ -29,7 +29,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get searchHint => 'Поиск станций';
 
   @override
-  String get searchNoResults => 'Ни одна станция не подходит под поиск.';
+  String get searchNoResults => 'Ни одна станция не подходит под запрос.';
 
   @override
   String get stationsIntro => 'Выберите станцию, чтобы увидеть её прогноз.';
@@ -124,7 +124,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get precipNote =>
-      'Доля пригодных членов с суточным суммарным количеством осадков на уровне порога или выше него.';
+      'Доля пригодных членов с суточными осадками на уровне или выше порога.';
 
   @override
   String get day => 'День';
@@ -148,7 +148,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get attributionNote =>
-      'Строки атрибуции воспроизводятся дословно, как того требуют их лицензии; переводится только поясняющий текст вокруг них.';
+      'Строки атрибуции воспроизводятся дословно, как того требуют их лицензии; переводится только пояснение вокруг них.';
 
   @override
   String get aboutTitle => 'О приложении / Статус';
@@ -158,14 +158,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA публикует для 19 станций Аргентины сырой вероятностный прогноз двух ансамблей (ECMWF IFS и GFS) на срок до 15 дней, а также суточные максимальные и минимальные температуры, наблюдённые SMN за последние 30 дней. Приложение читает только статические файлы, опубликованные на GitHub Pages: сервера и API нет.';
+      'PRISMA публикует для 19 станций Аргентины сырой вероятностный прогноз двух ансамблей (ECMWF IFS и GFS) на срок до 15 дней, а также суточные максимальная и минимальная температуры, наблюдавшиеся SMN за последние 30 дней. Приложение читает только статические файлы на GitHub Pages: сервера и API нет.';
 
   @override
   String get aboutNoSkillTitle => 'Без метрик skill';
 
   @override
   String get aboutNoSkill =>
-      'Приложение не показывает ни CRPS, ни CRPSS, ни Brier, ни надёжности, ни покрытия, ни рейтинга. Эти числа не публикуются до порога в 15 дат выпуска.';
+      'Приложение не показывает CRPS, CRPSS, ошибку Бриера, надёжность, покрытие и рейтинг. Эти числа не публикуются до порога в 15 дат выпуска.';
 
   @override
   String get aboutStatusTitle => 'Статус данных';
@@ -174,7 +174,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get aboutSourcesTitle => 'Источники и лицензии';
 
   @override
-  String get aboutDataset => 'Набор данных';
+  String get aboutDataset => 'Датасет';
 
   @override
   String get aboutSmnSnapshot => 'Срез SMN (regtemp)';
@@ -187,7 +187,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get statusForecasts =>
-      'Сырые члены ансамбля: без коррекции смещения, без калибровки и без контроля качества сверх флага качества источника.';
+      'Сырые члены ансамбля: без коррекции смещения, без калибровки и без контроля качества, кроме флага качества источника.';
 
   @override
   String get statusVerification =>
@@ -195,11 +195,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get statusObservations =>
-      'Срез SMN regtemp заархивирован как отдан; пропуски остаются null и никогда не заполняются. Действует правило приоритета продуктов от 2026-11-14 (regtemp первичен).';
+      'Срез SMN regtemp архивируется как отдан; пропуски остаются null и никогда не заполняются. Действует правило приоритета продуктов от 2026-11-14 (regtemp основной).';
 
   @override
   String get aboutMachineTranslations =>
-      'Переводы на языки, отличные от английского, сгенерированы автоматически; исправления и улучшения приветствуются.';
+      'Переводы на языки, отличные от английского, сгенерированы машиной; исправления и улучшения приветствуются.';
 
   @override
   String get languageLabel => 'Язык';
@@ -259,7 +259,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String missingIntegerField(String field) {
-    return 'Отсутствует целое \"$field\" или оно не число.';
+    return 'Отсутствует целое \"$field\" или это не число.';
   }
 
   @override

@@ -14,7 +14,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get appTagline =>
-      'अर्जेंटीना के 19 स्टेशनों के लिए Open-Meteo का कच्चा एन्सेम्बल (GFS और ECMWF IFS)।';
+      'Open-Meteo का कच्चा एन्सेम्बल पूर्वानुमान (GFS और ECMWF IFS), अर्जेंटीना के 19 स्टेशनों के लिए।';
 
   @override
   String get tabStations => 'स्टेशन';
@@ -44,10 +44,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get loading => 'डेटा लोड हो रहा है…';
 
   @override
-  String get labelIssue => 'जारी';
+  String get labelIssue => 'जारी समय';
 
   @override
-  String get labelExported => 'निर्यात';
+  String get labelExported => 'निर्यात समय';
 
   @override
   String get labelSmn => 'SMN अवलोकन';
@@ -81,7 +81,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get legendModelsNeverPooled =>
-      'हर मॉडल अपने सदस्यों और अपने पर्सेंटाइल रखता है; उन्हें कभी नहीं मिलाया जाता।';
+      'हर मॉडल अपने सदस्यों और अपने पर्सेंटाइल रखता है; उन्हें कभी मिलाया नहीं जाता।';
 
   @override
   String get legendLeadAxis => 'लीड दिवस';
@@ -124,7 +124,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get precipNote =>
-      'उपयोगी सदस्यों का वह अंश जिनकी दैनिक संचित वर्षा सीमा के बराबर या उससे अधिक है।';
+      'उपयोगी सदस्यों में से उनका अंश जिनकी दैनिक संचयी वर्षा सीमा या उससे अधिक है।';
 
   @override
   String get day => 'दिन';
@@ -137,10 +137,10 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get rawBanner =>
-      'कच्चा एन्सेम्बल पूर्वानुमान: पूर्वाग्रह-सुधार नहीं, कैलिब्रेशन नहीं। 15 जारी तिथियों के द्वार से पहले कोई सत्यापन मेट्रिक प्रकाशित नहीं होता।';
+      'कच्चा एन्सेम्बल पूर्वानुमान: बायस सुधारित नहीं, कैलिब्रेट नहीं। 15 जारी तिथियों के गेट से पहले कोई सत्यापन मेट्रिक प्रकाशित नहीं होती।';
 
   @override
-  String get attributionTitle => 'डेटा और श्रेय';
+  String get attributionTitle => 'डेटा और एट्रिब्यूशन';
 
   @override
   String get attributionObserved =>
@@ -148,7 +148,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get attributionNote =>
-      'श्रेय पंक्तियाँ उनकी लाइसेंस की आवश्यकता के अनुसार शब्दशः दोहराई जाती हैं; केवल आसपास की व्याख्या अनूदित की जाती है।';
+      'एट्रिब्यूशन पंक्तियाँ उनके लाइसेंस की आवश्यकता के अनुसार शब्दशः दोहराई जाती हैं; केवल आसपास की व्याख्या अनूदित होती है।';
 
   @override
   String get aboutTitle => 'जानकारी / स्थिति';
@@ -158,14 +158,14 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA अर्जेंटीना के 19 स्टेशनों के लिए दो एन्सेम्बल (ECMWF IFS और GFS) का 15 दिन आगे तक कच्चा संभाव्य पूर्वानुमान प्रकाशित करता है, साथ ही पिछले 30 दिनों में SMN द्वारा अवलोकित दैनिक अधिकतम और न्यूनतम तापमान। ऐप केवल GitHub Pages पर प्रकाशित स्थिर फ़ाइलें पढ़ता है: कोई सर्वर नहीं, कोई API नहीं।';
+      'PRISMA अर्जेंटीना के 19 स्टेशनों के लिए दो एन्सेम्बल (ECMWF IFS और GFS) का कच्चा संभाव्य पूर्वानुमान 15 दिनों तक, साथ ही पिछले 30 दिनों में SMN द्वारा अवलोकित दैनिक अधिकतम और न्यूनतम तापमान प्रकाशित करता है। ऐप केवल GitHub Pages पर प्रकाशित स्थिर फ़ाइलें पढ़ता है: कोई सर्वर या API नहीं है।';
 
   @override
   String get aboutNoSkillTitle => 'कोई स्किल मेट्रिक नहीं';
 
   @override
   String get aboutNoSkill =>
-      'ऐप CRPS, CRPSS, Brier, विश्वसनीयता, कवरेज या लीडरबोर्ड नहीं दिखाता। ये संख्याएँ 15 जारी तिथियों के द्वार से पहले प्रकाशित नहीं होतीं।';
+      'ऐप CRPS, CRPSS, Brier स्कोर, विश्वसनीयता, कवरेज या लीडरबोर्ड नहीं दिखाता। ये संख्याएँ 15 जारी तिथियों के गेट से पहले प्रकाशित नहीं होतीं।';
 
   @override
   String get aboutStatusTitle => 'डेटा की स्थिति';
@@ -187,11 +187,11 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get statusForecasts =>
-      'कच्चे एन्सेम्बल सदस्य: पूर्वाग्रह-सुधार नहीं, कैलिब्रेशन नहीं, और स्रोत के गुणवत्ता फ़्लैग से आगे गुणवत्ता नियंत्रण नहीं।';
+      'कच्चे एन्सेम्बल सदस्य: बायस सुधारित नहीं, कैलिब्रेट नहीं, और स्रोत क्वालिटी फ़्लैग के अलावा गुणवत्ता नियंत्रण नहीं।';
 
   @override
   String get statusVerification =>
-      'docs/EVALUATION_PROTOCOL.md में 15 जारी तिथियों के द्वार से पहले कोई सत्यापन परिणाम (CRPS, CRPSS, Brier, विश्वसनीयता, कवरेज, लीडरबोर्ड) प्रकाशित नहीं होता।';
+      'docs/EVALUATION_PROTOCOL.md में 15 जारी तिथियों के गेट से पहले कोई सत्यापन परिणाम (CRPS, CRPSS, Brier, विश्वसनीयता, कवरेज, लीडरबोर्ड) प्रकाशित नहीं होते।';
 
   @override
   String get statusObservations =>
@@ -199,7 +199,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get aboutMachineTranslations =>
-      'अंग्रेज़ी के अलावा की अन्य अनुवाद मशीन से बने हैं; सुधार और बेहतरी का स्वागत है।';
+      'अंग्रेज़ी के अलावा अन्य अनुवाद मशीन से बने हैं; सुधार और सुझाव स्वागत हैं।';
 
   @override
   String get languageLabel => 'भाषा';
@@ -254,12 +254,12 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String missingTextField(String field) {
-    return 'पाठ फ़ील्ड \"$field\" अनुपलब्ध है या वह स्ट्रिंग नहीं है।';
+    return 'पाठ फ़ील्ड \"$field\" अनुपस्थित है या वह स्ट्रिंग नहीं है।';
   }
 
   @override
   String missingIntegerField(String field) {
-    return 'पूर्णांक \"$field\" अनुपलब्ध है या वह संख्या नहीं है।';
+    return 'पूर्णांक \"$field\" अनुपस्थित है या वह संख्या नहीं है।';
   }
 
   @override
@@ -269,7 +269,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String missingSchemaVersion(String document) {
-    return '$document में schema_version फ़ील्ड अनुपलब्ध है।';
+    return '$document में schema_version फ़ील्ड अनुपस्थित है।';
   }
 
   @override

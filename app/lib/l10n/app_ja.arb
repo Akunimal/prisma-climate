@@ -1,29 +1,29 @@
 {
   "@@locale": "ja",
-  "appTitle": "PRISMA · 観測所ごとの予報",
-  "appTagline": "アルゼンチンの19観測所による Open-Meteo の生アンサンブル（GFS および ECMWF IFS）。",
+  "appTitle": "PRISMA · 観測所別の予報",
+  "appTagline": "Open-Meteo の未校正アンサンブル（GFS と ECMWF IFS）、アルゼンチンの 19 観測所。",
   "tabStations": "観測所",
   "tabForecast": "予報",
   "tabAbout": "情報 / 状態",
   "searchHint": "観測所を検索",
-  "searchNoResults": "検索に一致する観測所はありません。",
-  "stationsIntro": "観測所を選ぶと、その予報が表示されます。",
+  "searchNoResults": "検索に一致する観測所がありません。",
+  "stationsIntro": "観測所を選ぶとその予報が表示されます。",
   "clearSearch": "クリア",
   "retry": "再試行",
   "loading": "データを読み込み中…",
-  "labelIssue": "発表",
-  "labelExported": "エクスポート",
+  "labelIssue": "発表時刻",
+  "labelExported": "エクスポート時刻",
   "labelSmn": "SMN 観測",
   "labelClimateZone": "気候区分",
   "labelCoordinates": "座標",
   "argentinaTimeNote": "アルゼンチン時間（UTC−3）",
-  "variableT2mMax": "日最高（t2m_max）",
-  "variableT2mMin": "日最低（t2m_min）",
+  "variableT2mMax": "日最高温（t2m_max）",
+  "variableT2mMin": "日最低温（t2m_min）",
   "variablePrecip": "降水量（メンバーの割合）",
   "legendBand1090": "10–90% 帯",
   "legendBand2575": "25–75% 帯",
   "legendMedian": "中央値",
-  "legendModelsNeverPooled": "各モデルはそれぞれのメンバーとそれぞれのパーセンタイルを保持し、それらが統合されることはありません。",
+  "legendModelsNeverPooled": "各モデルはそれぞれのメンバーとそれぞれのパーセンタイルを保持し、混ぜ合わせることは決してありません。",
   "legendLeadAxis": "予報日数",
   "noData": "データなし",
   "missingMembersTitle": "データなし",
@@ -34,37 +34,37 @@
       "nominal": { "type": "int" }
     }
   },
-  "observedTitle": "SMN 観測 — 過去30日",
-  "observedNote": "SMN が提供した通りにアーカイブした値。欠測は null のままで、決して補間されません。",
+  "observedTitle": "SMN 観測 — 過去 30 日",
+  "observedNote": "SMN が提供した通りにアーカイブした値；欠測は null のままで、決して補完しません。",
   "observedDate": "日付",
   "observedMax": "最高",
   "observedMin": "最低",
-  "precipTitle": "降水量",
+  "precipTitle": "降水",
   "precipGe1": "≥ 1 mm",
   "precipGe10": "≥ 10 mm",
-  "precipNote": "利用可能なメンバーのうち、日累積降水量がしきい値以上であるものの割合。",
+  "precipNote": "利用可能なメンバーのうち、日累積降水がしきい値以上であるものの割合。",
   "day": "日",
   "date": "日付",
   "model": "モデル",
-  "rawBanner": "生のアンサンブル予報：バイアス補正も校正も行っていません。15発表日の門前を超えるまで、検証指標は一切公開されません。",
+  "rawBanner": "未校正アンサンブル予報：バイアス補正なし・キャリブレーションなし。15 発表日のゲートを前にして検証指標は一切公開しません。",
   "attributionTitle": "データと出典",
-  "attributionObserved": "観測系列：Servicio Meteorológico Nacional、提供された通りにアーカイブ。欠測は null のままで、決して補間されません。",
-  "attributionNote": "出典行はライセンスの要求により原文のまま再現し、翻訳するのは周囲の説明のみです。",
+  "attributionObserved": "観測系列：Servicio Meteorológico Nacional、提供されたとおりにアーカイブ；欠測は null のままで、決して補完しません。",
+  "attributionNote": "帰属行はライセンスの要求に従って逐語的に複製し、周囲の説明のみ翻訳します。",
   "aboutTitle": "情報 / 状態",
   "aboutWhatTitle": "このアプリが表示するもの",
-  "aboutWhat": "PRISMA は、アルゼンチンの19観測所について、2つのアンサンブル（ECMWF IFS と GFS）の最長15日先までの生の確率予報と、SMN が観測した過去30日間の日最高・最低気温を公開します。アプリは GitHub Pages 上の静的ファイルのみを読み込みます。サーバーも API もありません。",
+  "aboutWhat": "PRISMA は、アルゼンチンの 19 観測所について、2 つのアンサンブル（ECMWF IFS と GFS）の未校正確率予報を最大 15 日先まで、さらに SMN が過去 30 日間に観測した日最高・日最低気温を公開します。アプリは GitHub Pages 上の静的ファイルのみを読み込みます：サーバーも API もありません。",
   "aboutNoSkillTitle": "スキル指標なし",
-  "aboutNoSkill": "アプリは CRPS、CRPSS、Brier、信頼性、カバレッジ、リーダーボードを一切表示しません。これらの数値は15発表日の門前まで公開されません。",
+  "aboutNoSkill": "アプリは CRPS、CRPSS、Brier スコア、信頼性、被覆率、リーダーボードを表示しません。これらの数値は 15 発表日のゲートを前にして公開されません。",
   "aboutStatusTitle": "データの状態",
-  "aboutSourcesTitle": "ソースとライセンス",
+  "aboutSourcesTitle": "出典とライセンス",
   "aboutDataset": "データセット",
   "aboutSmnSnapshot": "SMN スナップショット（regtemp）",
   "aboutRegion": "地域",
   "aboutSchema": "スキーマ",
-  "statusForecasts": "生のアンサンブルメンバー：バイアス補正なし、校正なし、ソースの品質フラグを超える品質管理もありません。",
-  "statusVerification": "docs/EVALUATION_PROTOCOL.md の15発表日の門前までは、検証結果（CRPS、CRPSS、Brier、信頼性、カバレッジ、リーダーボード）は公開されません。",
-  "statusObservations": "SMN regtemp のスナップショットは提供された通りにアーカイブされます。欠測は null のままで、決して補間されません。2026-11-14 の製品優先規則が適用されます（regtemp が第一）。",
-  "aboutMachineTranslations": "英語以外の翻訳は機械生成ものです。修正や改善を歓迎します。",
+  "statusForecasts": "未校正アンサンブルメンバー：バイアス補正なし、キャリブレーションなし、元データの品質フラグを超えた品質管理もなし。",
+  "statusVerification": "15 発表日のゲート（docs/EVALUATION_PROTOCOL.md）を前にして、検証結果（CRPS、CRPSS、Brier、信頼性、被覆率、リーダーボード）は公開されません。",
+  "statusObservations": "SMN regtemp スナップショットは提供されたとおりにアーカイブ；欠測は null のままで、決して補完しません。2026-11-14 の製品優先ルールが適用されます（regtemp が優先）。",
+  "aboutMachineTranslations": "英語以外の翻訳は機械生成です。訂正・改善を歓迎します。",
   "languageLabel": "言語",
   "leadDay": "+{lead} d",
   "@leadDay": {
@@ -84,7 +84,7 @@
       "version": { "type": "String" }
     }
   },
-  "parseError": "文書 {document} が期待される形式ではありません：{detail}",
+  "parseError": "ドキュメント {document} が期待した形式ではありません：{detail}",
   "@parseError": {
     "placeholders": {
       "document": { "type": "String" },
@@ -125,13 +125,13 @@
       "field": { "type": "String" }
     }
   },
-  "missingTextField": "テキストフィールド「{field}」が存在しないか、文字列ではありません。",
+  "missingTextField": "テキストフィールド「{field}」が欠落しているか、文字列ではありません。",
   "@missingTextField": {
     "placeholders": {
       "field": { "type": "String" }
     }
   },
-  "missingIntegerField": "整数「{field}」が存在しないか、数値ではありません。",
+  "missingIntegerField": "整数「{field}」が欠落しているか、数値ではありません。",
   "@missingIntegerField": {
     "placeholders": {
       "field": { "type": "String" }
@@ -149,7 +149,7 @@
       "document": { "type": "String" }
     }
   },
-  "stationCount": "{count, plural, other{{count} 観測所}}",
+  "stationCount": "{count, plural, other{{count} ステーション}}",
   "@stationCount": {
     "placeholders": {
       "count": { "type": "int" }

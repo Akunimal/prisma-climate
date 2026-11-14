@@ -14,7 +14,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get appTagline =>
-      'Ensemble crudo de Open-Meteo (GFS y ECMWF IFS) para 19 estaciones de Argentina.';
+      'Ensamble crudo de Open-Meteo (GFS y ECMWF IFS) para 19 estaciones de Argentina.';
 
   @override
   String get tabStations => 'Estaciones';
@@ -81,7 +81,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get legendModelsNeverPooled =>
-      'Cada modelo conserva sus propios miembros y sus propios percentiles; nunca se agrupan.';
+      'Cada modelo conserva sus propios miembros y sus propios percentiles; nunca se mezclan.';
 
   @override
   String get legendLeadAxis => 'Día de anticipación';
@@ -98,11 +98,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get observedTitle => 'Observado SMN — últimos 30 días';
+  String get observedTitle => 'SMN observado — últimos 30 días';
 
   @override
   String get observedNote =>
-      'Valores archivados tal como los sirve el SMN; los huecos quedan en null y nunca se rellenan.';
+      'Valores archivados tal como los sirve el SMN; los huecos quedan null y nunca se rellenan.';
 
   @override
   String get observedDate => 'Fecha';
@@ -124,7 +124,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get precipNote =>
-      'Fracción de miembros utilizables con precipitación acumulada diaria igual o superior al umbral.';
+      'Fracción de miembros utilizables con precipitación diaria acumulada igual o superior al umbral.';
 
   @override
   String get day => 'Día';
@@ -137,14 +137,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get rawBanner =>
-      'Pronóstico de ensemble crudo: sin corrección de sesgo y sin calibrar. No se publican métricas de verificación antes del límite de 15 fechas de emisión.';
+      'Pronóstico de ensamble crudo: sin corrección de sesgo y sin calibrar. No se publican métricas de verificación antes del umbral de 15 fechas de emisión.';
 
   @override
   String get attributionTitle => 'Datos y atribución';
 
   @override
   String get attributionObserved =>
-      'Series observadas: Servicio Meteorológico Nacional, archivadas tal como se sirven; los huecos quedan en null y nunca se rellenan.';
+      'Series observadas: Servicio Meteorológico Nacional, archivadas tal como se sirven; los huecos quedan null y nunca se rellenan.';
 
   @override
   String get attributionNote =>
@@ -158,14 +158,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA publica, para 19 estaciones de Argentina, el pronóstico probabilístico crudo de dos ensembles (ECMWF IFS y GFS) hasta 15 días adelante, más las temperaturas máxima y mínima diarias observadas por el SMN en los últimos 30 días. La app solo lee archivos estáticos publicados en GitHub Pages: no hay servidor ni API.';
+      'PRISMA publica, para 19 estaciones de Argentina, el pronóstico probabilístico crudo de dos ensambles (ECMWF IFS y GFS) hasta 15 días de anticipación, más las temperaturas máxima y mínima observadas por el SMN en los últimos 30 días. La app solo lee archivos estáticos publicados en GitHub Pages: no hay servidor ni API.';
 
   @override
   String get aboutNoSkillTitle => 'Sin métricas de skill';
 
   @override
   String get aboutNoSkill =>
-      'La app no muestra CRPS, CRPSS, Brier, fiabilidad, cobertura ni ranking. Esas cifras no se publican antes del límite de 15 fechas de emisión.';
+      'La app no muestra CRPS, CRPSS, Brier, fiabilidad, cobertura ni clasificación. Esos números no se publican antes del umbral de 15 fechas de emisión.';
 
   @override
   String get aboutStatusTitle => 'Estado de los datos';
@@ -187,15 +187,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get statusForecasts =>
-      'Miembros de ensemble crudos: sin corrección de sesgo, sin calibrar y sin control de calidad más allá de la bandera de calidad de la fuente.';
+      'Miembros de ensamble crudos: sin corrección de sesgo, sin calibrar y sin control de calidad más allá del flag de calidad de la fuente.';
 
   @override
   String get statusVerification =>
-      'No se publican resultados de verificación (CRPS, CRPSS, Brier, fiabilidad, cobertura, ranking) antes del límite de 15 fechas de emisión en docs/EVALUATION_PROTOCOL.md.';
+      'No se publican resultados de verificación (CRPS, CRPSS, Brier, fiabilidad, cobertura, clasificación) antes del umbral de 15 fechas de emisión en docs/EVALUATION_PROTOCOL.md.';
 
   @override
   String get statusObservations =>
-      'La instantánea SMN regtemp se archiva tal como se sirve; los huecos quedan en null y nunca se rellenan. Aplica la regla de precedencia de producto del 2026-11-14 (regtemp principal).';
+      'La instantánea SMN regtemp se archiva tal como se sirve; los huecos quedan null y nunca se rellenan. Aplica la regla de precedencia de productos del 2026-11-14 (regtemp primario).';
 
   @override
   String get aboutMachineTranslations =>
@@ -216,7 +216,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String schemaUnsupported(String version) {
-    return 'La versión de esquema \"$version\" no es compatible con esta app (se esperaba 1.0). Actualizá la app o la exportación.';
+    return 'La versión de esquema \"$version\" no está soportada por esta app (se espera 1.0). Actualizá la app o el export.';
   }
 
   @override
@@ -236,7 +236,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String invalidJson(String document, String detail) {
-    return 'JSON no válido en $document: $detail';
+    return 'JSON inválido en $document: $detail';
   }
 
   @override

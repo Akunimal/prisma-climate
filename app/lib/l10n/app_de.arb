@@ -7,8 +7,8 @@
   "tabAbout": "Über / Status",
   "searchHint": "Stationen suchen",
   "searchNoResults": "Keine Station passt zur Suche.",
-  "stationsIntro": "Wählen Sie eine Station, um deren Vorhersage zu sehen.",
-  "clearSearch": "Leeren",
+  "stationsIntro": "Wählen Sie eine Station, um ihre Vorhersage zu sehen.",
+  "clearSearch": "Löschen",
   "retry": "Erneut versuchen",
   "loading": "Daten werden geladen…",
   "labelIssue": "Abgabe",
@@ -23,7 +23,7 @@
   "legendBand1090": "10–90-%-Band",
   "legendBand2575": "25–75-%-Band",
   "legendMedian": "Median",
-  "legendModelsNeverPooled": "Jedes Modell behält seine eigenen Mitglieder und seine eigenen Perzentile; sie werden nie zusammengelegt.",
+  "legendModelsNeverPooled": "Jedes Modell behält seine eigenen Mitglieder und seine eigenen Perzentile; sie werden nie zusammengeführt.",
   "legendLeadAxis": "Vorhersagetag",
   "noData": "keine Daten",
   "missingMembersTitle": "Keine Daten",
@@ -35,35 +35,35 @@
     }
   },
   "observedTitle": "SMN-Beobachtung — letzte 30 Tage",
-  "observedNote": "Archivierte Werte so, wie der SMN sie liefert; Lücken bleiben null und werden nie aufgefüllt.",
+  "observedNote": "Archivierte Werte, wie vom SMN ausgeliefert; Lücken bleiben null und werden nie gefüllt.",
   "observedDate": "Datum",
-  "observedMax": "Maximum",
-  "observedMin": "Minimum",
+  "observedMax": "Max.",
+  "observedMin": "Min.",
   "precipTitle": "Niederschlag",
   "precipGe1": "≥ 1 mm",
   "precipGe10": "≥ 10 mm",
-  "precipNote": "Anteil der nutzbaren Mitglieder mit täglichem akkumuliertem Niederschlag über oder gleich dem Schwellenwert.",
+  "precipNote": "Anteil der nutzbaren Mitglieder mit tagessummiertem Niederschlag über oder gleich dem Schwellwert.",
   "day": "Tag",
   "date": "Datum",
   "model": "Modell",
-  "rawBanner": "Rohes Ensemble: nicht bias-korrigiert und nicht kalibriert. Vor dem Schwellenwert von 15 Abgabedaten werden keine Verifikationsmetriken veröffentlicht.",
+  "rawBanner": "Rohes Ensemble-Vorhersagefeld: nicht bias-korrigiert und nicht kalibriert. Vor dem Schwellwert von 15 Abgabedaten werden keine Verifikationsmetriken veröffentlicht.",
   "attributionTitle": "Daten und Attribution",
-  "attributionObserved": "Beobachtete Reihen: Servicio Meteorológico Nacional, archiviert so, wie sie geliefert wurden; Lücken bleiben null und werden nie aufgefüllt.",
-  "attributionNote": "Attributionszeilen werden wörtlich so wiedergeben, wie es ihre Lizenzen verlangen; nur die umgebende Erklärung wird übersetzt.",
+  "attributionObserved": "Beobachtete Reihen: Servicio Meteorológico Nacional, archiviert wie ausgeliefert; Lücken bleiben null und werden nie gefüllt.",
+  "attributionNote": "Attributionszeilen werden wörtlich wiedergegeben, wie es ihre Lizenzen verlangen; nur die umgebende Erklärung wird übersetzt.",
   "aboutTitle": "Über / Status",
   "aboutWhatTitle": "Was diese App zeigt",
-  "aboutWhat": "PRISMA veröffentlicht für 19 Stationen in Argentinien die rohe probabilistische Vorhersage zweier Ensembles (ECMWF IFS und GFS) bis zu 15 Tage im Voraus sowie die vom SMN beobachteten täglichen Maximal- und Minimaltemperaturen der letzten 30 Tage. Die App liest nur statische Dateien, die auf GitHub Pages veröffentlicht sind: Es gibt keinen Server und keine API.",
+  "aboutWhat": "PRISMA veröffentlicht für 19 Stationen in Argentinien die rohe probabilistische Vorhersage zweier Ensembles (ECMWF IFS und GFS) bis zu 15 Vorhersagetagen sowie die vom SMN in den letzten 30 Tagen beobachteten Höchst- und Tiefsttemperaturen. Die App liest ausschließlich statische Dateien auf GitHub Pages: es gibt keinen Server und keine API.",
   "aboutNoSkillTitle": "Keine Skill-Metriken",
-  "aboutNoSkill": "Die App zeigt weder CRPS, CRPSS, Brier, Zuverlässigkeit, Abdeckung noch ein Ranking. Diese Zahlen werden vor dem Schwellenwert von 15 Abgabedaten nicht veröffentlicht.",
+  "aboutNoSkill": "Die App zeigt weder CRPS noch CRPSS, Brier-Score, Zuverlässigkeit, Abdeckung oder eine Rangliste. Diese Zahlen werden vor dem Schwellwert von 15 Abgabedaten nicht veröffentlicht.",
   "aboutStatusTitle": "Datenstatus",
   "aboutSourcesTitle": "Quellen und Lizenzen",
   "aboutDataset": "Datensatz",
   "aboutSmnSnapshot": "SMN-Snapshot (regtemp)",
   "aboutRegion": "Region",
   "aboutSchema": "Schema",
-  "statusForecasts": "Rohes Ensemble-Material: nicht bias-korrigiert, nicht kalibriert und über das Qualitätsflag der Quelle hinaus nicht qualitätskontrolliert.",
-  "statusVerification": "Es werden keine Verifikationsergebnisse (CRPS, CRPSS, Brier, Zuverlässigkeit, Abdeckung, Ranking) vor dem Schwellenwert von 15 Abgabedaten in docs/EVALUATION_PROTOCOL.md veröffentlicht.",
-  "statusObservations": "Der SMN- regtemp-Snapshot wird so archiviert, wie er geliefert wird; Lücken bleiben null und werden nie aufgefüllt. Die Produktvorrangsregel vom 2026-11-14 gilt (regtemp primär).",
+  "statusForecasts": "Mitglieder des rohen Ensembles: nicht bias-korrigiert, nicht kalibriert und über das Qualitätsflag der Quelle hinaus nicht qualitätskontrolliert.",
+  "statusVerification": "Vor dem Schwellwert von 15 Abgabedaten in docs/EVALUATION_PROTOCOL.md werden keine Verifikationsergebnisse (CRPS, CRPSS, Brier, Zuverlässigkeit, Abdeckung, Rangliste) veröffentlicht.",
+  "statusObservations": "Der SMN-Regtemp-Snapshot wird archiviert wie ausgeliefert; Lücken bleiben null und werden nie gefüllt. Die Produktvorrangregel vom 2026-11-14 gilt (regtemp primär).",
   "aboutMachineTranslations": "Übersetzungen außer Englisch sind maschinell erzeugt; Korrekturen und Verbesserungen sind willkommen.",
   "languageLabel": "Sprache",
   "leadDay": "+{lead} d",
@@ -72,13 +72,13 @@
       "lead": { "type": "int" }
     }
   },
-  "errorTitle": "Konnte {document} nicht lesen",
+  "errorTitle": "Dokument {document} konnte nicht gelesen werden",
   "@errorTitle": {
     "placeholders": {
       "document": { "type": "String" }
     }
   },
-  "schemaUnsupported": "Die Schema-Version \"{version}\" wird von dieser App nicht unterstützt (erwartet 1.0). Aktualisieren Sie die App oder den Export.",
+  "schemaUnsupported": "Schema-Version \"{version}\" wird von dieser App nicht unterstützt (erwartet 1.0). Aktualisieren Sie die App oder den Export.",
   "@schemaUnsupported": {
     "placeholders": {
       "version": { "type": "String" }
@@ -91,7 +91,7 @@
       "detail": { "type": "String" }
     }
   },
-  "networkError": "Konnte {document} nicht herunterladen: {detail}",
+  "networkError": "Dokument {document} konnte nicht heruntergeladen werden: {detail}",
   "@networkError": {
     "placeholders": {
       "document": { "type": "String" },
@@ -112,7 +112,7 @@
       "detail": { "type": "String" }
     }
   },
-  "modelsNonText": "Das Feld \"models\" enthält einen nicht-textuellen Wert.",
+  "modelsNonText": "Das Feld \"models\" enthält einen Nicht-Textwert.",
   "fieldNotObject": "Feld \"{field}\" ist kein JSON-Objekt.",
   "@fieldNotObject": {
     "placeholders": {
@@ -125,7 +125,7 @@
       "field": { "type": "String" }
     }
   },
-  "missingTextField": "Textfeld \"{field}\" fehlt oder ist keine Zeichenkette.",
+  "missingTextField": "Textfeld \"{field}\" fehlt oder ist kein String.",
   "@missingTextField": {
     "placeholders": {
       "field": { "type": "String" }

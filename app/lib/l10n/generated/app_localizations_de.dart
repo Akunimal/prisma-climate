@@ -33,10 +33,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get stationsIntro =>
-      'Wählen Sie eine Station, um deren Vorhersage zu sehen.';
+      'Wählen Sie eine Station, um ihre Vorhersage zu sehen.';
 
   @override
-  String get clearSearch => 'Leeren';
+  String get clearSearch => 'Löschen';
 
   @override
   String get retry => 'Erneut versuchen';
@@ -82,7 +82,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get legendModelsNeverPooled =>
-      'Jedes Modell behält seine eigenen Mitglieder und seine eigenen Perzentile; sie werden nie zusammengelegt.';
+      'Jedes Modell behält seine eigenen Mitglieder und seine eigenen Perzentile; sie werden nie zusammengeführt.';
 
   @override
   String get legendLeadAxis => 'Vorhersagetag';
@@ -103,16 +103,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get observedNote =>
-      'Archivierte Werte so, wie der SMN sie liefert; Lücken bleiben null und werden nie aufgefüllt.';
+      'Archivierte Werte, wie vom SMN ausgeliefert; Lücken bleiben null und werden nie gefüllt.';
 
   @override
   String get observedDate => 'Datum';
 
   @override
-  String get observedMax => 'Maximum';
+  String get observedMax => 'Max.';
 
   @override
-  String get observedMin => 'Minimum';
+  String get observedMin => 'Min.';
 
   @override
   String get precipTitle => 'Niederschlag';
@@ -125,7 +125,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get precipNote =>
-      'Anteil der nutzbaren Mitglieder mit täglichem akkumuliertem Niederschlag über oder gleich dem Schwellenwert.';
+      'Anteil der nutzbaren Mitglieder mit tagessummiertem Niederschlag über oder gleich dem Schwellwert.';
 
   @override
   String get day => 'Tag';
@@ -138,18 +138,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get rawBanner =>
-      'Rohes Ensemble: nicht bias-korrigiert und nicht kalibriert. Vor dem Schwellenwert von 15 Abgabedaten werden keine Verifikationsmetriken veröffentlicht.';
+      'Rohes Ensemble-Vorhersagefeld: nicht bias-korrigiert und nicht kalibriert. Vor dem Schwellwert von 15 Abgabedaten werden keine Verifikationsmetriken veröffentlicht.';
 
   @override
   String get attributionTitle => 'Daten und Attribution';
 
   @override
   String get attributionObserved =>
-      'Beobachtete Reihen: Servicio Meteorológico Nacional, archiviert so, wie sie geliefert wurden; Lücken bleiben null und werden nie aufgefüllt.';
+      'Beobachtete Reihen: Servicio Meteorológico Nacional, archiviert wie ausgeliefert; Lücken bleiben null und werden nie gefüllt.';
 
   @override
   String get attributionNote =>
-      'Attributionszeilen werden wörtlich so wiedergeben, wie es ihre Lizenzen verlangen; nur die umgebende Erklärung wird übersetzt.';
+      'Attributionszeilen werden wörtlich wiedergegeben, wie es ihre Lizenzen verlangen; nur die umgebende Erklärung wird übersetzt.';
 
   @override
   String get aboutTitle => 'Über / Status';
@@ -159,14 +159,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA veröffentlicht für 19 Stationen in Argentinien die rohe probabilistische Vorhersage zweier Ensembles (ECMWF IFS und GFS) bis zu 15 Tage im Voraus sowie die vom SMN beobachteten täglichen Maximal- und Minimaltemperaturen der letzten 30 Tage. Die App liest nur statische Dateien, die auf GitHub Pages veröffentlicht sind: Es gibt keinen Server und keine API.';
+      'PRISMA veröffentlicht für 19 Stationen in Argentinien die rohe probabilistische Vorhersage zweier Ensembles (ECMWF IFS und GFS) bis zu 15 Vorhersagetagen sowie die vom SMN in den letzten 30 Tagen beobachteten Höchst- und Tiefsttemperaturen. Die App liest ausschließlich statische Dateien auf GitHub Pages: es gibt keinen Server und keine API.';
 
   @override
   String get aboutNoSkillTitle => 'Keine Skill-Metriken';
 
   @override
   String get aboutNoSkill =>
-      'Die App zeigt weder CRPS, CRPSS, Brier, Zuverlässigkeit, Abdeckung noch ein Ranking. Diese Zahlen werden vor dem Schwellenwert von 15 Abgabedaten nicht veröffentlicht.';
+      'Die App zeigt weder CRPS noch CRPSS, Brier-Score, Zuverlässigkeit, Abdeckung oder eine Rangliste. Diese Zahlen werden vor dem Schwellwert von 15 Abgabedaten nicht veröffentlicht.';
 
   @override
   String get aboutStatusTitle => 'Datenstatus';
@@ -188,15 +188,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statusForecasts =>
-      'Rohes Ensemble-Material: nicht bias-korrigiert, nicht kalibriert und über das Qualitätsflag der Quelle hinaus nicht qualitätskontrolliert.';
+      'Mitglieder des rohen Ensembles: nicht bias-korrigiert, nicht kalibriert und über das Qualitätsflag der Quelle hinaus nicht qualitätskontrolliert.';
 
   @override
   String get statusVerification =>
-      'Es werden keine Verifikationsergebnisse (CRPS, CRPSS, Brier, Zuverlässigkeit, Abdeckung, Ranking) vor dem Schwellenwert von 15 Abgabedaten in docs/EVALUATION_PROTOCOL.md veröffentlicht.';
+      'Vor dem Schwellwert von 15 Abgabedaten in docs/EVALUATION_PROTOCOL.md werden keine Verifikationsergebnisse (CRPS, CRPSS, Brier, Zuverlässigkeit, Abdeckung, Rangliste) veröffentlicht.';
 
   @override
   String get statusObservations =>
-      'Der SMN- regtemp-Snapshot wird so archiviert, wie er geliefert wird; Lücken bleiben null und werden nie aufgefüllt. Die Produktvorrangsregel vom 2026-11-14 gilt (regtemp primär).';
+      'Der SMN-Regtemp-Snapshot wird archiviert wie ausgeliefert; Lücken bleiben null und werden nie gefüllt. Die Produktvorrangregel vom 2026-11-14 gilt (regtemp primär).';
 
   @override
   String get aboutMachineTranslations =>
@@ -212,12 +212,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String errorTitle(String document) {
-    return 'Konnte $document nicht lesen';
+    return 'Dokument $document konnte nicht gelesen werden';
   }
 
   @override
   String schemaUnsupported(String version) {
-    return 'Die Schema-Version \"$version\" wird von dieser App nicht unterstützt (erwartet 1.0). Aktualisieren Sie die App oder den Export.';
+    return 'Schema-Version \"$version\" wird von dieser App nicht unterstützt (erwartet 1.0). Aktualisieren Sie die App oder den Export.';
   }
 
   @override
@@ -227,7 +227,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String networkError(String document, String detail) {
-    return 'Konnte $document nicht herunterladen: $detail';
+    return 'Dokument $document konnte nicht heruntergeladen werden: $detail';
   }
 
   @override
@@ -242,7 +242,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get modelsNonText =>
-      'Das Feld \"models\" enthält einen nicht-textuellen Wert.';
+      'Das Feld \"models\" enthält einen Nicht-Textwert.';
 
   @override
   String fieldNotObject(String field) {
@@ -256,7 +256,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String missingTextField(String field) {
-    return 'Textfeld \"$field\" fehlt oder ist keine Zeichenkette.';
+    return 'Textfeld \"$field\" fehlt oder ist kein String.';
   }
 
   @override

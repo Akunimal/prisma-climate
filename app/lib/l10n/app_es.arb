@@ -1,7 +1,7 @@
 {
   "@@locale": "es",
   "appTitle": "PRISMA · Pronóstico por estación",
-  "appTagline": "Ensemble crudo de Open-Meteo (GFS y ECMWF IFS) para 19 estaciones de Argentina.",
+  "appTagline": "Ensamble crudo de Open-Meteo (GFS y ECMWF IFS) para 19 estaciones de Argentina.",
   "tabStations": "Estaciones",
   "tabForecast": "Pronóstico",
   "tabAbout": "Acerca de / Estado",
@@ -23,7 +23,7 @@
   "legendBand1090": "Banda 10–90 %",
   "legendBand2575": "Banda 25–75 %",
   "legendMedian": "Mediana",
-  "legendModelsNeverPooled": "Cada modelo conserva sus propios miembros y sus propios percentiles; nunca se agrupan.",
+  "legendModelsNeverPooled": "Cada modelo conserva sus propios miembros y sus propios percentiles; nunca se mezclan.",
   "legendLeadAxis": "Día de anticipación",
   "noData": "sin datos",
   "missingMembersTitle": "Sin datos",
@@ -34,36 +34,36 @@
       "nominal": { "type": "int" }
     }
   },
-  "observedTitle": "Observado SMN — últimos 30 días",
-  "observedNote": "Valores archivados tal como los sirve el SMN; los huecos quedan en null y nunca se rellenan.",
+  "observedTitle": "SMN observado — últimos 30 días",
+  "observedNote": "Valores archivados tal como los sirve el SMN; los huecos quedan null y nunca se rellenan.",
   "observedDate": "Fecha",
   "observedMax": "Máx",
   "observedMin": "Mín",
   "precipTitle": "Precipitación",
   "precipGe1": "≥ 1 mm",
   "precipGe10": "≥ 10 mm",
-  "precipNote": "Fracción de miembros utilizables con precipitación acumulada diaria igual o superior al umbral.",
+  "precipNote": "Fracción de miembros utilizables con precipitación diaria acumulada igual o superior al umbral.",
   "day": "Día",
   "date": "Fecha",
   "model": "Modelo",
-  "rawBanner": "Pronóstico de ensemble crudo: sin corrección de sesgo y sin calibrar. No se publican métricas de verificación antes del límite de 15 fechas de emisión.",
+  "rawBanner": "Pronóstico de ensamble crudo: sin corrección de sesgo y sin calibrar. No se publican métricas de verificación antes del umbral de 15 fechas de emisión.",
   "attributionTitle": "Datos y atribución",
-  "attributionObserved": "Series observadas: Servicio Meteorológico Nacional, archivadas tal como se sirven; los huecos quedan en null y nunca se rellenan.",
+  "attributionObserved": "Series observadas: Servicio Meteorológico Nacional, archivadas tal como se sirven; los huecos quedan null y nunca se rellenan.",
   "attributionNote": "Las líneas de atribución se reproducen textualmente como exigen sus licencias; solo se traduce la explicación circundante.",
   "aboutTitle": "Acerca de / Estado",
   "aboutWhatTitle": "Qué muestra esta app",
-  "aboutWhat": "PRISMA publica, para 19 estaciones de Argentina, el pronóstico probabilístico crudo de dos ensembles (ECMWF IFS y GFS) hasta 15 días adelante, más las temperaturas máxima y mínima diarias observadas por el SMN en los últimos 30 días. La app solo lee archivos estáticos publicados en GitHub Pages: no hay servidor ni API.",
+  "aboutWhat": "PRISMA publica, para 19 estaciones de Argentina, el pronóstico probabilístico crudo de dos ensambles (ECMWF IFS y GFS) hasta 15 días de anticipación, más las temperaturas máxima y mínima observadas por el SMN en los últimos 30 días. La app solo lee archivos estáticos publicados en GitHub Pages: no hay servidor ni API.",
   "aboutNoSkillTitle": "Sin métricas de skill",
-  "aboutNoSkill": "La app no muestra CRPS, CRPSS, Brier, fiabilidad, cobertura ni ranking. Esas cifras no se publican antes del límite de 15 fechas de emisión.",
+  "aboutNoSkill": "La app no muestra CRPS, CRPSS, Brier, fiabilidad, cobertura ni clasificación. Esos números no se publican antes del umbral de 15 fechas de emisión.",
   "aboutStatusTitle": "Estado de los datos",
   "aboutSourcesTitle": "Fuentes y licencias",
   "aboutDataset": "Conjunto de datos",
   "aboutSmnSnapshot": "Instantánea SMN (regtemp)",
   "aboutRegion": "Región",
   "aboutSchema": "Esquema",
-  "statusForecasts": "Miembros de ensemble crudos: sin corrección de sesgo, sin calibrar y sin control de calidad más allá de la bandera de calidad de la fuente.",
-  "statusVerification": "No se publican resultados de verificación (CRPS, CRPSS, Brier, fiabilidad, cobertura, ranking) antes del límite de 15 fechas de emisión en docs/EVALUATION_PROTOCOL.md.",
-  "statusObservations": "La instantánea SMN regtemp se archiva tal como se sirve; los huecos quedan en null y nunca se rellenan. Aplica la regla de precedencia de producto del 2026-11-14 (regtemp principal).",
+  "statusForecasts": "Miembros de ensamble crudos: sin corrección de sesgo, sin calibrar y sin control de calidad más allá del flag de calidad de la fuente.",
+  "statusVerification": "No se publican resultados de verificación (CRPS, CRPSS, Brier, fiabilidad, cobertura, clasificación) antes del umbral de 15 fechas de emisión en docs/EVALUATION_PROTOCOL.md.",
+  "statusObservations": "La instantánea SMN regtemp se archiva tal como se sirve; los huecos quedan null y nunca se rellenan. Aplica la regla de precedencia de productos del 2026-11-14 (regtemp primario).",
   "aboutMachineTranslations": "Las traducciones distintas al inglés son generadas por máquina; se agradecen correcciones y mejoras.",
   "languageLabel": "Idioma",
   "leadDay": "+{lead} d",
@@ -78,7 +78,7 @@
       "document": { "type": "String" }
     }
   },
-  "schemaUnsupported": "La versión de esquema \"{version}\" no es compatible con esta app (se esperaba 1.0). Actualizá la app o la exportación.",
+  "schemaUnsupported": "La versión de esquema \"{version}\" no está soportada por esta app (se espera 1.0). Actualizá la app o el export.",
   "@schemaUnsupported": {
     "placeholders": {
       "version": { "type": "String" }
@@ -105,7 +105,7 @@
       "document": { "type": "String" }
     }
   },
-  "invalidJson": "JSON no válido en {document}: {detail}",
+  "invalidJson": "JSON inválido en {document}: {detail}",
   "@invalidJson": {
     "placeholders": {
       "document": { "type": "String" },

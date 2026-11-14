@@ -10,11 +10,11 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appTitle => 'PRISMA · 観測所ごとの予報';
+  String get appTitle => 'PRISMA · 観測所別の予報';
 
   @override
   String get appTagline =>
-      'アルゼンチンの19観測所による Open-Meteo の生アンサンブル（GFS および ECMWF IFS）。';
+      'Open-Meteo の未校正アンサンブル（GFS と ECMWF IFS）、アルゼンチンの 19 観測所。';
 
   @override
   String get tabStations => '観測所';
@@ -29,10 +29,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get searchHint => '観測所を検索';
 
   @override
-  String get searchNoResults => '検索に一致する観測所はありません。';
+  String get searchNoResults => '検索に一致する観測所がありません。';
 
   @override
-  String get stationsIntro => '観測所を選ぶと、その予報が表示されます。';
+  String get stationsIntro => '観測所を選ぶとその予報が表示されます。';
 
   @override
   String get clearSearch => 'クリア';
@@ -44,10 +44,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get loading => 'データを読み込み中…';
 
   @override
-  String get labelIssue => '発表';
+  String get labelIssue => '発表時刻';
 
   @override
-  String get labelExported => 'エクスポート';
+  String get labelExported => 'エクスポート時刻';
 
   @override
   String get labelSmn => 'SMN 観測';
@@ -62,10 +62,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get argentinaTimeNote => 'アルゼンチン時間（UTC−3）';
 
   @override
-  String get variableT2mMax => '日最高（t2m_max）';
+  String get variableT2mMax => '日最高温（t2m_max）';
 
   @override
-  String get variableT2mMin => '日最低（t2m_min）';
+  String get variableT2mMin => '日最低温（t2m_min）';
 
   @override
   String get variablePrecip => '降水量（メンバーの割合）';
@@ -81,7 +81,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get legendModelsNeverPooled =>
-      '各モデルはそれぞれのメンバーとそれぞれのパーセンタイルを保持し、それらが統合されることはありません。';
+      '各モデルはそれぞれのメンバーとそれぞれのパーセンタイルを保持し、混ぜ合わせることは決してありません。';
 
   @override
   String get legendLeadAxis => '予報日数';
@@ -98,10 +98,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get observedTitle => 'SMN 観測 — 過去30日';
+  String get observedTitle => 'SMN 観測 — 過去 30 日';
 
   @override
-  String get observedNote => 'SMN が提供した通りにアーカイブした値。欠測は null のままで、決して補間されません。';
+  String get observedNote => 'SMN が提供した通りにアーカイブした値；欠測は null のままで、決して補完しません。';
 
   @override
   String get observedDate => '日付';
@@ -113,7 +113,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get observedMin => '最低';
 
   @override
-  String get precipTitle => '降水量';
+  String get precipTitle => '降水';
 
   @override
   String get precipGe1 => '≥ 1 mm';
@@ -122,7 +122,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get precipGe10 => '≥ 10 mm';
 
   @override
-  String get precipNote => '利用可能なメンバーのうち、日累積降水量がしきい値以上であるものの割合。';
+  String get precipNote => '利用可能なメンバーのうち、日累積降水がしきい値以上であるものの割合。';
 
   @override
   String get day => '日';
@@ -135,17 +135,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get rawBanner =>
-      '生のアンサンブル予報：バイアス補正も校正も行っていません。15発表日の門前を超えるまで、検証指標は一切公開されません。';
+      '未校正アンサンブル予報：バイアス補正なし・キャリブレーションなし。15 発表日のゲートを前にして検証指標は一切公開しません。';
 
   @override
   String get attributionTitle => 'データと出典';
 
   @override
   String get attributionObserved =>
-      '観測系列：Servicio Meteorológico Nacional、提供された通りにアーカイブ。欠測は null のままで、決して補間されません。';
+      '観測系列：Servicio Meteorológico Nacional、提供されたとおりにアーカイブ；欠測は null のままで、決して補完しません。';
 
   @override
-  String get attributionNote => '出典行はライセンスの要求により原文のまま再現し、翻訳するのは周囲の説明のみです。';
+  String get attributionNote => '帰属行はライセンスの要求に従って逐語的に複製し、周囲の説明のみ翻訳します。';
 
   @override
   String get aboutTitle => '情報 / 状態';
@@ -155,20 +155,20 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA は、アルゼンチンの19観測所について、2つのアンサンブル（ECMWF IFS と GFS）の最長15日先までの生の確率予報と、SMN が観測した過去30日間の日最高・最低気温を公開します。アプリは GitHub Pages 上の静的ファイルのみを読み込みます。サーバーも API もありません。';
+      'PRISMA は、アルゼンチンの 19 観測所について、2 つのアンサンブル（ECMWF IFS と GFS）の未校正確率予報を最大 15 日先まで、さらに SMN が過去 30 日間に観測した日最高・日最低気温を公開します。アプリは GitHub Pages 上の静的ファイルのみを読み込みます：サーバーも API もありません。';
 
   @override
   String get aboutNoSkillTitle => 'スキル指標なし';
 
   @override
   String get aboutNoSkill =>
-      'アプリは CRPS、CRPSS、Brier、信頼性、カバレッジ、リーダーボードを一切表示しません。これらの数値は15発表日の門前まで公開されません。';
+      'アプリは CRPS、CRPSS、Brier スコア、信頼性、被覆率、リーダーボードを表示しません。これらの数値は 15 発表日のゲートを前にして公開されません。';
 
   @override
   String get aboutStatusTitle => 'データの状態';
 
   @override
-  String get aboutSourcesTitle => 'ソースとライセンス';
+  String get aboutSourcesTitle => '出典とライセンス';
 
   @override
   String get aboutDataset => 'データセット';
@@ -184,18 +184,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get statusForecasts =>
-      '生のアンサンブルメンバー：バイアス補正なし、校正なし、ソースの品質フラグを超える品質管理もありません。';
+      '未校正アンサンブルメンバー：バイアス補正なし、キャリブレーションなし、元データの品質フラグを超えた品質管理もなし。';
 
   @override
   String get statusVerification =>
-      'docs/EVALUATION_PROTOCOL.md の15発表日の門前までは、検証結果（CRPS、CRPSS、Brier、信頼性、カバレッジ、リーダーボード）は公開されません。';
+      '15 発表日のゲート（docs/EVALUATION_PROTOCOL.md）を前にして、検証結果（CRPS、CRPSS、Brier、信頼性、被覆率、リーダーボード）は公開されません。';
 
   @override
   String get statusObservations =>
-      'SMN regtemp のスナップショットは提供された通りにアーカイブされます。欠測は null のままで、決して補間されません。2026-11-14 の製品優先規則が適用されます（regtemp が第一）。';
+      'SMN regtemp スナップショットは提供されたとおりにアーカイブ；欠測は null のままで、決して補完しません。2026-11-14 の製品優先ルールが適用されます（regtemp が優先）。';
 
   @override
-  String get aboutMachineTranslations => '英語以外の翻訳は機械生成ものです。修正や改善を歓迎します。';
+  String get aboutMachineTranslations => '英語以外の翻訳は機械生成です。訂正・改善を歓迎します。';
 
   @override
   String get languageLabel => '言語';
@@ -217,7 +217,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String parseError(String document, String detail) {
-    return '文書 $document が期待される形式ではありません：$detail';
+    return 'ドキュメント $document が期待した形式ではありません：$detail';
   }
 
   @override
@@ -250,12 +250,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String missingTextField(String field) {
-    return 'テキストフィールド「$field」が存在しないか、文字列ではありません。';
+    return 'テキストフィールド「$field」が欠落しているか、文字列ではありません。';
   }
 
   @override
   String missingIntegerField(String field) {
-    return '整数「$field」が存在しないか、数値ではありません。';
+    return '整数「$field」が欠落しているか、数値ではありません。';
   }
 
   @override
@@ -273,7 +273,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count 観測所',
+      other: '$count ステーション',
     );
     return '$_temp0';
   }

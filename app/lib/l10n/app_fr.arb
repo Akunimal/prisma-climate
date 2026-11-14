@@ -1,13 +1,13 @@
 {
   "@@locale": "fr",
-  "appTitle": "PRISMA · Prévisions par station",
-  "appTagline": "Ensemble brut d'Open-Meteo (GFS et ECMWF IFS) pour 19 stations en Argentine.",
+  "appTitle": "PRISMA · Prévision par station",
+  "appTagline": "Ensamble brut d'Open-Meteo (GFS et ECMWF IFS) pour 19 stations en Argentine.",
   "tabStations": "Stations",
   "tabForecast": "Prévisions",
   "tabAbout": "À propos / État",
   "searchHint": "Rechercher des stations",
   "searchNoResults": "Aucune station ne correspond à la recherche.",
-  "stationsIntro": "Choisissez une station pour voir ses prévisions.",
+  "stationsIntro": "Choisissez une station pour voir sa prévision.",
   "clearSearch": "Effacer",
   "retry": "Réessayer",
   "loading": "Chargement des données…",
@@ -19,11 +19,11 @@
   "argentinaTimeNote": "Heure de l'Argentine (UTC−3)",
   "variableT2mMax": "Maximum quotidien (t2m_max)",
   "variableT2mMin": "Minimum quotidien (t2m_min)",
-  "variablePrecip": "Précipitations (fraction des membres)",
+  "variablePrecip": "Précipitation (fraction des membres)",
   "legendBand1090": "Bande 10–90 %",
   "legendBand2575": "Bande 25–75 %",
   "legendMedian": "Médiane",
-  "legendModelsNeverPooled": "Chaque modèle conserve ses propres membres et ses propres percentiles ; ils ne sont jamais mis en commun.",
+  "legendModelsNeverPooled": "Chaque modèle conserve ses propres membres et ses propres centiles ; ils ne sont jamais mélangés.",
   "legendLeadAxis": "Jour de prévision",
   "noData": "aucune donnée",
   "missingMembersTitle": "Aucune donnée",
@@ -42,28 +42,28 @@
   "precipTitle": "Précipitations",
   "precipGe1": "≥ 1 mm",
   "precipGe10": "≥ 10 mm",
-  "precipNote": "Fraction des membres utilisables avec des précipitations quotidiennes accumulées égales ou supérieures au seuil.",
+  "precipNote": "Fraction des membres utilisables avec une précipitation journalière cumulée égale ou supérieure au seuil.",
   "day": "Jour",
   "date": "Date",
   "model": "Modèle",
-  "rawBanner": "Prévision d'ensemble brute : non corrigée du biais et non calibrée. Aucune métrique de vérification n'est publiée avant la limite des 15 dates d'émission.",
+  "rawBanner": "Prévision d'ensemble brute : non corrigée des biais et non calibrée. Aucune métrique de vérification n'est publiée avant le seuil des 15 dates d'émission.",
   "attributionTitle": "Données et attribution",
   "attributionObserved": "Séries observées : Servicio Meteorológico Nacional, archivées telles que servies ; les trous restent null et ne sont jamais comblés.",
-  "attributionNote": "Les lignes d'attribution sont reproduites verbatim comme l'exigent leurs licences ; seule la explication environnante est traduite.",
+  "attributionNote": "Les lignes d'attribution sont reproduites telles quelles comme l'exigent leurs licences ; seule l'explication environnante est traduite.",
   "aboutTitle": "À propos / État",
   "aboutWhatTitle": "Ce que montre cette app",
-  "aboutWhat": "PRISMA publie, pour 19 stations en Argentine, la prévision probabilistique brute de deux ensembles (ECMWF IFS et GFS) jusqu'à 15 jours à l'avance, plus les températures maximales et minimales quotidiennes observées par le SMN sur les 30 derniers jours. L'app ne lit que des fichiers statiques publiés sur GitHub Pages : il n'y a ni serveur ni API.",
+  "aboutWhat": "PRISMA publie, pour 19 stations en Argentine, la prévision probabiliste brute de deux ensembles (ECMWF IFS et GFS) jusqu'à 15 jours de prévision, ainsi que les températures maximales et minimales observées par le SMN sur les 30 derniers jours. L'app ne lit que des fichiers statiques publiés sur GitHub Pages : il n'y a ni serveur ni API.",
   "aboutNoSkillTitle": "Aucune métrique de skill",
-  "aboutNoSkill": "L'app n'affiche ni CRPS, ni CRPSS, ni Brier, ni fiabilité, ni couverture, ni classement. Ces chiffres ne sont pas publiés avant la limite des 15 dates d'émission.",
+  "aboutNoSkill": "L'app n'affiche ni CRPS, ni CRPSS, ni score de Brier, ni fiabilité, ni couverture, ni classement. Ces chiffres ne sont pas publiés avant le seuil des 15 dates d'émission.",
   "aboutStatusTitle": "État des données",
   "aboutSourcesTitle": "Sources et licences",
   "aboutDataset": "Jeu de données",
   "aboutSmnSnapshot": "Instantané SMN (regtemp)",
   "aboutRegion": "Région",
   "aboutSchema": "Schéma",
-  "statusForecasts": "Membres d'ensemble bruts : non corrigés du biais, non calibrés et non contrôlés au-delà de l'indicateur de qualité de la source.",
-  "statusVerification": "Aucun résultat de vérification (CRPS, CRPSS, Brier, fiabilité, couverture, classement) n'est publié avant la limite des 15 dates d'émission dans docs/EVALUATION_PROTOCOL.md.",
-  "statusObservations": "L'instantané SMN regtemp est archivé tel que servi ; les trous restent null et ne sont jamais comblés. La règle de précédence de produit du 2026-11-14 s'applique (regtemp primaire).",
+  "statusForecasts": "Membres d'ensemble bruts : non corrigés des biais, non calibrés et sans contrôle de qualité au-delà du flag de qualité de la source.",
+  "statusVerification": "Aucun résultat de vérification (CRPS, CRPSS, Brier, fiabilité, couverture, classement) n'est publié avant le seuil des 15 dates d'émission dans docs/EVALUATION_PROTOCOL.md.",
+  "statusObservations": "L'instantané SMN regtemp est archivé tel que servi ; les trous restent null et ne sont jamais comblés. La règle de précédence des produits du 2026-11-14 s'applique (regtemp primaire).",
   "aboutMachineTranslations": "Les traductions autres que l'anglais sont générées par machine ; les corrections et améliorations sont les bienvenues.",
   "languageLabel": "Langue",
   "leadDay": "+{lead} d",
@@ -78,7 +78,7 @@
       "document": { "type": "String" }
     }
   },
-  "schemaUnsupported": "La version de schéma \"{version}\" n'est pas prise en charge par cette app (1.0 attendue). Mettez à jour l'app ou l'export.",
+  "schemaUnsupported": "La version de schéma \"{version}\" n'est pas prise en charge par cette app (attendu 1.0). Mettez à jour l'app ou l'export.",
   "@schemaUnsupported": {
     "placeholders": {
       "version": { "type": "String" }
@@ -112,32 +112,32 @@
       "detail": { "type": "String" }
     }
   },
-  "modelsNonText": "Le champ « models » contient une valeur non textuelle.",
-  "fieldNotObject": "Le champ « {field} » n'est pas un objet JSON.",
+  "modelsNonText": "Le champ \"models\" contient une valeur non textuelle.",
+  "fieldNotObject": "Le champ \"{field}\" n'est pas un objet JSON.",
   "@fieldNotObject": {
     "placeholders": {
       "field": { "type": "String" }
     }
   },
-  "fieldNotArray": "Le champ « {field} » n'est pas un tableau JSON.",
+  "fieldNotArray": "Le champ \"{field}\" n'est pas un tableau JSON.",
   "@fieldNotArray": {
     "placeholders": {
       "field": { "type": "String" }
     }
   },
-  "missingTextField": "Champ de texte « {field} » manquant ou ce n'est pas une chaîne.",
+  "missingTextField": "Champ texte \"{field}\" manquant ou il n'est pas une chaîne.",
   "@missingTextField": {
     "placeholders": {
       "field": { "type": "String" }
     }
   },
-  "missingIntegerField": "Entier « {field} » manquant ou ce n'est pas un nombre.",
+  "missingIntegerField": "Entier \"{field}\" manquant ou ce n'est pas un nombre.",
   "@missingIntegerField": {
     "placeholders": {
       "field": { "type": "String" }
     }
   },
-  "notNumericField": "Le champ « {field} » n'est pas numérique.",
+  "notNumericField": "Le champ \"{field}\" n'est pas numérique.",
   "@notNumericField": {
     "placeholders": {
       "field": { "type": "String" }

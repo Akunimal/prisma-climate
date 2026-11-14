@@ -43,10 +43,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get loading => '正在加载数据…';
 
   @override
-  String get labelIssue => '起报';
+  String get labelIssue => '起报时间';
 
   @override
-  String get labelExported => '导出';
+  String get labelExported => '导出时间';
 
   @override
   String get labelSmn => 'SMN 观测';
@@ -61,10 +61,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get argentinaTimeNote => '阿根廷时间（UTC−3）';
 
   @override
-  String get variableT2mMax => '日最高（t2m_max）';
+  String get variableT2mMax => '日最高温（t2m_max）';
 
   @override
-  String get variableT2mMin => '日最低（t2m_min）';
+  String get variableT2mMin => '日最低温（t2m_min）';
 
   @override
   String get variablePrecip => '降水（成员比例）';
@@ -79,7 +79,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get legendMedian => '中位数';
 
   @override
-  String get legendModelsNeverPooled => '每个模型保留各自的成员和各自的分位数；它们从不合并。';
+  String get legendModelsNeverPooled => '每个模型保留各自的成员和各自的分位数，绝不混合。';
 
   @override
   String get legendLeadAxis => '预报时效';
@@ -99,7 +99,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get observedTitle => 'SMN 观测 — 最近 30 天';
 
   @override
-  String get observedNote => '按 SMN 提供的方式归档的数值；缺测保持为 null，从不填补。';
+  String get observedNote => '按 SMN 原样提供的存档值；缺测保持为 null，绝不填补。';
 
   @override
   String get observedDate => '日期';
@@ -135,14 +135,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rawBanner => '原始集合预报：未做偏差订正，也未校准。在 15 个起报日期的门槛之前不发布任何检验指标。';
 
   @override
-  String get attributionTitle => '数据与来源标注';
+  String get attributionTitle => '数据与署名';
 
   @override
   String get attributionObserved =>
-      '观测序列：Servicio Meteorológico Nacional，按提供方式归档；缺测保持为 null，从不填补。';
+      '观测序列：Servicio Meteorológico Nacional，按原样存档；缺测保持为 null，绝不填补。';
 
   @override
-  String get attributionNote => '来源标注行按其许可证要求逐字复制，仅翻译其周围的说明文字。';
+  String get attributionNote => '署名行按其许可要求逐字复制，仅翻译周围的说明文字。';
 
   @override
   String get aboutTitle => '关于 / 状态';
@@ -152,14 +152,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA 为阿根廷 19 个站点发布两个集合（ECMWF IFS 与 GFS）最远 15 天的原始概率预报，以及 SMN 最近 30 天观测的日最高和最低气温。本应用只读取发布在 GitHub Pages 上的静态文件：没有服务器，也没有 API。';
+      'PRISMA 为阿根廷 19 个站点发布两个集合（ECMWF IFS 与 GFS）的原始概率预报，最远 15 天，另加 SMN 最近 30 天观测的日最高、最低气温。本应用只读取发布在 GitHub Pages 上的静态文件：没有服务器，也没有 API。';
 
   @override
   String get aboutNoSkillTitle => '无技巧评分';
 
   @override
   String get aboutNoSkill =>
-      '本应用不显示 CRPS、CRPSS、Brier、可靠性、覆盖率或排行榜。在 15 个起报日期的门槛之前不发布这些数字。';
+      '本应用不显示 CRPS、CRPSS、Brier 分数、可靠性、覆盖率或排行榜。在 15 个起报日期的门槛之前不发布这些数字。';
 
   @override
   String get aboutStatusTitle => '数据状态';
@@ -180,7 +180,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aboutSchema => '模式';
 
   @override
-  String get statusForecasts => '原始集合成员：未做偏差订正、未校准，除来源的质量标记外未做质量控制。';
+  String get statusForecasts => '原始集合成员：未做偏差订正、未校准，除来源质量标记外未做质量控制。';
 
   @override
   String get statusVerification =>
@@ -188,10 +188,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statusObservations =>
-      'SMN regtemp 快照按提供方式归档；缺测保持为 null，从不填补。适用 2026-11-14 的产品优先级规则（regtemp 为主）。';
+      'SMN regtemp 快照按原样存档；缺测保持为 null，绝不填补。适用 2026-11-14 的产品优先级规则（regtemp 为主）。';
 
   @override
-  String get aboutMachineTranslations => '英语以外的翻译均为机器生成，欢迎纠正与改进。';
+  String get aboutMachineTranslations => '英文以外的翻译由机器生成，欢迎纠错与改进。';
 
   @override
   String get languageLabel => '语言';
@@ -208,7 +208,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String schemaUnsupported(String version) {
-    return '本应用不支持模式版本“$version”（期望 1.0）。请更新应用或导出数据。';
+    return '本应用不支持架构版本“$version”（预期 1.0）。请更新应用或导出文件。';
   }
 
   @override
@@ -223,7 +223,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String httpError(int status, String document) {
-    return '数据源对 $document 返回 HTTP $status。';
+    return '数据源对 $document 返回了 HTTP $status。';
   }
 
   @override

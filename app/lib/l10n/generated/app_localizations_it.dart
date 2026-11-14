@@ -14,7 +14,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get appTagline =>
-      'Ensemble grezzo di Open-Meteo (GFS ed ECMWF IFS) per 19 stazioni in Argentina.';
+      'Ensamble grezzo di Open-Meteo (GFS e ECMWF IFS) per 19 stazioni in Argentina.';
 
   @override
   String get tabStations => 'Stazioni';
@@ -60,7 +60,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get labelCoordinates => 'Coordinate';
 
   @override
-  String get argentinaTimeNote => 'Ora dell\'Argentina (UTC−3)';
+  String get argentinaTimeNote => 'Ora argentina (UTC−3)';
 
   @override
   String get variableT2mMax => 'Massima giornaliera (t2m_max)';
@@ -82,7 +82,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get legendModelsNeverPooled =>
-      'Ogni modello conserva i propri membri e i propri percentili; non vengono mai uniti.';
+      'Ogni modello conserva i propri membri e le proprie percentili; non vengono mai uniti.';
 
   @override
   String get legendLeadAxis => 'Giorno di previsione';
@@ -115,7 +115,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get observedMin => 'Minima';
 
   @override
-  String get precipTitle => 'Precipitazione';
+  String get precipTitle => 'Precipitazioni';
 
   @override
   String get precipGe1 => '≥ 1 mm';
@@ -125,7 +125,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get precipNote =>
-      'Frazione dei membri utilizzabili con precipitazione giornaliera accumulata pari o sopra la soglia.';
+      'Frazione di membri utilizzabili con precipitazione giornaliera accumulata pari o sopra la soglia.';
 
   @override
   String get day => 'Giorno';
@@ -138,7 +138,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get rawBanner =>
-      'Previsione di ensemble grezza: non corretta dal bias e non calibrata. Nessuna metrica di verifica viene pubblicata prima del limite delle 15 date di emissione.';
+      'Previsione di ensamble grezza: senza correzione del bias e non calibrata. Nessuna metrica di verifica viene pubblicata prima della soglia delle 15 date di emissione.';
 
   @override
   String get attributionTitle => 'Dati e attribuzione';
@@ -159,14 +159,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA pubblica, per 19 stazioni in Argentina, la previsione probabilistica grezza di due ensemble (ECMWF IFS e GFS) fino a 15 giorni in avanti, più le temperature massima e minima giornaliere osservate dal SMN negli ultimi 30 giorni. L\'app legge solo file statici pubblicati su GitHub Pages: non c\'è nessun server né API.';
+      'PRISMA pubblica, per 19 stazioni in Argentina, la previsione probabilistica grezza di due ensambles (ECMWF IFS e GFS) fino a 15 giorni di previsione, oltre alle temperature massima e minima osservate dal SMN negli ultimi 30 giorni. L\'app legge solo file statici pubblicati su GitHub Pages: non c\'è nessun server né API.';
 
   @override
   String get aboutNoSkillTitle => 'Nessuna metrica di skill';
 
   @override
   String get aboutNoSkill =>
-      'L\'app non mostra CRPS, CRPSS, Brier, affidabilità, copertura né classifica. Quei numeri non vengono pubblicati prima del limite delle 15 date di emissione.';
+      'L\'app non mostra CRPS, CRPSS, punteggio di Brier, affidabilità, copertura né classifica. Questi numeri non sono pubblicati prima della soglia delle 15 date di emissione.';
 
   @override
   String get aboutStatusTitle => 'Stato dei dati';
@@ -188,15 +188,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statusForecasts =>
-      'Membri di ensemble grezzi: non corretti dal bias, non calibrati e senza controllo di qualità oltre il flag di qualità della fonte.';
+      'Membri di ensamble grezzi: senza correzione del bias, non calibrati e senza controllo di qualità oltre al flag di qualità della fonte.';
 
   @override
   String get statusVerification =>
-      'Nessun risultato di verifica (CRPS, CRPSS, Brier, affidabilità, copertura, classifica) viene pubblicato prima del limite delle 15 date di emissione in docs/EVALUATION_PROTOCOL.md.';
+      'Nessun risultato di verifica (CRPS, CRPSS, Brier, affidabilità, copertura, classifica) viene pubblicato prima della soglia delle 15 date di emissione in docs/EVALUATION_PROTOCOL.md.';
 
   @override
   String get statusObservations =>
-      'L\'istantanea SMN regtemp viene archiviata come servita; i buchi restano null e non vengono mai riempiti. Si applica la regola di precedenza del prodotto del 2026-11-14 (regtemp primario).';
+      'L\'istantanea SMN regtemp è archiviata come servita; i buchi restano null e non vengono mai riempiti. Si applica la regola di precedenza dei prodotti del 2026-11-14 (regtemp primario).';
 
   @override
   String get aboutMachineTranslations =>
@@ -217,7 +217,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String schemaUnsupported(String version) {
-    return 'La versione dello schema \"$version\" non è supportata da questa app (atteso 1.0). Aggiorna l\'app o l\'esportazione.';
+    return 'La versione dello schema \"$version\" non è supportata da questa app (atteso 1.0). Aggiorna l\'app o l\'export.';
   }
 
   @override
@@ -256,7 +256,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String missingTextField(String field) {
-    return 'Campo di testo \"$field\" mancante o non è una stringa.';
+    return 'Campo testo \"$field\" mancante o non è una stringa.';
   }
 
   @override
