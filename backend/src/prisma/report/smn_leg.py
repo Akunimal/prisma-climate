@@ -40,36 +40,40 @@ _NOMBRE_SLICE = slice(21, None)
 
 
 def parse_regtemp(path: Path) -> pd.DataFrame:
-    """Parse the regtemp fixed-width capture into one row per station-day.
+    """Parse the regtemp fixed-width capture file (latin-1 as served by SMN)."""
+    return parse_regtemp_text(path.read_text(encoding="latin-1"))
+
+
+def parse_regtemp_text(text: str) -> pd.DataFrame:
+    """Parse regtemp payload text into one row per station-day.
 
     Columns: ``regtemp_name``, ``time`` (local calendar date), ``t2m_max``,
     ``t2m_min`` (``NaN`` when the field is blank). Header, separator and short
-    lines are skipped by the FECHA digit check; latin-1 as served by SMN.
+    lines are skipped by the FECHA digit check.
     """
     records: list[dict[str, Any]] = []
-    with path.open(encoding="latin-1") as handle:
-        for raw in handle:
-            line = raw.rstrip("\n\r")
-            if len(line) < 22:
-                continue
-            fecha = line[_FECHA_SLICE]
-            if not (fecha.isdigit() and len(fecha) == 8):
-                continue
-            nombre = line[_NOMBRE_SLICE].strip()
-            if not nombre:
-                continue
-            tmax_text = line[_TMAX_SLICE].strip()
-            tmin_text = line[_TMIN_SLICE].strip()
-            records.append(
-                {
-                    "regtemp_name": nombre,
-                    "time": pd.to_datetime(fecha, format="%d%m%Y"),
-                    "t2m_max": float(tmax_text) if tmax_text else float("nan"),
-                    "t2m_min": float(tmin_text) if tmin_text else float("nan"),
-                }
-            )
+    for raw in text.splitlines():
+        line = raw.rstrip("\n\r")
+        if len(line) < 22:
+            continue
+        fecha = line[_FECHA_SLICE]
+        if not (fecha.isdigit() and len(fecha) == 8):
+            continue
+        nombre = line[_NOMBRE_SLICE].strip()
+        if not nombre:
+            continue
+        tmax_text = line[_TMAX_SLICE].strip()
+        tmin_text = line[_TMIN_SLICE].strip()
+        records.append(
+            {
+                "regtemp_name": nombre,
+                "time": pd.to_datetime(fecha, format="%d%m%Y"),
+                "t2m_max": float(tmax_text) if tmax_text else float("nan"),
+                "t2m_min": float(tmin_text) if tmin_text else float("nan"),
+            }
+        )
     if not records:
-        raise ValueError(f"no regtemp data rows parsed from {path}")
+        raise ValueError("no regtemp data rows parsed from payload text")
     return pd.DataFrame.from_records(records)
 
 
