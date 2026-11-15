@@ -244,7 +244,7 @@ Regla de escala: la lógica específica de un país vive solo en el conector de 
 
 Design note for the next app stage (place search and GPS): [`docs/design/LOCATION_SEARCH.md`](design/LOCATION_SEARCH.md).
 
-Primera versión publicable como **web** (sin tiendas, se comparte con un link) + **APK de Android**.
+Primera versión publicable como **web** (sin tiendas, se comparte con un link). El APK de Android queda como candidato: no se construyó en esta fase.
 
 ### Pantallas
 
@@ -311,7 +311,7 @@ Se mantiene del v1: `EVALUATION_PROTOCOL.md` escrito antes de entrenar, `results
 |---|---|---|---|
 | **0 · Repo honesto** | esta semana | README con estado real, licencia, `DATA_SOURCES.md`, ingesta funcionando (Open-Meteo + GHCN), notebook 01 con un gráfico real de la región | Alguien clona el repo y con un comando reproduce el gráfico |
 | **1 · Verificación** | 2–4 semanas | Ingesta diaria automática (GitHub Actions), SMN integrado, QC y reporte de discrepancias, primeras métricas reales en `results/`, `EVALUATION_PROTOCOL.md` | Leaderboard con ensemble crudo vs climatología vs persistencia, generado por script |
-| **2 · Calibración + app v0.1** | 1–2 meses | EMOS / quantile mapping, API FastAPI, app Flutter (web + Android) con pantallas 1–3 | CRPSS > 0 del calibrado vs ensemble crudo; app pública accesible por link |
+| **2 · Calibración + app v0.1** | 1–2 meses | EMOS / quantile mapping, app Flutter **web** con pantallas 1–3 (sin servidor API ni Android en esta fase — decisión del responsable, 2026-11-15) | CRPSS > 0 del calibrado vs ensemble crudo; app pública accesible por link |
 | **3 · Subestacional + alertas** | 2–4 meses | Horizonte 2–6 semanas con ML, condicionamiento ENSO, pantallas 4–5, iOS/Windows | Modelo ML supera al calibrado de Fase 2 en al menos un horizonte, o se documenta que no |
 | **4 · Bien público + partners** | 4–6 meses | Dataset y modelos con DOI (Zenodo), preprint o informe técnico, contacto con universidad / CONICET / INTA | Al menos un partner institucional interesado (requisito para grants) |
 
@@ -330,7 +330,7 @@ Si una fase no pasa su puerta, se documenta el resultado negativo: también es u
 | Datos | Discrepancias entre fuentes explicadas | 100 % documentadas |
 | Ingeniería | Ingesta diaria sin intervención manual | 30 días seguidos |
 | Ingeniería | Reproducibilidad: script → mismas figuras | 100 % en CI |
-| Producto | App accesible en web + Android | Fase 2 |
+| Producto | App accesible en web (Android, candidato sin construir) | Fase 2 |
 | Bien público | Datos y código abiertos, DOI | Fase 4 |
 
 ---

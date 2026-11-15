@@ -1,6 +1,6 @@
 # Architecture
 
-Phase 0 scope: ingest + QC + Parquet storage + notebook figures + daily forecast archive. Everything below the storage line in the diagram is Phase 1 or later and does not exist yet.
+Target architecture. Verification and calibration (Phase 1–2) now exist; the API has code but no server in this phase, and only the Flutter web app ships (see [`ROADMAP.md`](ROADMAP.md)).
 
 ```
 Sources (open APIs, fixed files, national portals)
@@ -15,10 +15,10 @@ Storage (Parquet under data/ — gitignored; Zarr only for grids, Phase 2)
         ▼
 Verification (CRPS, Brier, reliability) ──► calibration (EMOS / quantile mapping)
         │                                         │
-        └──────────────► API (FastAPI) ◄──────────┘          (Phase 2)
+        └──────────────► API (FastAPI) ◄──────────┘    (code exists; no server this phase)
                               │
                               ▼
-                Flutter app (Android · iOS · Web · Windows)  (Phase 2)
+                   Flutter app (Web — Phase 2; Android · iOS · Windows not built)
                               │
                               ▼
             results/ and leaderboard (script outputs only, versioned)
@@ -66,4 +66,4 @@ The runner continues past per-source errors: a failing source is recorded in the
 
 ## What is deliberately absent
 
-FastAPI, calibration, verification metrics, the Flutter app (`app/` is an empty placeholder), the SMN connector, and any infrastructure "just in case". Each lands when its phase gate opens — see [`ROADMAP.md`](ROADMAP.md).
+No server: the FastAPI code exists under `backend/src/prisma/api/` with tests, but Phase 2 offers no API service (owner decision, 2026-11-15) — the app reads the static export. No Android/iOS/Windows build (web only; listed as candidates in [`ROADMAP.md`](ROADMAP.md)). No infrastructure "just in case". Verification, calibration and the Flutter web app have since landed; see [`ROADMAP.md`](ROADMAP.md) for current status.

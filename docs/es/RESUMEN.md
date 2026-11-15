@@ -57,7 +57,7 @@ El tercer comando escribe las figuras en `results/figures/`. `uv run --project b
 |---|---|---|
 | 0 · Repo honesto | README con estado real, licencia, fuentes, ingesta + notebook | Alguien clona y reproduce un gráfico con un comando |
 | 1 · Verificación | Ingesta diaria automática, SMN integrado, primeras métricas | Leaderboard generado por script |
-| 2 · Calibración + app v0.1 | EMOS/quantile mapping, API, app Flutter (web + Android) | CRPSS > 0; app pública por link |
+| 2 · Calibración + app v0.1 | EMOS/quantile mapping, app Flutter web (sin servidor API ni Android en esta fase) | CRPSS > 0; app pública por link |
 | 3 · Subestacional + alertas | Horizonte 2–6 semanas con ML | El ML supera a la calibración, o se documenta que no |
 | 4 · Bien público + partners | DOI, preprint, partner institucional | Al menos un partner interesado |
 
