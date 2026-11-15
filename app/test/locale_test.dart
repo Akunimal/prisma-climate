@@ -18,6 +18,7 @@ final AppLocalizationsEn en = AppLocalizationsEn();
 Map<String, String> defaultFiles() => {
       'latest.json': fixture('latest.json'),
       'about.json': fixture('about.json'),
+      'skill.json': fixture('skill.json'),
       'stations/la_quiaca.json': fixture('stations/la_quiaca.json'),
       'stations/buenos_aires.json': fixture('stations/buenos_aires.json'),
     };
@@ -84,12 +85,24 @@ void main() {
     expect(find.text('Stations'), findsOneWidget);
     await tester.tap(find.text('La Quiaca Observatorio'));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.textContaining('21.8 °C'),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.textContaining('21.8 °C'), findsWidgets);
     final requestsAfterLoad = log.length;
 
     await pickLanguage(tester, kLocaleEndonyms['es']!);
     expect(log.length, requestsAfterLoad, reason: 'locale switch re-fetched');
 
+    // The forecast list was scrolled down to the observed value; bring the
+    // variable title back into view before asserting its Spanish text.
+    await tester.scrollUntilVisible(
+      find.text('Máxima diaria (t2m_max)'),
+      -400,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.textContaining('21,8 °C'), findsWidgets);
     expect(find.text(en.variableT2mMax), findsNothing);
     expect(find.text('Máxima diaria (t2m_max)'), findsOneWidget);

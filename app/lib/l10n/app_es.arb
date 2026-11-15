@@ -4,8 +4,9 @@
   "appTagline": "Ensamble crudo de Open-Meteo (GFS y ECMWF IFS) para 19 estaciones de Argentina.",
   "tabStations": "Estaciones",
   "tabForecast": "Pronóstico",
+  "tabSkill": "Skill",
   "tabAbout": "Acerca de / Estado",
-  "searchHint": "Buscar estaciones",
+  "searchHint": "Buscar estaciones o lugares",
   "searchNoResults": "Ninguna estación coincide con la búsqueda.",
   "stationsIntro": "Elegí una estación para ver su pronóstico.",
   "clearSearch": "Limpiar",
@@ -57,8 +58,49 @@
   "aboutTitle": "Acerca de / Estado",
   "aboutWhatTitle": "Qué muestra esta app",
   "aboutWhat": "PRISMA publica, para 19 estaciones de Argentina, el pronóstico probabilístico crudo de dos ensambles (ECMWF IFS y GFS) hasta 15 días de anticipación, más las temperaturas máxima y mínima observadas por el SMN en los últimos 30 días. La app solo lee archivos estáticos publicados en GitHub Pages: no hay servidor ni API.",
-  "aboutNoSkillTitle": "Sin métricas de skill",
-  "aboutNoSkill": "La app no muestra CRPS, CRPSS, Brier, fiabilidad, cobertura ni clasificación. Esos números no se publican antes del umbral de 15 fechas de emisión.",
+  "aboutNoSkillTitle": "Métricas de skill operativas",
+  "aboutNoSkill": "Los resultados de verificación operativos (CRPS, CRPSS, Brier, fiabilidad, cobertura, clasificación) no se publican antes del umbral de 15 fechas de emisión. La pantalla Skill muestra solo puntajes de calibración etiquetados hindcast, de una repetición histórica; nunca se mezclan con el archivo operativo.",
+  "skillTitle": "Skill de calibración (hindcast)",
+  "skillHindcastBanner": "Solo hindcast: estos puntajes vienen de una repetición histórica contra observaciones archivadas, no del archivo de pronósticos en vivo. Nunca se mezclan con la verificación operativa.",
+  "skillUnavailable": "Aún no hay una corrida de calibración hindcast disponible.",
+  "skillLabel": "Etiqueta",
+  "skillMeanEmos": "CRPSS medio (EMOS vs crudo)",
+  "skillMeanQm": "CRPSS medio (QM vs crudo)",
+  "skillCellsCount": "{sufficient} de {total} celdas con datos de entrenamiento suficientes",
+  "@skillCellsCount": {
+    "placeholders": {
+      "sufficient": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "skillDidNotBeat": "CRPSS medio ≤ 0: en esta ventana hindcast la calibración no superó al ensamble crudo.",
+  "skillProvider": "Proveedor",
+  "skillWindow": "Ventana",
+  "skillRetrieved": "Obtenido",
+  "skillLeads": "Anticipaciones",
+  "skillMode": "Modo",
+  "skillGateTitle": "Umbral operativo",
+  "skillGateArchived": "Fechas de emisión archivadas: {archived} de {required}",
+  "@skillGateArchived": {
+    "placeholders": {
+      "archived": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "skillGateOpen": "Umbral abierto: puede publicarse la clasificación operativa.",
+  "skillGateClosed": "Umbral cerrado: no se publica la clasificación operativa.",
+  "skillCellsTitle": "Celdas por estación y anticipación",
+  "skillCellStation": "Estación",
+  "comparatorTitle": "Comparación de fuentes",
+  "comparatorNote": "Percentiles de máxima diaria lado a lado por modelo (°C): p10–p90 · mediana. Nunca se mezclan.",
   "aboutStatusTitle": "Estado de los datos",
   "aboutSourcesTitle": "Fuentes y licencias",
   "aboutDataset": "Conjunto de datos",
@@ -202,5 +244,34 @@
   "mapReportProblem": "Informar un problema del mapa",
   "mapTilesFailed": "No se pudieron cargar los mosaicos del mapa. Se muestran las estaciones sobre un fondo neutro.",
   "aboutMapTilesTitle": "Mosaicos del mapa",
-  "aboutMapTilesNote": "El mapa carga sus mosaicos directamente desde los servidores de OpenStreetMap."
+  "aboutMapTilesNote": "El mapa carga sus mosaicos directamente desde los servidores de OpenStreetMap.",
+  "searchStationsGroup": "Estaciones",
+  "searchPlacesGroup": "Lugares",
+  "placesUnavailable": "La búsqueda de lugares no está disponible en este momento.",
+  "nearestStation": "Estación más cercana: {station}",
+  "distanceKm": "Distancia: {km} km",
+  "nearestStationWarning": "No hay ninguna estación a menos de 100 km: el pronóstico corresponde a la estación más cercana, que puede no representar tu ubicación.",
+  "useMyLocation": "Usar mi ubicación",
+  "locationDenied": "Permiso de ubicación denegado. Buscá un lugar.",
+  "locationUnavailable": "La ubicación no está disponible en este dispositivo.",
+  "locationTimeout": "No se pudo obtener tu ubicación. Volvé a intentarlo o buscá un lugar.",
+  "yourLocation": "Tu ubicación",
+  "aboutPlacesTitle": "Datos de lugares",
+  "aboutPlacesNote": "Los nombres de lugares provienen de GeoNames y se usan solo para la búsqueda en este dispositivo.",
+  "aboutPrivacyTitle": "Privacidad",
+  "aboutPrivacyNote": "La búsqueda de lugares y la ubicación se quedan en este dispositivo; solo los mosaicos del mapa se solicitan al proveedor del mapa.",
+  "@nearestStation": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  }
 }

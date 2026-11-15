@@ -35,7 +35,9 @@ on:
     paths:
       - "app/**"
       - "site/**"
+      - "data/places/**"
       - "scripts/export_site_data.py"
+      - "scripts/build_places.py"
       - ".github/workflows/site.yml"
 
 permissions:
@@ -74,6 +76,13 @@ jobs:
           uv run --project backend --with huggingface_hub
           python scripts/export_site_data.py
           --out-dir _site/data
+
+      - name: Copy the shipped place gazetteer
+        run: |
+          if [ -d data/places ]; then
+            mkdir -p _site/data/places
+            cp -R data/places/. _site/data/places/
+          fi
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2

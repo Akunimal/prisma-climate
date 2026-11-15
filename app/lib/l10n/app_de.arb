@@ -4,8 +4,9 @@
   "appTagline": "Rohes Open-Meteo-Ensemble (GFS und ECMWF IFS) für 19 Stationen in Argentinien.",
   "tabStations": "Stationen",
   "tabForecast": "Vorhersage",
+  "tabSkill": "Skill",
   "tabAbout": "Über / Status",
-  "searchHint": "Stationen suchen",
+  "searchHint": "Stationen oder Orte suchen",
   "searchNoResults": "Keine Station passt zur Suche.",
   "stationsIntro": "Wählen Sie eine Station, um ihre Vorhersage zu sehen.",
   "clearSearch": "Löschen",
@@ -57,8 +58,49 @@
   "aboutTitle": "Über / Status",
   "aboutWhatTitle": "Was diese App zeigt",
   "aboutWhat": "PRISMA veröffentlicht für 19 Stationen in Argentinien die rohe probabilistische Vorhersage zweier Ensembles (ECMWF IFS und GFS) bis zu 15 Vorhersagetagen sowie die vom SMN in den letzten 30 Tagen beobachteten Höchst- und Tiefsttemperaturen. Die App liest ausschließlich statische Dateien auf GitHub Pages: es gibt keinen Server und keine API.",
-  "aboutNoSkillTitle": "Keine Skill-Metriken",
-  "aboutNoSkill": "Die App zeigt weder CRPS noch CRPSS, Brier-Score, Zuverlässigkeit, Abdeckung oder eine Rangliste. Diese Zahlen werden vor dem Schwellwert von 15 Abgabedaten nicht veröffentlicht.",
+  "aboutNoSkillTitle": "Operative Skill-Metriken",
+  "aboutNoSkill": "Operative Verifikationsergebnisse (CRPS, CRPSS, Brier, Zuverlässigkeit, Abdeckung, Rangliste) werden vor dem Schwellwert von 15 Abgabedaten nicht veröffentlicht. Der Skill-Bildschirm zeigt nur hindcast-etikettierte Kalibrierungswerte aus einem historischen Replay; sie werden nie mit dem operativen Archiv vermischt.",
+  "skillTitle": "Kalibrierungs-Skill (hindcast)",
+  "skillHindcastBanner": "Nur hindcast: Diese Werte stammen aus einem historischen Replay gegen archivierte Beobachtungen, nicht aus dem aktuellen Vorhersagearchiv. Sie werden nie mit der operativen Verifikation vermischt.",
+  "skillUnavailable": "Es ist noch kein hindcast-Kalibrierungslauf verfügbar.",
+  "skillLabel": "Etikett",
+  "skillMeanEmos": "Mean CRPSS (EMOS vs roh)",
+  "skillMeanQm": "Mean CRPSS (QM vs roh)",
+  "skillCellsCount": "{sufficient} von {total} Zellen mit ausreichenden Trainingsdaten",
+  "@skillCellsCount": {
+    "placeholders": {
+      "sufficient": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "skillDidNotBeat": "Mean CRPSS ≤ 0: In diesem hindcast-Fenster hat die Kalibrierung das rohe Ensemble nicht geschlagen.",
+  "skillProvider": "Anbieter",
+  "skillWindow": "Fenster",
+  "skillRetrieved": "Abgerufen",
+  "skillLeads": "Vorhersagetage",
+  "skillMode": "Modus",
+  "skillGateTitle": "Operativer Schwellwert",
+  "skillGateArchived": "Archivierte Abgabedaten: {archived} von {required}",
+  "@skillGateArchived": {
+    "placeholders": {
+      "archived": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "skillGateOpen": "Schwellwert offen — die operative Rangliste darf veröffentlicht werden.",
+  "skillGateClosed": "Schwellwert geschlossen — die operative Rangliste wird nicht veröffentlicht.",
+  "skillCellsTitle": "Zellen nach Station und Vorhersagetag",
+  "skillCellStation": "Messstation",
+  "comparatorTitle": "Quellenvergleich",
+  "comparatorNote": "Tagesmaxima-Perzentile je Modell nebeneinander (°C): p10–p90 · Median. Nie zusammengeführt.",
   "aboutStatusTitle": "Datenstatus",
   "aboutSourcesTitle": "Quellen und Lizenzen",
   "aboutDataset": "Datensatz",
@@ -202,5 +244,34 @@
   "mapReportProblem": "Kartenproblem melden",
   "mapTilesFailed": "Kartenkacheln konnten nicht geladen werden. Stationen werden auf neutralem Hintergrund angezeigt.",
   "aboutMapTilesTitle": "Kartenkacheln",
-  "aboutMapTilesNote": "Die Karte laedt ihre Kacheln direkt von den OpenStreetMap-Servern."
+  "aboutMapTilesNote": "Die Karte laedt ihre Kacheln direkt von den OpenStreetMap-Servern.",
+  "searchStationsGroup": "Stationen",
+  "searchPlacesGroup": "Orte",
+  "placesUnavailable": "Die Ortssuche ist derzeit nicht verfügbar.",
+  "nearestStation": "Nächste Station: {station}",
+  "distanceKm": "Entfernung: {km} km",
+  "nearestStationWarning": "Keine Station innerhalb von 100 km — die Vorhersage gilt für die nächste Station, die Ihren Standort möglicherweise nicht repräsentiert.",
+  "useMyLocation": "Meinen Standort verwenden",
+  "locationDenied": "Standortberechtigung verweigert. Suchen Sie stattdessen einen Ort.",
+  "locationUnavailable": "Der Standort ist auf diesem Gerät nicht verfügbar.",
+  "locationTimeout": "Ihr Standort konnte nicht ermittelt werden. Versuchen Sie es erneut oder suchen Sie einen Ort.",
+  "yourLocation": "Ihr Standort",
+  "aboutPlacesTitle": "Ortsdaten",
+  "aboutPlacesNote": "Ortsnamen stammen von GeoNames und werden nur für die Suche auf diesem Gerät verwendet.",
+  "aboutPrivacyTitle": "Datenschutz",
+  "aboutPrivacyNote": "Ortssuche und Standort bleiben auf diesem Gerät; nur Kartenkacheln werden beim Kartenanbieter angefordert.",
+  "@nearestStation": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  }
 }

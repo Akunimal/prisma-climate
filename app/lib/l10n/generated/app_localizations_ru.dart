@@ -23,10 +23,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get tabForecast => 'Прогноз';
 
   @override
+  String get tabSkill => 'Skill';
+
+  @override
   String get tabAbout => 'О приложении / Статус';
 
   @override
-  String get searchHint => 'Поиск станций';
+  String get searchHint => 'Поиск станций или мест';
 
   @override
   String get searchNoResults => 'Ни одна станция не подходит под запрос.';
@@ -161,11 +164,83 @@ class AppLocalizationsRu extends AppLocalizations {
       'PRISMA публикует для 19 станций Аргентины сырой вероятностный прогноз двух ансамблей (ECMWF IFS и GFS) на срок до 15 дней, а также суточные максимальная и минимальная температуры, наблюдавшиеся SMN за последние 30 дней. Приложение читает только статические файлы на GitHub Pages: сервера и API нет.';
 
   @override
-  String get aboutNoSkillTitle => 'Без метрик skill';
+  String get aboutNoSkillTitle => 'Оперативные метрики skill';
 
   @override
   String get aboutNoSkill =>
-      'Приложение не показывает CRPS, CRPSS, ошибку Бриера, надёжность, покрытие и рейтинг. Эти числа не публикуются до порога в 15 дат выпуска.';
+      'Оперативные результаты верификации (CRPS, CRPSS, Brier, надёжность, покрытие, рейтинг) не публикуются до порога в 15 дат выпуска. Экран Skill показывает только hindcast-метки калибровки из исторического реплея; они никогда не смешиваются с оперативным архивом.';
+
+  @override
+  String get skillTitle => 'Калибровочный skill (hindcast)';
+
+  @override
+  String get skillHindcastBanner =>
+      'Только hindcast: эти оценки получены из исторического реплея против архивных наблюдений, а не из живого архива прогнозов. Они никогда не смешиваются с оперативной верификацией.';
+
+  @override
+  String get skillUnavailable => 'Прогон калибровки hindcast пока недоступен.';
+
+  @override
+  String get skillLabel => 'Метка';
+
+  @override
+  String get skillMeanEmos => 'Средний CRPSS (EMOS vs сырой)';
+
+  @override
+  String get skillMeanQm => 'Средний CRPSS (QM vs сырой)';
+
+  @override
+  String skillCellsCount(int sufficient, int total) {
+    return '$sufficient из $total ячеек с достаточными обучающими данными';
+  }
+
+  @override
+  String get skillDidNotBeat =>
+      'Средний CRPSS ≤ 0: на этом hindcast-окне калибровка не обошла сырой ансамбль.';
+
+  @override
+  String get skillProvider => 'Провайдер';
+
+  @override
+  String get skillWindow => 'Окно';
+
+  @override
+  String get skillRetrieved => 'Получено';
+
+  @override
+  String get skillLeads => 'Сроки';
+
+  @override
+  String get skillMode => 'Режим';
+
+  @override
+  String get skillGateTitle => 'Оперативный порог';
+
+  @override
+  String skillGateArchived(int archived, int required) {
+    return 'Архивные даты выпуска: $archived из $required';
+  }
+
+  @override
+  String get skillGateOpen =>
+      'Порог открыт — оперативный рейтинг может быть опубликован.';
+
+  @override
+  String get skillGateClosed =>
+      'Порог закрыт — оперативный рейтинг не публикуется.';
+
+  @override
+  String get skillCellsTitle => 'Ячейки по станции и сроку';
+
+  @override
+  String get skillCellStation => 'Станция';
+
+  @override
+  String get comparatorTitle => 'Сравнение источников';
+
+  @override
+  String get comparatorNote =>
+      'Перцентили дневного максимума рядом для каждой модели (°C): p10–p90 · медиана. Никогда не объединяются.';
 
   @override
   String get aboutStatusTitle => 'Статус данных';
@@ -310,4 +385,59 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get aboutMapTilesNote =>
       'Карта загружает тайлы напрямую с серверов OpenStreetMap.';
+
+  @override
+  String get searchStationsGroup => 'Станции';
+
+  @override
+  String get searchPlacesGroup => 'Места';
+
+  @override
+  String get placesUnavailable => 'Поиск мест сейчас недоступен.';
+
+  @override
+  String nearestStation(String station) {
+    return 'Ближайшая станция: $station';
+  }
+
+  @override
+  String distanceKm(String km) {
+    return 'Расстояние: $km км';
+  }
+
+  @override
+  String get nearestStationWarning =>
+      'Нет станции в радиусе 100 км — прогноз относится к ближайшей станции и может не отражать ваше местоположение.';
+
+  @override
+  String get useMyLocation => 'Использовать моё местоположение';
+
+  @override
+  String get locationDenied =>
+      'Доступ к местоположению запрещён. Найдите место поиском.';
+
+  @override
+  String get locationUnavailable =>
+      'Местоположение недоступно на этом устройстве.';
+
+  @override
+  String get locationTimeout =>
+      'Не удалось определить местоположение. Повторите попытку или найдите место.';
+
+  @override
+  String get yourLocation => 'Ваше местоположение';
+
+  @override
+  String get aboutPlacesTitle => 'Данные о местах';
+
+  @override
+  String get aboutPlacesNote =>
+      'Названия мест взяты из GeoNames и используются только для поиска на этом устройстве.';
+
+  @override
+  String get aboutPrivacyTitle => 'Конфиденциальность';
+
+  @override
+  String get aboutPrivacyNote =>
+      'Поиск мест и местоположение остаются на этом устройстве; у поставщика карт запрашиваются только тайлы карты.';
 }

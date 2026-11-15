@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -8,6 +9,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:prisma_app/l10n/generated/app_localizations_en.dart';
 import 'package:prisma_app/src/app.dart';
 import 'package:prisma_app/src/data/repository.dart';
+import 'package:prisma_app/src/location_provider.dart';
+import 'package:prisma_app/src/nearest_station.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String fixture(String name) => File('test/fixtures/$name').readAsStringSync();
@@ -18,9 +21,28 @@ final AppLocalizationsEn en = AppLocalizationsEn();
 Map<String, String> defaultFiles() => {
       'latest.json': fixture('latest.json'),
       'about.json': fixture('about.json'),
+      'skill.json': fixture('skill.json'),
       'stations/la_quiaca.json': fixture('stations/la_quiaca.json'),
       'stations/buenos_aires.json': fixture('stations/buenos_aires.json'),
+      'places/index.json': fixture('places/index.json'),
+      'places/ar.json': fixture('places/ar.json'),
     };
+
+class FakeLocationProvider implements LocationProvider {
+  FakeLocationProvider(this.handler);
+
+  final Future<GeoPoint> Function() handler;
+
+  @override
+  Future<GeoPoint> currentPosition() => handler();
+}
+
+/// Serves a blank tile so map tests never touch the network.
+class BlankTileProvider extends TileProvider {
+  @override
+  ImageProvider getImage(TileCoordinates coordinates, TileLayer options) =>
+      MemoryImage(TileProvider.transparentImage);
+}
 
 http.Response ok(String body) => http.Response.bytes(
       utf8.encode(body),
@@ -44,6 +66,8 @@ Future<void> pumpApp(
   http.Client? client,
   Map<String, String>? files,
   Size size = const Size(1200, 900),
+  LocationProvider? locationProvider,
+  TileProvider? tileProvider,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -53,7 +77,13 @@ Future<void> pumpApp(
     client: client ?? mockClient(files ?? defaultFiles()),
     baseUrl: 'https://example.test/data/',
   );
-  await tester.pumpWidget(PrismaApp(repository: repository));
+  await tester.pumpWidget(
+    PrismaApp(
+      repository: repository,
+      locationProvider: locationProvider,
+      tileProvider: tileProvider,
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -91,6 +121,180 @@ void main() {
     expect(find.text(en.searchNoResults), findsOneWidget);
   });
 
+  testWidgets('place search groups stations and places', (tester) async {
+    await pumpApp(tester);
+    await tester.enterText(find.byType(TextField), 'buenos');
+    await tester.pumpAndSettle();
+
+    expect(find.text(en.searchStationsGroup), findsWidgets);
+    expect(find.text(en.searchPlacesGroup), findsOneWidget);
+    expect(find.text('Buenos Aires Observatorio'), findsOneWidget);
+    expect(find.text('Buenos Aires'), findsOneWidget);
+  });
+
+  testWidgets('choosing a far place shows nearest station, distance and warning',
+      (tester) async {
+    await pumpApp(tester);
+    await tester.enterText(find.byType(TextField), 'cordoba');
+    await tester.pumpAndSettle();
+
+    final placeTile = find.ancestor(
+      of: find.byIcon(Icons.place_outlined),
+      matching: find.byType(ListTile),
+    );
+    await tester.tap(placeTile.first);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Nearest station: Buenos Aires Observatorio'),
+        findsOneWidget);
+    expect(find.textContaining('Distance:'), findsOneWidget);
+    expect(find.text(en.nearestStationWarning), findsOneWidget);
+  });
+
+  testWidgets('a place close to a station never shows the warning', (tester) async {
+    await pumpApp(tester);
+    await tester.enterText(find.byType(TextField), 'la quiaca');
+    await tester.pumpAndSettle();
+
+    final placeTile = find.ancestor(
+      of: find.byIcon(Icons.place_outlined),
+      matching: find.byType(ListTile),
+    );
+    await tester.tap(placeTile.first);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Nearest station: La Quiaca Observatorio'),
+        findsOneWidget);
+    expect(find.text(en.nearestStationWarning), findsNothing);
+  });
+
+  Future<void> openPlaceCard(WidgetTester tester, String query) async {
+    await tester.enterText(find.byType(TextField), query);
+    await tester.pumpAndSettle();
+    final placeTile = find.ancestor(
+      of: find.byIcon(Icons.place_outlined),
+      matching: find.byType(ListTile),
+    );
+    await tester.tap(placeTile.first);
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> dismissNearestCard(WidgetTester tester) async {
+    Navigator.of(tester.element(find.byType(AlertDialog))).pop();
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('View forecast from a place card opens that station forecast',
+      (tester) async {
+    await pumpApp(tester);
+    await openPlaceCard(tester, 'cordoba');
+
+    await tester.tap(find.text(en.stationsViewForecast));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Buenos Aires Observatorio'), findsOneWidget);
+    expect(find.textContaining('Pampa ·'), findsOneWidget);
+    expect(find.text(en.rawBanner), findsOneWidget);
+  });
+
+  testWidgets('the map shows the place marker, its link line and the stations',
+      (tester) async {
+    await pumpApp(tester, tileProvider: BlankTileProvider());
+    await openPlaceCard(tester, 'cordoba');
+    await dismissNearestCard(tester);
+
+    await tester.tap(find.byTooltip(en.clearSearch));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(en.stationsViewMap));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PolylineLayer), findsOneWidget);
+    expect(find.byIcon(Icons.place), findsOneWidget);
+    expect(find.byTooltip('La Quiaca Observatorio'), findsOneWidget);
+    expect(find.byTooltip('Buenos Aires Observatorio'), findsOneWidget);
+  });
+
+  testWidgets('the map shows the user position and its link line',
+      (tester) async {
+    final provider = FakeLocationProvider(
+      () async => const GeoPoint(lat: -34.6, lon: -58.4),
+    );
+    await pumpApp(
+      tester,
+      locationProvider: provider,
+      tileProvider: BlankTileProvider(),
+    );
+    await tester.tap(find.text(en.useMyLocation));
+    await tester.pumpAndSettle();
+    await dismissNearestCard(tester);
+
+    await tester.tap(find.text(en.stationsViewMap));
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip(en.yourLocation), findsOneWidget);
+    expect(find.byType(PolylineLayer), findsOneWidget);
+  });
+
+  testWidgets('a failed place load is reported and retried on the next query',
+      (tester) async {
+    final files = defaultFiles();
+    var placesFail = true;
+    final client = MockClient((request) async {
+      final path = request.url.path.replaceFirst('/data/', '');
+      if (placesFail && path.startsWith('places/')) {
+        return http.Response('boom', 500);
+      }
+      final body = files[path];
+      if (body == null) {
+        return http.Response('not found', 404);
+      }
+      return ok(body);
+    });
+    await pumpApp(tester, client: client);
+
+    await tester.enterText(find.byType(TextField), 'cordoba');
+    await tester.pumpAndSettle();
+    expect(find.text(en.placesUnavailable), findsOneWidget);
+
+    placesFail = false;
+    await tester.enterText(find.byType(TextField), 'cordob');
+    await tester.pumpAndSettle();
+    expect(find.text(en.placesUnavailable), findsNothing);
+    expect(find.text(en.searchPlacesGroup), findsOneWidget);
+  });
+
+  testWidgets('Use my location shows the nearest station to the user', (tester) async {
+    final provider = FakeLocationProvider(
+      () async => const GeoPoint(lat: -34.6, lon: -58.4),
+    );
+    await pumpApp(tester, locationProvider: provider);
+    await tester.tap(find.text(en.useMyLocation));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Nearest station: Buenos Aires Observatorio'),
+        findsOneWidget);
+    expect(find.textContaining('Distance:'), findsOneWidget);
+    expect(find.text(en.nearestStationWarning), findsNothing);
+  });
+
+  for (final entry in {
+    LocationErrorKind.denied: en.locationDenied,
+    LocationErrorKind.unavailable: en.locationUnavailable,
+    LocationErrorKind.timeout: en.locationTimeout,
+  }.entries) {
+    testWidgets('Use my location reports ${entry.key.name}', (tester) async {
+      final provider = FakeLocationProvider(
+        () async => throw LocationException(entry.key),
+      );
+      await pumpApp(tester, locationProvider: provider);
+      await tester.tap(find.text(en.useMyLocation));
+      await tester.pumpAndSettle();
+
+      expect(find.text(entry.value), findsOneWidget);
+      expect(find.text(en.useMyLocation), findsOneWidget);
+    });
+  }
+
   testWidgets('selecting a station opens the forecast with local issue time', (tester) async {
     await pumpApp(tester, size: const Size(1200, 3000));
     await tester.tap(find.text('La Quiaca Observatorio'));
@@ -116,26 +320,65 @@ void main() {
     await openForecast(tester);
     expect(find.text(en.precipTitle), findsOneWidget);
     expect(find.text('71 %'), findsWidgets);
+    await tester.scrollUntilVisible(
+      find.text(en.observedTitle),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text(en.observedTitle), findsOneWidget);
     expect(find.text('14/10/2026'), findsWidgets);
     expect(find.text('21.8 °C'), findsWidgets);
   });
 
+  testWidgets('forecast source comparison keeps models side by side, never pooled',
+      (tester) async {
+    await pumpApp(tester, size: const Size(1200, 3000));
+    await openForecast(tester);
+    expect(find.text(en.comparatorTitle), findsOneWidget);
+    expect(find.textContaining(en.comparatorNote), findsOneWidget);
+    expect(find.textContaining('GFS'), findsWidgets);
+    expect(find.textContaining('ECMWF'), findsWidgets);
+    expect(find.textContaining(en.legendModelsNeverPooled), findsWidgets);
+  });
+
+  testWidgets('Skill shows hindcast mean CRPSS and the closed operational gate',
+      (tester) async {
+    await pumpApp(tester, size: const Size(1200, 1400));
+    await tester.tap(find.text(en.tabSkill));
+    await tester.pumpAndSettle();
+    expect(find.text(en.skillTitle), findsOneWidget);
+    expect(find.textContaining(en.skillHindcastBanner), findsOneWidget);
+    expect(find.text(en.skillMeanEmos), findsOneWidget);
+    expect(find.text('-0.0774'), findsOneWidget);
+    expect(find.text(en.skillMeanQm), findsOneWidget);
+    expect(find.text('0.0002'), findsOneWidget);
+    expect(find.textContaining(en.skillCellsCount(19, 19)), findsOneWidget);
+    expect(find.textContaining(en.skillDidNotBeat), findsOneWidget);
+    expect(find.text(en.skillGateClosed), findsOneWidget);
+    expect(find.textContaining('3 of 15'), findsOneWidget);
+    expect(find.textContaining('operational leaderboard'), findsWidgets);
+  });
+
   testWidgets('About / Status shows the app status texts and the attribution links',
       (tester) async {
-    await pumpApp(tester);
+    await pumpApp(tester, size: const Size(1200, 1400));
     await tester.tap(find.text(en.tabAbout));
     await tester.pumpAndSettle();
     expect(find.textContaining(en.statusForecasts), findsOneWidget);
     expect(find.textContaining('15-issue-date gate'), findsWidgets);
     await tester.scrollUntilVisible(
+      find.text('Weather data by Open-Meteo.com'),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Weather data by Open-Meteo.com'), findsOneWidget);
+    expect(find.text('CC BY 2.5 AR'), findsOneWidget);
+    await tester.scrollUntilVisible(
       find.text(en.aboutMachineTranslations),
-      500,
+      400,
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.textContaining(en.aboutMachineTranslations), findsOneWidget);
-    expect(find.text('Weather data by Open-Meteo.com'), findsOneWidget);
-    expect(find.text('CC BY 2.5 AR'), findsOneWidget);
   });
 
   testWidgets('a network failure is shown with a retry action', (tester) async {
@@ -172,11 +415,12 @@ void main() {
     expect(find.text(en.tabStations), findsOneWidget);
   });
 
-  testWidgets('phone width stays usable and keeps the three screens', (tester) async {
+  testWidgets('phone width stays usable and keeps the four screens', (tester) async {
     await pumpApp(tester, size: const Size(360, 780));
     expect(tester.takeException(), isNull);
     expect(find.text(en.tabStations), findsOneWidget);
     expect(find.text(en.tabForecast), findsOneWidget);
+    expect(find.text(en.tabSkill), findsOneWidget);
     expect(find.text(en.tabAbout), findsOneWidget);
 
     await tester.tap(find.text(en.tabForecast));

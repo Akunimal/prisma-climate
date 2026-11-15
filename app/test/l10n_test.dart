@@ -25,6 +25,7 @@ const Set<String> kIdenticalAllowed = <String>{
   'precipGe10',
   'leadDay',
   'tabStations',
+  'tabSkill',
   'date',
   'observedDate',
   'observedMax',
@@ -33,6 +34,8 @@ const Set<String> kIdenticalAllowed = <String>{
   'aboutRegion',
   'aboutSchema',
   'aboutDataset',
+  'searchStationsGroup',
+  'aboutPrivacyTitle',
 };
 
 Map<String, dynamic> readArb(String locale) =>

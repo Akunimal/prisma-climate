@@ -22,10 +22,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tabForecast => '预报';
 
   @override
+  String get tabSkill => '技巧';
+
+  @override
   String get tabAbout => '关于 / 状态';
 
   @override
-  String get searchHint => '搜索站点';
+  String get searchHint => '搜索观测站或地点';
 
   @override
   String get searchNoResults => '没有站点符合搜索条件。';
@@ -155,11 +158,79 @@ class AppLocalizationsZh extends AppLocalizations {
       'PRISMA 为阿根廷 19 个站点发布两个集合（ECMWF IFS 与 GFS）的原始概率预报，最远 15 天，另加 SMN 最近 30 天观测的日最高、最低气温。本应用只读取发布在 GitHub Pages 上的静态文件：没有服务器，也没有 API。';
 
   @override
-  String get aboutNoSkillTitle => '无技巧评分';
+  String get aboutNoSkillTitle => '业务检验指标';
 
   @override
   String get aboutNoSkill =>
-      '本应用不显示 CRPS、CRPSS、Brier 分数、可靠性、覆盖率或排行榜。在 15 个起报日期的门槛之前不发布这些数字。';
+      '在 15 个起报日期的门槛之前，不发布任何业务检验结果（CRPS、CRPSS、Brier、可靠性、覆盖率、排行榜）。技巧页面仅显示带 hindcast 标签的历史回放校准评分，绝不与业务档案混用。';
+
+  @override
+  String get skillTitle => '校准技巧（hindcast）';
+
+  @override
+  String get skillHindcastBanner =>
+      '仅 hindcast：这些评分来自对存档观测的历史回放，而非实时预报档案，绝不与业务检验混用。';
+
+  @override
+  String get skillUnavailable => '尚无可用的 hindcast 校准运行。';
+
+  @override
+  String get skillLabel => '标签';
+
+  @override
+  String get skillMeanEmos => '平均 CRPSS（EMOS 对原始）';
+
+  @override
+  String get skillMeanQm => '平均 CRPSS（QM 对原始）';
+
+  @override
+  String skillCellsCount(int sufficient, int total) {
+    return '$total 个格点中 $sufficient 个训练数据充足';
+  }
+
+  @override
+  String get skillDidNotBeat => '平均 CRPSS ≤ 0：在该 hindcast 窗口上，校准未胜过原始集合。';
+
+  @override
+  String get skillProvider => '提供方';
+
+  @override
+  String get skillWindow => '窗口';
+
+  @override
+  String get skillRetrieved => '获取时间';
+
+  @override
+  String get skillLeads => '时效';
+
+  @override
+  String get skillMode => '模式';
+
+  @override
+  String get skillGateTitle => '业务门槛';
+
+  @override
+  String skillGateArchived(int archived, int required) {
+    return '已存档起报日期：$archived / $required';
+  }
+
+  @override
+  String get skillGateOpen => '门槛已开——可发布业务排行榜。';
+
+  @override
+  String get skillGateClosed => '门槛未开——不发布业务排行榜。';
+
+  @override
+  String get skillCellsTitle => '按站点与时效的格点';
+
+  @override
+  String get skillCellStation => '站点';
+
+  @override
+  String get comparatorTitle => '来源对比';
+
+  @override
+  String get comparatorNote => '各模型日最高温分位数并排显示（°C）：p10–p90 · 中位数。绝不混合。';
 
   @override
   String get aboutStatusTitle => '数据状态';
@@ -297,4 +368,53 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get aboutMapTilesNote => '地图直接从 OpenStreetMap 服务器加载瓦片。';
+
+  @override
+  String get searchStationsGroup => '观测站';
+
+  @override
+  String get searchPlacesGroup => '地点';
+
+  @override
+  String get placesUnavailable => '地点搜索当前不可用。';
+
+  @override
+  String nearestStation(String station) {
+    return '最近的气象站：$station';
+  }
+
+  @override
+  String distanceKm(String km) {
+    return '距离：$km km';
+  }
+
+  @override
+  String get nearestStationWarning => '100 km 内没有气象站——预报来自最近的气象站，可能不代表您的位置。';
+
+  @override
+  String get useMyLocation => '使用我的位置';
+
+  @override
+  String get locationDenied => '位置权限被拒绝。请改为搜索地点。';
+
+  @override
+  String get locationUnavailable => '此设备无法获取位置。';
+
+  @override
+  String get locationTimeout => '无法获取您的位置。请重试或搜索地点。';
+
+  @override
+  String get yourLocation => '您的位置';
+
+  @override
+  String get aboutPlacesTitle => '地点数据';
+
+  @override
+  String get aboutPlacesNote => '地点名称来自 GeoNames，仅用于本设备上的搜索。';
+
+  @override
+  String get aboutPrivacyTitle => '隐私';
+
+  @override
+  String get aboutPrivacyNote => '地点搜索和位置信息保留在本设备上；仅向地图提供商请求地图瓦片。';
 }

@@ -23,10 +23,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tabForecast => 'Pronóstico';
 
   @override
+  String get tabSkill => 'Skill';
+
+  @override
   String get tabAbout => 'Acerca de / Estado';
 
   @override
-  String get searchHint => 'Buscar estaciones';
+  String get searchHint => 'Buscar estaciones o lugares';
 
   @override
   String get searchNoResults => 'Ninguna estación coincide con la búsqueda.';
@@ -161,11 +164,84 @@ class AppLocalizationsEs extends AppLocalizations {
       'PRISMA publica, para 19 estaciones de Argentina, el pronóstico probabilístico crudo de dos ensambles (ECMWF IFS y GFS) hasta 15 días de anticipación, más las temperaturas máxima y mínima observadas por el SMN en los últimos 30 días. La app solo lee archivos estáticos publicados en GitHub Pages: no hay servidor ni API.';
 
   @override
-  String get aboutNoSkillTitle => 'Sin métricas de skill';
+  String get aboutNoSkillTitle => 'Métricas de skill operativas';
 
   @override
   String get aboutNoSkill =>
-      'La app no muestra CRPS, CRPSS, Brier, fiabilidad, cobertura ni clasificación. Esos números no se publican antes del umbral de 15 fechas de emisión.';
+      'Los resultados de verificación operativos (CRPS, CRPSS, Brier, fiabilidad, cobertura, clasificación) no se publican antes del umbral de 15 fechas de emisión. La pantalla Skill muestra solo puntajes de calibración etiquetados hindcast, de una repetición histórica; nunca se mezclan con el archivo operativo.';
+
+  @override
+  String get skillTitle => 'Skill de calibración (hindcast)';
+
+  @override
+  String get skillHindcastBanner =>
+      'Solo hindcast: estos puntajes vienen de una repetición histórica contra observaciones archivadas, no del archivo de pronósticos en vivo. Nunca se mezclan con la verificación operativa.';
+
+  @override
+  String get skillUnavailable =>
+      'Aún no hay una corrida de calibración hindcast disponible.';
+
+  @override
+  String get skillLabel => 'Etiqueta';
+
+  @override
+  String get skillMeanEmos => 'CRPSS medio (EMOS vs crudo)';
+
+  @override
+  String get skillMeanQm => 'CRPSS medio (QM vs crudo)';
+
+  @override
+  String skillCellsCount(int sufficient, int total) {
+    return '$sufficient de $total celdas con datos de entrenamiento suficientes';
+  }
+
+  @override
+  String get skillDidNotBeat =>
+      'CRPSS medio ≤ 0: en esta ventana hindcast la calibración no superó al ensamble crudo.';
+
+  @override
+  String get skillProvider => 'Proveedor';
+
+  @override
+  String get skillWindow => 'Ventana';
+
+  @override
+  String get skillRetrieved => 'Obtenido';
+
+  @override
+  String get skillLeads => 'Anticipaciones';
+
+  @override
+  String get skillMode => 'Modo';
+
+  @override
+  String get skillGateTitle => 'Umbral operativo';
+
+  @override
+  String skillGateArchived(int archived, int required) {
+    return 'Fechas de emisión archivadas: $archived de $required';
+  }
+
+  @override
+  String get skillGateOpen =>
+      'Umbral abierto: puede publicarse la clasificación operativa.';
+
+  @override
+  String get skillGateClosed =>
+      'Umbral cerrado: no se publica la clasificación operativa.';
+
+  @override
+  String get skillCellsTitle => 'Celdas por estación y anticipación';
+
+  @override
+  String get skillCellStation => 'Estación';
+
+  @override
+  String get comparatorTitle => 'Comparación de fuentes';
+
+  @override
+  String get comparatorNote =>
+      'Percentiles de máxima diaria lado a lado por modelo (°C): p10–p90 · mediana. Nunca se mezclan.';
 
   @override
   String get aboutStatusTitle => 'Estado de los datos';
@@ -309,4 +385,59 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get aboutMapTilesNote =>
       'El mapa carga sus mosaicos directamente desde los servidores de OpenStreetMap.';
+
+  @override
+  String get searchStationsGroup => 'Estaciones';
+
+  @override
+  String get searchPlacesGroup => 'Lugares';
+
+  @override
+  String get placesUnavailable =>
+      'La búsqueda de lugares no está disponible en este momento.';
+
+  @override
+  String nearestStation(String station) {
+    return 'Estación más cercana: $station';
+  }
+
+  @override
+  String distanceKm(String km) {
+    return 'Distancia: $km km';
+  }
+
+  @override
+  String get nearestStationWarning =>
+      'No hay ninguna estación a menos de 100 km: el pronóstico corresponde a la estación más cercana, que puede no representar tu ubicación.';
+
+  @override
+  String get useMyLocation => 'Usar mi ubicación';
+
+  @override
+  String get locationDenied => 'Permiso de ubicación denegado. Buscá un lugar.';
+
+  @override
+  String get locationUnavailable =>
+      'La ubicación no está disponible en este dispositivo.';
+
+  @override
+  String get locationTimeout =>
+      'No se pudo obtener tu ubicación. Volvé a intentarlo o buscá un lugar.';
+
+  @override
+  String get yourLocation => 'Tu ubicación';
+
+  @override
+  String get aboutPlacesTitle => 'Datos de lugares';
+
+  @override
+  String get aboutPlacesNote =>
+      'Los nombres de lugares provienen de GeoNames y se usan solo para la búsqueda en este dispositivo.';
+
+  @override
+  String get aboutPrivacyTitle => 'Privacidad';
+
+  @override
+  String get aboutPrivacyNote =>
+      'La búsqueda de lugares y la ubicación se quedan en este dispositivo; solo los mosaicos del mapa se solicitan al proveedor del mapa.';
 }

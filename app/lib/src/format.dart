@@ -67,6 +67,10 @@ String degreesCompact(double? value, {String? locale}) =>
 String percent(double? fraction, {String? locale}) =>
     fraction == null ? '—' : NumberFormat('0 %', locale).format(fraction);
 
+/// Distance in kilometres: one decimal below 10 km, whole kilometres above.
+String distanceValue(double km, {String? locale}) =>
+    NumberFormat(km < 10 ? '0.0' : '0', locale).format(km);
+
 String coordinates(double lat, double lon, {String? locale}) {
   final format = NumberFormat('0.00', locale);
   return '${format.format(lat)}, ${format.format(lon)}';

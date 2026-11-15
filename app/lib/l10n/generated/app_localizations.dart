@@ -138,6 +138,12 @@ abstract class AppLocalizations {
   /// **'Forecast'**
   String get tabForecast;
 
+  /// No description provided for @tabSkill.
+  ///
+  /// In en, this message translates to:
+  /// **'Skill'**
+  String get tabSkill;
+
   /// No description provided for @tabAbout.
   ///
   /// In en, this message translates to:
@@ -147,7 +153,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search stations'**
+  /// **'Search stations or places'**
   String get searchHint;
 
   /// No description provided for @searchNoResults.
@@ -399,14 +405,140 @@ abstract class AppLocalizations {
   /// No description provided for @aboutNoSkillTitle.
   ///
   /// In en, this message translates to:
-  /// **'No skill metrics'**
+  /// **'Operational skill metrics'**
   String get aboutNoSkillTitle;
 
   /// No description provided for @aboutNoSkill.
   ///
   /// In en, this message translates to:
-  /// **'The app shows no CRPS, CRPSS, Brier score, reliability, coverage or leaderboard. Those numbers are not published before the 15-issue-date gate.'**
+  /// **'Operational verification results (CRPS, CRPSS, Brier, reliability, coverage, leaderboard) are not published before the 15-issue-date gate. The Skill screen shows only hindcast-labelled calibration scores from a historical replay; they are never mixed with the operational archive.'**
   String get aboutNoSkill;
+
+  /// No description provided for @skillTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration skill (hindcast)'**
+  String get skillTitle;
+
+  /// No description provided for @skillHindcastBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Hindcast only: these scores come from a historical replay against archived observations, not from the live forecast archive. They are never mixed with operational verification.'**
+  String get skillHindcastBanner;
+
+  /// No description provided for @skillUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No hindcast calibration run is available yet.'**
+  String get skillUnavailable;
+
+  /// No description provided for @skillLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get skillLabel;
+
+  /// No description provided for @skillMeanEmos.
+  ///
+  /// In en, this message translates to:
+  /// **'Mean CRPSS (EMOS vs raw)'**
+  String get skillMeanEmos;
+
+  /// No description provided for @skillMeanQm.
+  ///
+  /// In en, this message translates to:
+  /// **'Mean CRPSS (QM vs raw)'**
+  String get skillMeanQm;
+
+  /// No description provided for @skillCellsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{sufficient} of {total} cells with enough training data'**
+  String skillCellsCount(int sufficient, int total);
+
+  /// No description provided for @skillDidNotBeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Mean CRPSS ≤ 0: on this hindcast window calibration did not beat the raw ensemble.'**
+  String get skillDidNotBeat;
+
+  /// No description provided for @skillProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider'**
+  String get skillProvider;
+
+  /// No description provided for @skillWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Window'**
+  String get skillWindow;
+
+  /// No description provided for @skillRetrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Retrieved'**
+  String get skillRetrieved;
+
+  /// No description provided for @skillLeads.
+  ///
+  /// In en, this message translates to:
+  /// **'Leads'**
+  String get skillLeads;
+
+  /// No description provided for @skillMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get skillMode;
+
+  /// No description provided for @skillGateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Operational gate'**
+  String get skillGateTitle;
+
+  /// No description provided for @skillGateArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived issue dates: {archived} of {required}'**
+  String skillGateArchived(int archived, int required);
+
+  /// No description provided for @skillGateOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Gate open — operational leaderboard may be published.'**
+  String get skillGateOpen;
+
+  /// No description provided for @skillGateClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Gate closed — operational leaderboard is not published.'**
+  String get skillGateClosed;
+
+  /// No description provided for @skillCellsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cells by station and lead'**
+  String get skillCellsTitle;
+
+  /// No description provided for @skillCellStation.
+  ///
+  /// In en, this message translates to:
+  /// **'Station'**
+  String get skillCellStation;
+
+  /// No description provided for @comparatorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Source comparison'**
+  String get comparatorTitle;
+
+  /// No description provided for @comparatorNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily maximum percentiles side by side per model (°C): p10–p90 · median. Never pooled.'**
+  String get comparatorNote;
 
   /// No description provided for @aboutStatusTitle.
   ///
@@ -611,6 +743,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The map loads its tiles directly from OpenStreetMap servers.'**
   String get aboutMapTilesNote;
+
+  /// No description provided for @searchStationsGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Stations'**
+  String get searchStationsGroup;
+
+  /// No description provided for @searchPlacesGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get searchPlacesGroup;
+
+  /// No description provided for @placesUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Place search is unavailable right now.'**
+  String get placesUnavailable;
+
+  /// No description provided for @nearestStation.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest station: {station}'**
+  String nearestStation(String station);
+
+  /// No description provided for @distanceKm.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance: {km} km'**
+  String distanceKm(String km);
+
+  /// No description provided for @nearestStationWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'No station within 100 km — the forecast is for the nearest station, which may not represent your location.'**
+  String get nearestStationWarning;
+
+  /// No description provided for @useMyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my location'**
+  String get useMyLocation;
+
+  /// No description provided for @locationDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission denied. Search for a place instead.'**
+  String get locationDenied;
+
+  /// No description provided for @locationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Location is not available on this device.'**
+  String get locationUnavailable;
+
+  /// No description provided for @locationTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not get your location. Try again or search for a place.'**
+  String get locationTimeout;
+
+  /// No description provided for @yourLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Your location'**
+  String get yourLocation;
+
+  /// No description provided for @aboutPlacesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Place data'**
+  String get aboutPlacesTitle;
+
+  /// No description provided for @aboutPlacesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Place names come from GeoNames and are used only for search on this device.'**
+  String get aboutPlacesNote;
+
+  /// No description provided for @aboutPrivacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get aboutPrivacyTitle;
+
+  /// No description provided for @aboutPrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Place search and location stay on this device; only map tiles are requested from the map provider.'**
+  String get aboutPrivacyNote;
 }
 
 class _AppLocalizationsDelegate

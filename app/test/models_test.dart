@@ -100,6 +100,44 @@ void main() {
     });
   });
 
+  group('skill.json', () {
+    late SkillDocument skill;
+
+    setUpAll(() {
+      skill = SkillDocument.parse(fixture('skill.json'));
+    });
+
+    test('parses the hindcast label, means and closed gate', () {
+      expect(skill.schemaVersion, supportedSchemaVersion);
+      expect(skill.label, 'hindcast');
+      expect(skill.available, isTrue);
+      expect(skill.provider, 'gfs');
+      expect(skill.meanCrpssEmos, closeTo(-0.0774, 1e-9));
+      expect(skill.meanCrpssQm, closeTo(0.0002, 1e-9));
+      expect(skill.nCells, 19);
+      expect(skill.nSufficient, 19);
+      expect(skill.gate.open, isFalse);
+      expect(skill.gate.operationalLeaderboardPublished, isFalse);
+      expect(skill.gate.requiredIssueDates, 15);
+      expect(skill.cells, hasLength(3));
+      expect(skill.cells.first.station, 'buenos_aires');
+      expect(skill.cells.first.insufficient, isFalse);
+    });
+
+    test('parses an unavailable document without means', () {
+      final empty = SkillDocument.parse(
+        '{"schema_version":"1.0","label":"hindcast","available":false,'
+        '"gate":{"required_issue_dates":15,"archived_issue_dates":0,'
+        '"open":false,"operational_leaderboard_published":false,'
+        '"note":"gate"},"message":"none"}',
+      );
+      expect(empty.available, isFalse);
+      expect(empty.meanCrpssEmos, isNull);
+      expect(empty.message, 'none');
+      expect(empty.gate.operationalLeaderboardPublished, isFalse);
+    });
+  });
+
   group('about.json', () {
     late AboutDocument about;
 
@@ -123,6 +161,52 @@ void main() {
       expect(about.status.keys.toSet(), aboutStatusKeys.toSet());
       expect(about.smnSnapshotDate, '2026-11-12');
       expect(about.region.timezone, 'America/Argentina/Cordoba');
+    });
+  });
+
+  group('places', () {
+    late PlaceIndex index;
+    late PlaceDocument document;
+
+    setUpAll(() {
+      index = PlaceIndex.parse(fixture('places/index.json'));
+      document = PlaceDocument.parse(
+        fixture('places/ar.json'),
+        document: 'places/ar.json',
+      );
+    });
+
+    test('parses the registry and finds the region file', () {
+      expect(index.schemaVersion, supportedSchemaVersion);
+      final region = index.regionById('argentina');
+      expect(region, isNotNull);
+      expect(region!.file, 'ar.json');
+      expect(region.country, 'AR');
+      expect(region.source, 'geonames');
+      expect(region.placeCount, 7);
+      expect(index.regionById('missing'), isNull);
+    });
+
+    test('parses places with their attribution and licence', () {
+      expect(document.schemaVersion, supportedSchemaVersion);
+      expect(document.country, 'AR');
+      expect(document.attribution, 'Place data from GeoNames');
+      expect(document.attributionUrl, 'https://www.geonames.org/');
+      expect(document.licence, 'CC BY 4.0');
+      expect(document.licenceUrl, contains('creativecommons.org'));
+      expect(document.places, hasLength(7));
+      final cordoba = document.places.firstWhere((place) => place.name == 'Córdoba');
+      expect(cordoba.admin1, 'Cordoba');
+      expect(cordoba.lat, closeTo(-31.4065, 1e-9));
+      expect(cordoba.lon, closeTo(-64.1885, 1e-9));
+      expect(cordoba.population, 2106734);
+    });
+
+    test('rejects a place without a schema version', () {
+      expect(
+        () => PlaceDocument.parse('{"places": []}'),
+        throwsA(isA<DataException>()),
+      );
     });
   });
 

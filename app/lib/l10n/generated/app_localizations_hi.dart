@@ -23,10 +23,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get tabForecast => 'पूर्वानुमान';
 
   @override
+  String get tabSkill => 'स्किल';
+
+  @override
   String get tabAbout => 'जानकारी / स्थिति';
 
   @override
-  String get searchHint => 'स्टेशन खोजें';
+  String get searchHint => 'स्टेशन या स्थान खोजें';
 
   @override
   String get searchNoResults => 'कोई स्टेशन खोज से मेल नहीं खाता।';
@@ -161,11 +164,84 @@ class AppLocalizationsHi extends AppLocalizations {
       'PRISMA अर्जेंटीना के 19 स्टेशनों के लिए दो एन्सेम्बल (ECMWF IFS और GFS) का कच्चा संभाव्य पूर्वानुमान 15 दिनों तक, साथ ही पिछले 30 दिनों में SMN द्वारा अवलोकित दैनिक अधिकतम और न्यूनतम तापमान प्रकाशित करता है। ऐप केवल GitHub Pages पर प्रकाशित स्थिर फ़ाइलें पढ़ता है: कोई सर्वर या API नहीं है।';
 
   @override
-  String get aboutNoSkillTitle => 'कोई स्किल मेट्रिक नहीं';
+  String get aboutNoSkillTitle => 'संचालन सत्यापन मेट्रिक';
 
   @override
   String get aboutNoSkill =>
-      'ऐप CRPS, CRPSS, Brier स्कोर, विश्वसनीयता, कवरेज या लीडरबोर्ड नहीं दिखाता। ये संख्याएँ 15 जारी तिथियों के गेट से पहले प्रकाशित नहीं होतीं।';
+      'संचालन सत्यापन परिणाम (CRPS, CRPSS, Brier, विश्वसनीयता, कवरेज, लीडरबोर्ड) 15 जारी तिथियों के गेट से पहले प्रकाशित नहीं होते। स्किल स्क्रीन केवल hindcast-लेबल वाले ऐतिहासिक रीप्ले कैलिब्रेशन स्कोर दिखाती है; उन्हें कभी संचालन आर्काइव के साथ नहीं मिलाया जाता।';
+
+  @override
+  String get skillTitle => 'कैलिब्रेशन स्किल (hindcast)';
+
+  @override
+  String get skillHindcastBanner =>
+      'केवल hindcast: ये स्कोर संग्रहित अवलोकनों के खिलाफ ऐतिहासिक रीप्ले से आते हैं, लाइव पूर्वानुमान आर्काइव से नहीं। उन्हें कभी संचालन सत्यापन के साथ नहीं मिलाया जाता।';
+
+  @override
+  String get skillUnavailable =>
+      'अभी कोई hindcast कैलिब्रेशन रन उपलब्ध नहीं है।';
+
+  @override
+  String get skillLabel => 'लेबल';
+
+  @override
+  String get skillMeanEmos => 'मीन CRPSS (EMOS बनाम कच्चा)';
+
+  @override
+  String get skillMeanQm => 'मीन CRPSS (QM बनाम कच्चा)';
+
+  @override
+  String skillCellsCount(int sufficient, int total) {
+    return '$total में से $sufficient कोशिकाओं में पर्याप्त प्रशिक्षण डेटा';
+  }
+
+  @override
+  String get skillDidNotBeat =>
+      'मीन CRPSS ≤ 0: इस hindcast विंडो में कैलिब्रेशन कच्चे एन्सेम्बल को नहीं हरा पाया।';
+
+  @override
+  String get skillProvider => 'प्रदाता';
+
+  @override
+  String get skillWindow => 'विंडो';
+
+  @override
+  String get skillRetrieved => 'प्राप्त';
+
+  @override
+  String get skillLeads => 'लीड';
+
+  @override
+  String get skillMode => 'मोड';
+
+  @override
+  String get skillGateTitle => 'संचालन गेट';
+
+  @override
+  String skillGateArchived(int archived, int required) {
+    return 'संग्रहित जारी तिथियाँ: $archived / $required';
+  }
+
+  @override
+  String get skillGateOpen =>
+      'गेट खुला — संचालन लीडरबोर्ड प्रकाशित किया जा सकता है।';
+
+  @override
+  String get skillGateClosed =>
+      'गेट बंद — संचालन लीडरबोर्ड प्रकाशित नहीं होता।';
+
+  @override
+  String get skillCellsTitle => 'स्टेशन और लीड के अनुसार कोशिकाएँ';
+
+  @override
+  String get skillCellStation => 'स्टेशन';
+
+  @override
+  String get comparatorTitle => 'स्रोत तुलना';
+
+  @override
+  String get comparatorNote =>
+      'प्रति मॉडल दैनिक अधिकतम पर्सेंटाइल साथ-साथ (°C): p10–p90 · माध्यिका। कभी मिलाए नहीं जाते।';
 
   @override
   String get aboutStatusTitle => 'डेटा की स्थिति';
@@ -307,4 +383,57 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get aboutMapTilesNote =>
       'मानचित्र सीधे OpenStreetMap सर्वर से टाइल लोड करता है।';
+
+  @override
+  String get searchStationsGroup => 'स्टेशन';
+
+  @override
+  String get searchPlacesGroup => 'स्थान';
+
+  @override
+  String get placesUnavailable => 'स्थान खोज अभी उपलब्ध नहीं है।';
+
+  @override
+  String nearestStation(String station) {
+    return 'निकटतम स्टेशन: $station';
+  }
+
+  @override
+  String distanceKm(String km) {
+    return 'दूरी: $km km';
+  }
+
+  @override
+  String get nearestStationWarning =>
+      '100 km के भीतर कोई स्टेशन नहीं है — पूर्वानुमान निकटतम स्टेशन का है, जो आपके स्थान को नहीं दर्शा सकता।';
+
+  @override
+  String get useMyLocation => 'मेरा स्थान उपयोग करें';
+
+  @override
+  String get locationDenied => 'स्थान की अनुमति अस्वीकृत। कृपया स्थान खोजें।';
+
+  @override
+  String get locationUnavailable => 'इस डिवाइस पर स्थान उपलब्ध नहीं है।';
+
+  @override
+  String get locationTimeout =>
+      'आपका स्थान प्राप्त नहीं हो सका। पुनः प्रयास करें या स्थान खोजें।';
+
+  @override
+  String get yourLocation => 'आपका स्थान';
+
+  @override
+  String get aboutPlacesTitle => 'स्थान डेटा';
+
+  @override
+  String get aboutPlacesNote =>
+      'स्थान नाम GeoNames से आते हैं और केवल इस डिवाइस पर खोज के लिए उपयोग होते हैं।';
+
+  @override
+  String get aboutPrivacyTitle => 'गोपनीयता';
+
+  @override
+  String get aboutPrivacyNote =>
+      'स्थान खोज और स्थान इस डिवाइस पर ही रहते हैं; केवल मानचित्र टाइल मानचित्र प्रदाता से अनुरोधित होते हैं।';
 }

@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "country": "AR",
+  "source": "geonames",
+  "attribution": "Place data from GeoNames",
+  "attribution_url": "https://www.geonames.org/",
+  "licence": "CC BY 4.0",
+  "licence_url": "https://creativecommons.org/licenses/by/4.0/",
+  "place_count": 7,
+  "places": [
+    {
+      "name": "Buenos Aires",
+      "admin1": "Buenos Aires F.D.",
+      "lat": -34.6131,
+      "lon": -58.3772,
+      "population": 2891082
+    },
+    {
+      "name": "Córdoba",
+      "admin1": "Cordoba",
+      "lat": -31.4065,
+      "lon": -64.1885,
+      "population": 2106734
+    },
+    {
+      "name": "Rosario",
+      "admin1": "Santa Fe",
+      "lat": -32.9468,
+      "lon": -60.6393,
+      "population": 948312
+    },
+    {
+      "name": "La Quiaca",
+      "admin1": "Jujuy",
+      "lat": -22.1,
+      "lon": -65.6,
+      "population": 16500
+    },
+    {
+      "name": "La Paz",
+      "admin1": "Mendoza",
+      "lat": -33.0,
+      "lon": -68.0,
+      "population": 2000
+    },
+    {
+      "name": "La Paz",
+      "admin1": "Entre Rios",
+      "lat": -30.0,
+      "lon": -59.0,
+      "population": 1000
+    },
+    {
+      "name": "Base Remota",
+      "admin1": "Antartida",
+      "lat": -80.0,
+      "lon": 0.0,
+      "population": 1
+    }
+  ]
+}

@@ -4,8 +4,9 @@
   "appTagline": "Raw Open-Meteo ensemble (GFS and ECMWF IFS) for 19 stations in Argentina.",
   "tabStations": "Stations",
   "tabForecast": "Forecast",
+  "tabSkill": "Skill",
   "tabAbout": "About / Status",
-  "searchHint": "Search stations",
+  "searchHint": "Search stations or places",
   "searchNoResults": "No stations match the search.",
   "stationsIntro": "Pick a station to see its forecast.",
   "clearSearch": "Clear",
@@ -57,8 +58,49 @@
   "aboutTitle": "About / Status",
   "aboutWhatTitle": "What this app shows",
   "aboutWhat": "PRISMA publishes, for 19 stations in Argentina, the raw probabilistic forecast of two ensembles (ECMWF IFS and GFS) up to 15 days ahead, plus the daily maximum and minimum temperatures observed by SMN over the last 30 days. The app reads only static files published on GitHub Pages: there is no server and no API.",
-  "aboutNoSkillTitle": "No skill metrics",
-  "aboutNoSkill": "The app shows no CRPS, CRPSS, Brier score, reliability, coverage or leaderboard. Those numbers are not published before the 15-issue-date gate.",
+  "aboutNoSkillTitle": "Operational skill metrics",
+  "aboutNoSkill": "Operational verification results (CRPS, CRPSS, Brier, reliability, coverage, leaderboard) are not published before the 15-issue-date gate. The Skill screen shows only hindcast-labelled calibration scores from a historical replay; they are never mixed with the operational archive.",
+  "skillTitle": "Calibration skill (hindcast)",
+  "skillHindcastBanner": "Hindcast only: these scores come from a historical replay against archived observations, not from the live forecast archive. They are never mixed with operational verification.",
+  "skillUnavailable": "No hindcast calibration run is available yet.",
+  "skillLabel": "Label",
+  "skillMeanEmos": "Mean CRPSS (EMOS vs raw)",
+  "skillMeanQm": "Mean CRPSS (QM vs raw)",
+  "skillCellsCount": "{sufficient} of {total} cells with enough training data",
+  "@skillCellsCount": {
+    "placeholders": {
+      "sufficient": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "skillDidNotBeat": "Mean CRPSS ≤ 0: on this hindcast window calibration did not beat the raw ensemble.",
+  "skillProvider": "Provider",
+  "skillWindow": "Window",
+  "skillRetrieved": "Retrieved",
+  "skillLeads": "Leads",
+  "skillMode": "Mode",
+  "skillGateTitle": "Operational gate",
+  "skillGateArchived": "Archived issue dates: {archived} of {required}",
+  "@skillGateArchived": {
+    "placeholders": {
+      "archived": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "skillGateOpen": "Gate open — operational leaderboard may be published.",
+  "skillGateClosed": "Gate closed — operational leaderboard is not published.",
+  "skillCellsTitle": "Cells by station and lead",
+  "skillCellStation": "Station",
+  "comparatorTitle": "Source comparison",
+  "comparatorNote": "Daily maximum percentiles side by side per model (°C): p10–p90 · median. Never pooled.",
   "aboutStatusTitle": "Data status",
   "aboutSourcesTitle": "Sources and licences",
   "aboutDataset": "Dataset",
@@ -202,5 +244,34 @@
   "mapReportProblem": "Report a map problem",
   "mapTilesFailed": "Map tiles could not be loaded. Showing stations on a neutral background.",
   "aboutMapTilesTitle": "Map tiles",
-  "aboutMapTilesNote": "The map loads its tiles directly from OpenStreetMap servers."
+  "aboutMapTilesNote": "The map loads its tiles directly from OpenStreetMap servers.",
+  "searchStationsGroup": "Stations",
+  "searchPlacesGroup": "Places",
+  "placesUnavailable": "Place search is unavailable right now.",
+  "nearestStation": "Nearest station: {station}",
+  "@nearestStation": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "distanceKm": "Distance: {km} km",
+  "@distanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "nearestStationWarning": "No station within 100 km — the forecast is for the nearest station, which may not represent your location.",
+  "useMyLocation": "Use my location",
+  "locationDenied": "Location permission denied. Search for a place instead.",
+  "locationUnavailable": "Location is not available on this device.",
+  "locationTimeout": "Could not get your location. Try again or search for a place.",
+  "yourLocation": "Your location",
+  "aboutPlacesTitle": "Place data",
+  "aboutPlacesNote": "Place names come from GeoNames and are used only for search on this device.",
+  "aboutPrivacyTitle": "Privacy",
+  "aboutPrivacyNote": "Place search and location stay on this device; only map tiles are requested from the map provider."
 }

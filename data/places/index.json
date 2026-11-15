@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "sources": {
+    "geonames": {
+      "attribution": "Place data from GeoNames",
+      "attribution_url": "https://www.geonames.org/",
+      "licence": "CC BY 4.0",
+      "licence_url": "https://creativecommons.org/licenses/by/4.0/"
+    }
+  },
+  "regions": {
+    "argentina": {
+      "file": "ar.json",
+      "country": "AR",
+      "source": "geonames",
+      "place_count": 14888
+    }
+  }
+}

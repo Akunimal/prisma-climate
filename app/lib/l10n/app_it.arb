@@ -4,8 +4,9 @@
   "appTagline": "Ensamble grezzo di Open-Meteo (GFS e ECMWF IFS) per 19 stazioni in Argentina.",
   "tabStations": "Stazioni",
   "tabForecast": "Previsioni",
+  "tabSkill": "Skill",
   "tabAbout": "Informazioni / Stato",
-  "searchHint": "Cerca stazioni",
+  "searchHint": "Cerca stazioni o luoghi",
   "searchNoResults": "Nessuna stazione corrisponde alla ricerca.",
   "stationsIntro": "Scegli una stazione per vedere la sua previsione.",
   "clearSearch": "Cancella",
@@ -57,8 +58,49 @@
   "aboutTitle": "Informazioni / Stato",
   "aboutWhatTitle": "Cosa mostra questa app",
   "aboutWhat": "PRISMA pubblica, per 19 stazioni in Argentina, la previsione probabilistica grezza di due ensambles (ECMWF IFS e GFS) fino a 15 giorni di previsione, oltre alle temperature massima e minima osservate dal SMN negli ultimi 30 giorni. L'app legge solo file statici pubblicati su GitHub Pages: non c'è nessun server né API.",
-  "aboutNoSkillTitle": "Nessuna metrica di skill",
-  "aboutNoSkill": "L'app non mostra CRPS, CRPSS, punteggio di Brier, affidabilità, copertura né classifica. Questi numeri non sono pubblicati prima della soglia delle 15 date di emissione.",
+  "aboutNoSkillTitle": "Metriche di skill operative",
+  "aboutNoSkill": "I risultati di verifica operativi (CRPS, CRPSS, Brier, affidabilità, copertura, classifica) non sono pubblicati prima della soglia delle 15 date di emissione. La schermata Skill mostra solo punteggi di calibrazione etichettati hindcast, da un replay storico; non vengono mai mescolati con l'archivio operativo.",
+  "skillTitle": "Skill di calibrazione (hindcast)",
+  "skillHindcastBanner": "Solo hindcast: questi punteggi provengono da un replay storico contro osservazioni archiviate, non dall'archivio delle previsioni live. Non vengono mai mescolati con la verifica operativa.",
+  "skillUnavailable": "Non è ancora dispon nessun run di calibrazione hindcast.",
+  "skillLabel": "Etichetta",
+  "skillMeanEmos": "CRPSS medio (EMOS vs grezzo)",
+  "skillMeanQm": "CRPSS medio (QM vs grezzo)",
+  "skillCellsCount": "{sufficient} celle su {total} con dati di addestramento sufficienti",
+  "@skillCellsCount": {
+    "placeholders": {
+      "sufficient": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "skillDidNotBeat": "CRPSS medio ≤ 0: in questa finestra hindcast la calibrazione non ha battuto l'ensemble grezzo.",
+  "skillProvider": "Fornitore",
+  "skillWindow": "Finestra",
+  "skillRetrieved": "Recuperato",
+  "skillLeads": "Giorni di previsione",
+  "skillMode": "Modalità",
+  "skillGateTitle": "Soglia operativa",
+  "skillGateArchived": "Date di emissione archiviate: {archived} su {required}",
+  "@skillGateArchived": {
+    "placeholders": {
+      "archived": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "skillGateOpen": "Soglia aperta — la classifica operativa può essere pubblicata.",
+  "skillGateClosed": "Soglia chiusa — la classifica operativa non è pubblicata.",
+  "skillCellsTitle": "Celle per stazione e giorno di previsione",
+  "skillCellStation": "Stazione",
+  "comparatorTitle": "Confronto delle fonti",
+  "comparatorNote": "Percentili della massima giornaliera affiancati per modello (°C): p10–p90 · mediana. Mai uniti.",
   "aboutStatusTitle": "Stato dei dati",
   "aboutSourcesTitle": "Fonti e licenze",
   "aboutDataset": "Dataset",
@@ -202,5 +244,34 @@
   "mapReportProblem": "Segnala un problema della mappa",
   "mapTilesFailed": "Impossibile caricare le tessere della mappa. Le stazioni sono mostrate su sfondo neutro.",
   "aboutMapTilesTitle": "Tessere della mappa",
-  "aboutMapTilesNote": "La mappa carica le sue tessere direttamente dai server OpenStreetMap."
+  "aboutMapTilesNote": "La mappa carica le sue tessere direttamente dai server OpenStreetMap.",
+  "searchStationsGroup": "Stazioni",
+  "searchPlacesGroup": "Luoghi",
+  "placesUnavailable": "La ricerca dei luoghi non è disponibile al momento.",
+  "nearestStation": "Stazione più vicina: {station}",
+  "distanceKm": "Distanza: {km} km",
+  "nearestStationWarning": "Nessuna stazione entro 100 km — la previsione è per la stazione più vicina, che potrebbe non rappresentare la tua posizione.",
+  "useMyLocation": "Usa la mia posizione",
+  "locationDenied": "Permesso di localizzazione negato. Cerca un luogo.",
+  "locationUnavailable": "La localizzazione non è disponibile su questo dispositivo.",
+  "locationTimeout": "Impossibile ottenere la tua posizione. Riprova o cerca un luogo.",
+  "yourLocation": "La tua posizione",
+  "aboutPlacesTitle": "Dati dei luoghi",
+  "aboutPlacesNote": "I nomi dei luoghi provengono da GeoNames e sono usati solo per la ricerca su questo dispositivo.",
+  "aboutPrivacyTitle": "Privacy",
+  "aboutPrivacyNote": "La ricerca dei luoghi e la localizzazione restano su questo dispositivo; solo le tessere della mappa vengono richieste al fornitore della mappa.",
+  "@nearestStation": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  }
 }

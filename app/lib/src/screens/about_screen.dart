@@ -141,6 +141,41 @@ class AboutScreen extends StatelessWidget {
             ],
           ),
         ),
+        SectionCard(
+          title: l10n.aboutPlacesTitle,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.aboutPlacesNote),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 10,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () => _open('https://www.geonames.org/'),
+                    child: const Text('GeoNames'),
+                  ),
+                  InkWell(
+                    onTap: () =>
+                        _open('https://creativecommons.org/licenses/by/4.0/'),
+                    child: Text(
+                      'CC BY 4.0',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        SectionCard(
+          title: l10n.aboutPrivacyTitle,
+          child: Text(l10n.aboutPrivacyNote),
+        ),
         Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Text(

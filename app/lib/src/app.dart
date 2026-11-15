@@ -1,19 +1,29 @@
+import 'package:flutter_map/flutter_map.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/models.dart';
 import 'data/repository.dart';
 import 'l10n.dart';
+import 'location_provider.dart';
 import 'screens/about_screen.dart';
 import 'screens/forecast_screen.dart';
+import 'screens/skill_screen.dart';
 import 'screens/stations_screen.dart';
 import 'widgets/common.dart';
 import 'widgets/language_menu.dart';
 
 class PrismaApp extends StatefulWidget {
-  const PrismaApp({super.key, required this.repository});
+  const PrismaApp({
+    super.key,
+    required this.repository,
+    this.locationProvider,
+    this.tileProvider,
+  });
 
   final PrismaRepository repository;
+  final LocationProvider? locationProvider;
+  final TileProvider? tileProvider;
 
   @override
   State<PrismaApp> createState() => _PrismaAppState();
@@ -60,6 +70,8 @@ class _PrismaAppState extends State<PrismaApp> {
       ),
       home: HomeShell(
         repository: widget.repository,
+        locationProvider: widget.locationProvider,
+        tileProvider: widget.tileProvider,
         onLocalePicked: _pickLocale,
       ),
     );
@@ -78,10 +90,14 @@ class HomeShell extends StatefulWidget {
     super.key,
     required this.repository,
     required this.onLocalePicked,
+    this.locationProvider,
+    this.tileProvider,
   });
 
   final PrismaRepository repository;
   final ValueChanged<Locale> onLocalePicked;
+  final LocationProvider? locationProvider;
+  final TileProvider? tileProvider;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -180,6 +196,10 @@ class _HomeShellState extends State<HomeShell> {
           latest: bootstrap.latest,
           selectedId: stationId,
           onSelect: _selectStation,
+          repository: widget.repository,
+          regionId: bootstrap.about.region.id,
+          locationProvider: widget.locationProvider,
+          tileProvider: widget.tileProvider,
         ),
       1 => ForecastScreen(
           repository: widget.repository,
@@ -188,6 +208,7 @@ class _HomeShellState extends State<HomeShell> {
           stationId: stationId,
           onStationChanged: (id) => setState(() => _stationId = id),
         ),
+      2 => SkillScreen(repository: widget.repository),
       _ => AboutScreen(about: bootstrap.about, latest: bootstrap.latest),
     };
 
@@ -202,6 +223,10 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(
             icon: const Icon(Icons.show_chart),
             label: l10n.tabForecast,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.speed),
+            label: l10n.tabSkill,
           ),
           NavigationDestination(
             icon: const Icon(Icons.info_outline),

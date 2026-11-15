@@ -4,8 +4,9 @@
   "appTagline": "Open-Meteo の未校正アンサンブル（GFS と ECMWF IFS）、アルゼンチンの 19 観測所。",
   "tabStations": "観測所",
   "tabForecast": "予報",
+  "tabSkill": "スキル",
   "tabAbout": "情報 / 状態",
-  "searchHint": "観測所を検索",
+  "searchHint": "観測所または場所を検索",
   "searchNoResults": "検索に一致する観測所がありません。",
   "stationsIntro": "観測所を選ぶとその予報が表示されます。",
   "clearSearch": "クリア",
@@ -57,8 +58,49 @@
   "aboutTitle": "情報 / 状態",
   "aboutWhatTitle": "このアプリが表示するもの",
   "aboutWhat": "PRISMA は、アルゼンチンの 19 観測所について、2 つのアンサンブル（ECMWF IFS と GFS）の未校正確率予報を最大 15 日先まで、さらに SMN が過去 30 日間に観測した日最高・日最低気温を公開します。アプリは GitHub Pages 上の静的ファイルのみを読み込みます：サーバーも API もありません。",
-  "aboutNoSkillTitle": "スキル指標なし",
-  "aboutNoSkill": "アプリは CRPS、CRPSS、Brier スコア、信頼性、被覆率、リーダーボードを表示しません。これらの数値は 15 発表日のゲートを前にして公開されません。",
+  "aboutNoSkillTitle": "運用検証指標",
+  "aboutNoSkill": "運用検証結果（CRPS、CRPSS、Brier、信頼性、被覆率、リーダーボード）は 15 発表日のゲートを前にして公開されません。スキル画面は hindcast ラベル付きの履歴リプレイ校準スコアのみを表示し、運用アーカイブと混ぜることは決してありません。",
+  "skillTitle": "校準スキル（hindcast）",
+  "skillHindcastBanner": "hindcast のみ：これらのスコアはアーカイブ観測に対する履歴リプレイ由来で、ライブ予報アーカイブ由来ではありません。運用検証と混ぜることは決してありません。",
+  "skillUnavailable": "利用可能な hindcast 校準ランはまだありません。",
+  "skillLabel": "ラベル",
+  "skillMeanEmos": "平均 CRPSS（EMOS 対 生）",
+  "skillMeanQm": "平均 CRPSS（QM 対 生）",
+  "skillCellsCount": "訓練データが十分なセル {sufficient} / {total}",
+  "@skillCellsCount": {
+    "placeholders": {
+      "sufficient": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "skillDidNotBeat": "平均 CRPSS ≤ 0：この hindcast 窗で校準は生アンサンブルを上回りませんでした。",
+  "skillProvider": "プロバイダ",
+  "skillWindow": "期間",
+  "skillRetrieved": "取得日時",
+  "skillLeads": "予報日数",
+  "skillMode": "モード",
+  "skillGateTitle": "運用ゲート",
+  "skillGateArchived": "アーカイブ済み発表日：{archived} / {required}",
+  "@skillGateArchived": {
+    "placeholders": {
+      "archived": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "skillGateOpen": "ゲート開放 — 運用リーダーボードを公開できます。",
+  "skillGateClosed": "ゲートクローズ — 運用リーダーボードは公開されません。",
+  "skillCellsTitle": "観測所・予報日数別のセル",
+  "skillCellStation": "観測所",
+  "comparatorTitle": "ソース比較",
+  "comparatorNote": "モデルごとの日最高温パーセンタイルを横並び（°C）：p10–p90 · 中央値。混ぜ合わせることは決してありません。",
   "aboutStatusTitle": "データの状態",
   "aboutSourcesTitle": "出典とライセンス",
   "aboutDataset": "データセット",
@@ -202,5 +244,34 @@
   "mapReportProblem": "地図の問題を報告",
   "mapTilesFailed": "地図タイルを読み込めませんでした。中性背景に観測点を表示しています。",
   "aboutMapTilesTitle": "地図タイル",
-  "aboutMapTilesNote": "地図は OpenStreetMap サーバーから直接タイルを読み込みます。"
+  "aboutMapTilesNote": "地図は OpenStreetMap サーバーから直接タイルを読み込みます。",
+  "searchStationsGroup": "観測所",
+  "searchPlacesGroup": "場所",
+  "placesUnavailable": "現在、場所検索を利用できません。",
+  "nearestStation": "最寄りの観測所：{station}",
+  "distanceKm": "距離：{km} km",
+  "nearestStationWarning": "100 km 以内に観測所がありません。予報は最寄りの観測所のもので、お住まいの場所を表さない場合があります。",
+  "useMyLocation": "現在地を使う",
+  "locationDenied": "位置情報の権限が拒否されました。場所を検索してください。",
+  "locationUnavailable": "このデバイスでは位置情報を利用できません。",
+  "locationTimeout": "現在地を取得できませんでした。再試行するか、場所を検索してください。",
+  "yourLocation": "現在地",
+  "aboutPlacesTitle": "場所データ",
+  "aboutPlacesNote": "場所名は GeoNames に由来し、このデバイス上の検索にのみ使用されます。",
+  "aboutPrivacyTitle": "プライバシー",
+  "aboutPrivacyNote": "場所検索と位置情報はこのデバイス内に留まり、地図タイルのみが地図提供元に要求されます。",
+  "@nearestStation": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  }
 }

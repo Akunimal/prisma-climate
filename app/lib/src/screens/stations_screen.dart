@@ -5,41 +5,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/models.dart';
+import '../data/repository.dart';
 import '../format.dart';
 import '../l10n.dart';
+import '../location_provider.dart';
 import '../map_tiles.dart';
+import '../nearest_station.dart';
+import '../search_text.dart';
 import '../station_bounds.dart';
 
-String _normalize(String value) {
-  const replacements = {
-    'á': 'a',
-    'à': 'a',
-    'ä': 'a',
-    'â': 'a',
-    'ã': 'a',
-    'é': 'e',
-    'è': 'e',
-    'ë': 'e',
-    'ê': 'e',
-    'í': 'i',
-    'ì': 'i',
-    'ï': 'i',
-    'î': 'i',
-    'ó': 'o',
-    'ò': 'o',
-    'ö': 'o',
-    'ô': 'o',
-    'õ': 'o',
-    'ú': 'u',
-    'ù': 'u',
-    'ü': 'u',
-    'û': 'u',
-    'ñ': 'n',
-  };
-  var out = value.toLowerCase();
-  replacements.forEach((key, plain) => out = out.replaceAll(key, plain));
-  return out;
-}
+/// Cap on the place results rendered for one query.
+const int kMaxPlaceResults = 20;
 
 class StationsScreen extends StatefulWidget {
   const StationsScreen({
@@ -48,12 +24,18 @@ class StationsScreen extends StatefulWidget {
     required this.onSelect,
     this.selectedId,
     this.tileProvider,
+    this.repository,
+    this.regionId,
+    this.locationProvider,
   });
 
   final LatestDocument latest;
   final ValueChanged<String> onSelect;
   final String? selectedId;
   final TileProvider? tileProvider;
+  final PrismaRepository? repository;
+  final String? regionId;
+  final LocationProvider? locationProvider;
 
   @override
   State<StationsScreen> createState() => _StationsScreenState();
@@ -65,6 +47,15 @@ class _StationsScreenState extends State<StationsScreen> {
   bool _mapView = false;
   String? _selectedMarkerId;
   bool _tilesFailed = false;
+
+  PlaceDocument? _places;
+  Future<void>? _placesLoading;
+  bool _placesFailed = false;
+
+  bool _locating = false;
+  String? _locationError;
+  GeoPoint? _userLocation;
+  PlaceRecord? _selectedPlace;
 
   @override
   void initState() {
@@ -92,13 +83,73 @@ class _StationsScreenState extends State<StationsScreen> {
   }
 
   List<StationSummary> get _filteredStations {
-    final query = _normalize(_query.trim());
+    final query = normalizeSearchText(_query.trim());
     return widget.latest.stations.where((station) {
       if (query.isEmpty) return true;
-      return _normalize(station.name).contains(query) ||
-          _normalize(station.climateZone).contains(query) ||
-          _normalize(station.id).contains(query);
+      return normalizeSearchText(station.name).contains(query) ||
+          normalizeSearchText(station.climateZone).contains(query) ||
+          normalizeSearchText(station.id).contains(query);
     }).toList();
+  }
+
+  List<PlaceRecord> get _matchingPlaces {
+    if (_query.trim().isEmpty) {
+      return const <PlaceRecord>[];
+    }
+    final ranked = rankPlaces(_places?.places ?? const <PlaceRecord>[], _query);
+    if (ranked.length <= kMaxPlaceResults) {
+      return ranked;
+    }
+    return ranked.sublist(0, kMaxPlaceResults);
+  }
+
+  GeoPoint? get _selectedPoint {
+    if (_userLocation != null) {
+      return _userLocation;
+    }
+    final place = _selectedPlace;
+    if (place == null) {
+      return null;
+    }
+    return GeoPoint(lat: place.lat, lon: place.lon);
+  }
+
+  void _ensurePlaces() {
+    if (_placesLoading != null || widget.repository == null) {
+      return;
+    }
+    _placesLoading = _loadPlaces();
+  }
+
+  Future<void> _loadPlaces() async {
+    final repository = widget.repository;
+    if (repository == null) {
+      return;
+    }
+    try {
+      final index = await repository.loadPlaceIndex();
+      final region = index.regionById(widget.regionId ?? '');
+      if (region == null) {
+        _placesLoading = null;
+        if (mounted) {
+          setState(() => _placesFailed = true);
+        }
+        return;
+      }
+      final document = await repository.loadPlaces(region.file);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _places = document;
+        _placesFailed = false;
+      });
+    } on Exception {
+      _placesLoading = null;
+      if (mounted) {
+        setState(() => _placesFailed = true);
+      }
+    }
   }
 
   Map<String, Color> _zoneColors() {
@@ -120,38 +171,116 @@ class _StationsScreenState extends State<StationsScreen> {
     return out;
   }
 
-  Future<void> _openCard(StationSummary station) async {
-    setState(() => _selectedMarkerId = station.id);
+  Future<void> _openPlaceCard(PlaceRecord place) async {
+    final nearest = nearestStation(
+      GeoPoint(lat: place.lat, lon: place.lon),
+      widget.latest.stations,
+    );
+    if (nearest == null) {
+      return;
+    }
+    setState(() {
+      _selectedPlace = place;
+      _userLocation = null;
+      _selectedMarkerId = nearest.station.id;
+      _locationError = null;
+    });
+    await _showNearestCard(
+      title: place.name,
+      subtitle: place.admin1,
+      nearest: nearest,
+    );
+    if (mounted) {
+      setState(() => _selectedMarkerId = null);
+    }
+  }
+
+  Future<void> _useMyLocation() async {
+    final provider = widget.locationProvider ?? createLocationProvider();
+    setState(() {
+      _locating = true;
+      _locationError = null;
+    });
+    try {
+      final point = await provider.currentPosition();
+      if (!mounted) {
+        return;
+      }
+      final nearest = nearestStation(point, widget.latest.stations);
+      if (nearest == null) {
+        return;
+      }
+      setState(() {
+        _userLocation = point;
+        _selectedPlace = null;
+        _selectedMarkerId = nearest.station.id;
+      });
+      await _showNearestCard(
+        title: context.l10n.yourLocation,
+        subtitle: '',
+        nearest: nearest,
+      );
+    } on LocationException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _locationError = _locationMessage(context.l10n, error.kind));
+    } on Exception {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _locationError = context.l10n.locationUnavailable);
+    } finally {
+      if (mounted) {
+        setState(() => _locating = false);
+      }
+    }
+  }
+
+  Future<void> _showNearestCard({
+    required String title,
+    required String subtitle,
+    required NearestStation nearest,
+  }) async {
     final width = MediaQuery.of(context).size.width;
     final l10n = context.l10n;
-    final zoneColors = _zoneColors();
+    final locale = context.localeTag;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final card = Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(station.name, style: Theme.of(context).textTheme.titleMedium),
+          Text(title, style: theme.textTheme.titleMedium),
+          if (subtitle.trim().isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(subtitle, style: theme.textTheme.bodySmall),
+          ],
+          const SizedBox(height: 12),
+          Text(l10n.nearestStation(nearest.station.name)),
           const SizedBox(height: 4),
-          Row(
-            children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: zoneColors[station.climateZone],
-                  shape: BoxShape.circle,
-                ),
+          Text(l10n.distanceKm(distanceValue(nearest.distanceKm, locale: locale))),
+          if (nearest.distanceKm > kNearestStationWarningKm) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: scheme.errorContainer,
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 6),
-              Text('${l10n.labelClimateZone}: ${station.climateZone}'),
-            ],
-          ),
+              child: Text(
+                l10n.nearestStationWarning,
+                style: TextStyle(color: scheme.onErrorContainer),
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
-              widget.onSelect(station.id);
+              widget.onSelect(nearest.station.id);
             },
             child: Text(l10n.stationsViewForecast),
           ),
@@ -171,7 +300,6 @@ class _StationsScreenState extends State<StationsScreen> {
         ),
       );
     }
-    if (mounted) setState(() => _selectedMarkerId = null);
   }
 
   @override
@@ -208,7 +336,12 @@ class _StationsScreenState extends State<StationsScreen> {
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
           child: TextField(
             controller: _controller,
-            onChanged: (value) => setState(() => _query = value),
+            onChanged: (value) {
+              setState(() => _query = value);
+              if (value.trim().isNotEmpty) {
+                _ensurePlaces();
+              }
+            },
             decoration: InputDecoration(
               hintText: l10n.searchHint,
               prefixIcon: const Icon(Icons.search),
@@ -238,48 +371,148 @@ class _StationsScreenState extends State<StationsScreen> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-          child: SegmentedButton<bool>(
-            segments: [
-              ButtonSegment<bool>(
-                value: false,
-                label: Text(l10n.stationsViewList),
-                icon: const Icon(Icons.list),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              SegmentedButton<bool>(
+                segments: [
+                  ButtonSegment<bool>(
+                    value: false,
+                    label: Text(l10n.stationsViewList),
+                    icon: const Icon(Icons.list),
+                  ),
+                  ButtonSegment<bool>(
+                    value: true,
+                    label: Text(l10n.stationsViewMap),
+                    icon: const Icon(Icons.map),
+                  ),
+                ],
+                selected: <bool>{_mapView},
+                onSelectionChanged: (selection) => _setView(selection.first),
               ),
-              ButtonSegment<bool>(
-                value: true,
-                label: Text(l10n.stationsViewMap),
-                icon: const Icon(Icons.map),
+              FilledButton.tonalIcon(
+                onPressed: _locating ? null : _useMyLocation,
+                icon: const Icon(Icons.my_location),
+                label: Text(l10n.useMyLocation),
               ),
             ],
-            selected: <bool>{_mapView},
-            onSelectionChanged: (selection) => _setView(selection.first),
           ),
         ),
+        if (_locationError != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+            child: Material(
+              color: theme.colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.location_off,
+                      color: theme.colorScheme.onErrorContainer,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _locationError!,
+                        style: TextStyle(
+                          color: theme.colorScheme.onErrorContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         Expanded(
           child: _mapView
               ? _buildMap(context, filtered, zones, zoneColors, l10n, theme)
-              : (filtered.isEmpty
-                  ? EmptyState(message: l10n.searchNoResults)
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-                      itemCount: filtered.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final station = filtered[index];
-                        final selected = station.id == widget.selectedId;
-                        return ListTile(
-                          selected: selected,
-                          title: Text(station.name),
-                          subtitle: Text(
-                            '${station.climateZone} · ${coordinates(station.lat, station.lon, locale: context.localeTag)}',
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => widget.onSelect(station.id),
-                        );
-                      },
-                    )),
+              : _buildResults(context, filtered, l10n, theme),
         ),
       ],
+    );
+  }
+
+  Widget _buildResults(
+    BuildContext context,
+    List<StationSummary> stations,
+    AppLocalizations l10n,
+    ThemeData theme,
+  ) {
+    final places = _matchingPlaces;
+    final searching = _query.trim().isNotEmpty;
+    if (stations.isEmpty && places.isEmpty) {
+      final message = searching && _placesFailed
+          ? l10n.placesUnavailable
+          : l10n.searchNoResults;
+      return EmptyState(message: message);
+    }
+    final tiles = <Widget>[];
+    if (stations.isNotEmpty) {
+      if (searching) {
+        tiles.add(_sectionHeader(theme, l10n.searchStationsGroup));
+      }
+      for (final station in stations) {
+        final selected = station.id == widget.selectedId;
+        tiles.add(
+          ListTile(
+            selected: selected,
+            title: Text(station.name),
+            subtitle: Text(
+              '${station.climateZone} · ${coordinates(station.lat, station.lon, locale: context.localeTag)}',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => widget.onSelect(station.id),
+          ),
+        );
+      }
+    }
+    if (places.isNotEmpty) {
+      tiles.add(_sectionHeader(theme, l10n.searchPlacesGroup));
+      for (final place in places) {
+        tiles.add(
+          ListTile(
+            leading: const Icon(Icons.place_outlined),
+            title: Text(place.name),
+            subtitle: Text(place.admin1),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _openPlaceCard(place),
+          ),
+        );
+      }
+    }
+    if (searching && _placesFailed) {
+      tiles.add(
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Text(
+            l10n.placesUnavailable,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      );
+    }
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+      children: tiles,
+    );
+  }
+
+  Widget _sectionHeader(ThemeData theme, String label) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Text(
+        label,
+        style: theme.textTheme.titleSmall?.copyWith(
+          color: theme.colorScheme.primary,
+        ),
+      ),
     );
   }
 
@@ -288,13 +521,21 @@ class _StationsScreenState extends State<StationsScreen> {
     List<StationSummary> filtered,
     List<String> zones,
     Map<String, Color> zoneColors,
-    dynamic l10n,
+    AppLocalizations l10n,
     ThemeData theme,
   ) {
     final allBounds = computeStationBounds(widget.latest.stations);
     final cameraFit = allBounds != null
         ? CameraFit.bounds(bounds: allBounds, padding: const EdgeInsets.all(48))
         : null;
+    final point = _selectedPoint;
+    final nearest = point == null
+        ? null
+        : nearestStation(point, widget.latest.stations);
+    final mapStations = <StationSummary>[...filtered];
+    if (nearest != null && !mapStations.any((s) => s.id == nearest.station.id)) {
+      mapStations.add(nearest.station);
+    }
 
     return Stack(
       children: [
@@ -318,8 +559,21 @@ class _StationsScreenState extends State<StationsScreen> {
                 }
               },
             ),
+            if (point != null && nearest != null)
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: [
+                      LatLng(point.lat, point.lon),
+                      LatLng(nearest.station.lat, nearest.station.lon),
+                    ],
+                    strokeWidth: 2,
+                    color: theme.colorScheme.primary,
+                  ),
+                ],
+              ),
             MarkerLayer(
-              markers: filtered.map((station) {
+              markers: mapStations.map((station) {
                 final selected = station.id == _selectedMarkerId;
                 return Marker(
                   point: LatLng(station.lat, station.lon),
@@ -356,6 +610,28 @@ class _StationsScreenState extends State<StationsScreen> {
                 );
               }).toList(),
             ),
+            if (point != null)
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: LatLng(point.lat, point.lon),
+                    width: 44,
+                    height: 44,
+                    child: Tooltip(
+                      message: _userLocation != null
+                          ? l10n.yourLocation
+                          : (_selectedPlace?.name ?? ''),
+                      child: Icon(
+                        _userLocation != null
+                            ? Icons.my_location
+                            : Icons.place,
+                        color: theme.colorScheme.primary,
+                        size: 34,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             RichAttributionWidget(
               attributions: [
                 TextSourceAttribution(
@@ -429,6 +705,68 @@ class _StationsScreenState extends State<StationsScreen> {
       ],
     );
   }
+
+  Future<void> _openCard(StationSummary station) async {
+    setState(() => _selectedMarkerId = station.id);
+    final width = MediaQuery.of(context).size.width;
+    final l10n = context.l10n;
+    final zoneColors = _zoneColors();
+    final card = Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(station.name, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: zoneColors[station.climateZone],
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text('${l10n.labelClimateZone}: ${station.climateZone}'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              widget.onSelect(station.id);
+            },
+            child: Text(l10n.stationsViewForecast),
+          ),
+        ],
+      ),
+    );
+    if (width < 600) {
+      await showModalBottomSheet<void>(
+        context: context,
+        builder: (_) => card,
+      );
+    } else {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          content: card,
+        ),
+      );
+    }
+    if (mounted) setState(() => _selectedMarkerId = null);
+  }
+}
+
+String _locationMessage(AppLocalizations l10n, LocationErrorKind kind) {
+  return switch (kind) {
+    LocationErrorKind.denied => l10n.locationDenied,
+    LocationErrorKind.unavailable => l10n.locationUnavailable,
+    LocationErrorKind.timeout => l10n.locationTimeout,
+  };
 }
 
 class EmptyState extends StatelessWidget {

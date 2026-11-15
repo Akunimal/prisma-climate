@@ -23,10 +23,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabForecast => 'Forecast';
 
   @override
+  String get tabSkill => 'Skill';
+
+  @override
   String get tabAbout => 'About / Status';
 
   @override
-  String get searchHint => 'Search stations';
+  String get searchHint => 'Search stations or places';
 
   @override
   String get searchNoResults => 'No stations match the search.';
@@ -161,11 +164,84 @@ class AppLocalizationsEn extends AppLocalizations {
       'PRISMA publishes, for 19 stations in Argentina, the raw probabilistic forecast of two ensembles (ECMWF IFS and GFS) up to 15 days ahead, plus the daily maximum and minimum temperatures observed by SMN over the last 30 days. The app reads only static files published on GitHub Pages: there is no server and no API.';
 
   @override
-  String get aboutNoSkillTitle => 'No skill metrics';
+  String get aboutNoSkillTitle => 'Operational skill metrics';
 
   @override
   String get aboutNoSkill =>
-      'The app shows no CRPS, CRPSS, Brier score, reliability, coverage or leaderboard. Those numbers are not published before the 15-issue-date gate.';
+      'Operational verification results (CRPS, CRPSS, Brier, reliability, coverage, leaderboard) are not published before the 15-issue-date gate. The Skill screen shows only hindcast-labelled calibration scores from a historical replay; they are never mixed with the operational archive.';
+
+  @override
+  String get skillTitle => 'Calibration skill (hindcast)';
+
+  @override
+  String get skillHindcastBanner =>
+      'Hindcast only: these scores come from a historical replay against archived observations, not from the live forecast archive. They are never mixed with operational verification.';
+
+  @override
+  String get skillUnavailable =>
+      'No hindcast calibration run is available yet.';
+
+  @override
+  String get skillLabel => 'Label';
+
+  @override
+  String get skillMeanEmos => 'Mean CRPSS (EMOS vs raw)';
+
+  @override
+  String get skillMeanQm => 'Mean CRPSS (QM vs raw)';
+
+  @override
+  String skillCellsCount(int sufficient, int total) {
+    return '$sufficient of $total cells with enough training data';
+  }
+
+  @override
+  String get skillDidNotBeat =>
+      'Mean CRPSS ≤ 0: on this hindcast window calibration did not beat the raw ensemble.';
+
+  @override
+  String get skillProvider => 'Provider';
+
+  @override
+  String get skillWindow => 'Window';
+
+  @override
+  String get skillRetrieved => 'Retrieved';
+
+  @override
+  String get skillLeads => 'Leads';
+
+  @override
+  String get skillMode => 'Mode';
+
+  @override
+  String get skillGateTitle => 'Operational gate';
+
+  @override
+  String skillGateArchived(int archived, int required) {
+    return 'Archived issue dates: $archived of $required';
+  }
+
+  @override
+  String get skillGateOpen =>
+      'Gate open — operational leaderboard may be published.';
+
+  @override
+  String get skillGateClosed =>
+      'Gate closed — operational leaderboard is not published.';
+
+  @override
+  String get skillCellsTitle => 'Cells by station and lead';
+
+  @override
+  String get skillCellStation => 'Station';
+
+  @override
+  String get comparatorTitle => 'Source comparison';
+
+  @override
+  String get comparatorNote =>
+      'Daily maximum percentiles side by side per model (°C): p10–p90 · median. Never pooled.';
 
   @override
   String get aboutStatusTitle => 'Data status';
@@ -308,4 +384,58 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get aboutMapTilesNote =>
       'The map loads its tiles directly from OpenStreetMap servers.';
+
+  @override
+  String get searchStationsGroup => 'Stations';
+
+  @override
+  String get searchPlacesGroup => 'Places';
+
+  @override
+  String get placesUnavailable => 'Place search is unavailable right now.';
+
+  @override
+  String nearestStation(String station) {
+    return 'Nearest station: $station';
+  }
+
+  @override
+  String distanceKm(String km) {
+    return 'Distance: $km km';
+  }
+
+  @override
+  String get nearestStationWarning =>
+      'No station within 100 km — the forecast is for the nearest station, which may not represent your location.';
+
+  @override
+  String get useMyLocation => 'Use my location';
+
+  @override
+  String get locationDenied =>
+      'Location permission denied. Search for a place instead.';
+
+  @override
+  String get locationUnavailable => 'Location is not available on this device.';
+
+  @override
+  String get locationTimeout =>
+      'Could not get your location. Try again or search for a place.';
+
+  @override
+  String get yourLocation => 'Your location';
+
+  @override
+  String get aboutPlacesTitle => 'Place data';
+
+  @override
+  String get aboutPlacesNote =>
+      'Place names come from GeoNames and are used only for search on this device.';
+
+  @override
+  String get aboutPrivacyTitle => 'Privacy';
+
+  @override
+  String get aboutPrivacyNote =>
+      'Place search and location stay on this device; only map tiles are requested from the map provider.';
 }

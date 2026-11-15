@@ -4,8 +4,9 @@
   "appTagline": "Ensamble brut d'Open-Meteo (GFS et ECMWF IFS) pour 19 stations en Argentine.",
   "tabStations": "Stations",
   "tabForecast": "Prévisions",
+  "tabSkill": "Compétence",
   "tabAbout": "À propos / État",
-  "searchHint": "Rechercher des stations",
+  "searchHint": "Rechercher des stations ou des lieux",
   "searchNoResults": "Aucune station ne correspond à la recherche.",
   "stationsIntro": "Choisissez une station pour voir sa prévision.",
   "clearSearch": "Effacer",
@@ -57,8 +58,49 @@
   "aboutTitle": "À propos / État",
   "aboutWhatTitle": "Ce que montre cette app",
   "aboutWhat": "PRISMA publie, pour 19 stations en Argentine, la prévision probabiliste brute de deux ensembles (ECMWF IFS et GFS) jusqu'à 15 jours de prévision, ainsi que les températures maximales et minimales observées par le SMN sur les 30 derniers jours. L'app ne lit que des fichiers statiques publiés sur GitHub Pages : il n'y a ni serveur ni API.",
-  "aboutNoSkillTitle": "Aucune métrique de skill",
-  "aboutNoSkill": "L'app n'affiche ni CRPS, ni CRPSS, ni score de Brier, ni fiabilité, ni couverture, ni classement. Ces chiffres ne sont pas publiés avant le seuil des 15 dates d'émission.",
+  "aboutNoSkillTitle": "Métriques de skill opérationnelles",
+  "aboutNoSkill": "Les résultats de vérification opérationnels (CRPS, CRPSS, Brier, fiabilité, couverture, classement) ne sont pas publiés avant le seuil des 15 dates d'émission. L'écran Compétence n'affiche que des scores de calibration étiquetés hindcast, issus d'une rejeu historique ; ils ne sont jamais mélangés à l'archive opérationnelle.",
+  "skillTitle": "Compétence de calibration (hindcast)",
+  "skillHindcastBanner": "Hindcast uniquement : ces scores viennent d'un rejeu historique contre des observations archivées, pas de l'archive de prévisions en direct. Ils ne sont jamais mélangés à la vérification opérationnelle.",
+  "skillUnavailable": "Aucune course de calibration hindcast n'est disponible pour l'instant.",
+  "skillLabel": "Étiquette",
+  "skillMeanEmos": "CRPSS moyen (EMOS vs brut)",
+  "skillMeanQm": "CRPSS moyen (QM vs brut)",
+  "skillCellsCount": "{sufficient} cellules sur {total} avec assez de données d'entraînement",
+  "@skillCellsCount": {
+    "placeholders": {
+      "sufficient": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "skillDidNotBeat": "CRPSS moyen ≤ 0 : sur cette fenêtre hindcast la calibration n'a pas battu l'ensemble brut.",
+  "skillProvider": "Fournisseur",
+  "skillWindow": "Fenêtre",
+  "skillRetrieved": "Récupéré",
+  "skillLeads": "Délais",
+  "skillMode": "Mode d'exécution",
+  "skillGateTitle": "Seuil opérationnel",
+  "skillGateArchived": "Dates d'émission archivées : {archived} sur {required}",
+  "@skillGateArchived": {
+    "placeholders": {
+      "archived": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "skillGateOpen": "Seuil ouvert — le classement opérationnel peut être publié.",
+  "skillGateClosed": "Seuil fermé — le classement opérationnel n'est pas publié.",
+  "skillCellsTitle": "Cellules par station et délai",
+  "skillCellStation": "Poste",
+  "comparatorTitle": "Comparaison des sources",
+  "comparatorNote": "Percentiles du maximum quotidien côte à côte par modèle (°C) : p10–p90 · médiane. Jamais mélangés.",
   "aboutStatusTitle": "État des données",
   "aboutSourcesTitle": "Sources et licences",
   "aboutDataset": "Jeu de données",
@@ -202,5 +244,34 @@
   "mapReportProblem": "Signaler un probleme de carte",
   "mapTilesFailed": "Impossible de charger les tuiles de la carte. Les stations sont affichees sur un fond neutre.",
   "aboutMapTilesTitle": "Tuiles de la carte",
-  "aboutMapTilesNote": "La carte charge ses tuiles directement depuis les serveurs OpenStreetMap."
+  "aboutMapTilesNote": "La carte charge ses tuiles directement depuis les serveurs OpenStreetMap.",
+  "searchStationsGroup": "Stations",
+  "searchPlacesGroup": "Lieux",
+  "placesUnavailable": "La recherche de lieux n'est pas disponible pour le moment.",
+  "nearestStation": "Station la plus proche : {station}",
+  "distanceKm": "Distance : {km} km",
+  "nearestStationWarning": "Aucune station à moins de 100 km — la prévision concerne la station la plus proche, qui peut ne pas représenter votre position.",
+  "useMyLocation": "Utiliser ma position",
+  "locationDenied": "Autorisation de localisation refusée. Recherchez un lieu.",
+  "locationUnavailable": "La localisation n'est pas disponible sur cet appareil.",
+  "locationTimeout": "Impossible d'obtenir votre position. Réessayez ou recherchez un lieu.",
+  "yourLocation": "Votre position",
+  "aboutPlacesTitle": "Données de lieux",
+  "aboutPlacesNote": "Les noms de lieux proviennent de GeoNames et ne servent qu'à la recherche sur cet appareil.",
+  "aboutPrivacyTitle": "Confidentialité",
+  "aboutPrivacyNote": "La recherche de lieux et la localisation restent sur cet appareil ; seules les tuiles de la carte sont demandées au fournisseur de carte.",
+  "@nearestStation": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0",
+  "label": "hindcast",
+  "available": true,
+  "provider": "gfs",
+  "retrieved_at": "2026-11-15T11:17:06Z",
+  "mode": "real",
+  "window": {
+    "start": "2026-05-12",
+    "end": "2026-05-31"
+  },
+  "leads": [1],
+  "n_cells": 19,
+  "n_sufficient": 19,
+  "mean_crpss_emos_vs_raw": -0.0774,
+  "mean_crpss_qm_vs_raw": 0.0002,
+  "cells": [
+    {
+      "station": "buenos_aires",
+      "lead_day": 1,
+      "n_train": 10,
+      "crps_raw": 2.1,
+      "crps_emos": 2.3,
+      "crps_qm": 2.1,
+      "crpss_emos_vs_raw": -0.0952,
+      "crpss_qm_vs_raw": 0.0,
+      "insufficient": false
+    },
+    {
+      "station": "la_quiaca",
+      "lead_day": 1,
+      "n_train": 10,
+      "crps_raw": 1.8,
+      "crps_emos": 1.85,
+      "crps_qm": 1.8,
+      "crpss_emos_vs_raw": -0.0278,
+      "crpss_qm_vs_raw": 0.0,
+      "insufficient": false
+    },
+    {
+      "station": "ushuaia",
+      "lead_day": 1,
+      "n_train": 10,
+      "crps_raw": 2.4,
+      "crps_emos": 2.55,
+      "crps_qm": 2.4,
+      "crpss_emos_vs_raw": -0.0625,
+      "crpss_qm_vs_raw": 0.0,
+      "insufficient": false
+    }
+  ],
+  "report": "# Hindcast CRPSS smoke\n\nMean CRPSS EMOS = -0.0774, QM = +0.0002 (n_train=10).\n",
+  "files": {
+    "csv": "crpss_smoke_20261115T111706Z.csv",
+    "meta": "crpss_smoke_20261115T111706Z.meta.json",
+    "md": "crpss_smoke_20261115T111706Z.md"
+  },
+  "gate": {
+    "required_issue_dates": 15,
+    "archived_issue_dates": 3,
+    "open": false,
+    "operational_leaderboard_published": false,
+    "note": "Operational verification numbers are not published before 15 distinct archived issue dates. Skill shown here is hindcast-labelled only."
+  },
+  "note": "Hindcast calibration scores (label hindcast, provider and retrieved_at above). Not operational-archive leaderboard numbers; never mixed with the Phase 1 series."
+}

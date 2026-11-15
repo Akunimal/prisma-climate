@@ -29,9 +29,20 @@ class PrismaRepository {
   Future<AboutDocument> loadAbout({String document = 'about.json'}) async =>
       AboutDocument.parse(await _getText(document), document: document);
 
+  Future<SkillDocument> loadSkill({String document = 'skill.json'}) async =>
+      SkillDocument.parse(await _getText(document), document: document);
+
   Future<StationDocument> loadStation(String id) async {
     final document = 'stations/$id.json';
     return StationDocument.parse(await _getText(document), document: document);
+  }
+
+  Future<PlaceIndex> loadPlaceIndex({String document = 'places/index.json'}) async =>
+      PlaceIndex.parse(await _getText(document), document: document);
+
+  Future<PlaceDocument> loadPlaces(String file) async {
+    final document = 'places/$file';
+    return PlaceDocument.parse(await _getText(document), document: document);
   }
 
   Future<String> _getText(String document) async {

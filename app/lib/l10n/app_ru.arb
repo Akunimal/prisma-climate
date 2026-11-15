@@ -4,8 +4,9 @@
   "appTagline": "Сырой ансамбль Open-Meteo (GFS и ECMWF IFS) для 19 станций Аргентины.",
   "tabStations": "Станции",
   "tabForecast": "Прогноз",
+  "tabSkill": "Skill",
   "tabAbout": "О приложении / Статус",
-  "searchHint": "Поиск станций",
+  "searchHint": "Поиск станций или мест",
   "searchNoResults": "Ни одна станция не подходит под запрос.",
   "stationsIntro": "Выберите станцию, чтобы увидеть её прогноз.",
   "clearSearch": "Очистить",
@@ -57,8 +58,49 @@
   "aboutTitle": "О приложении / Статус",
   "aboutWhatTitle": "Что показывает это приложение",
   "aboutWhat": "PRISMA публикует для 19 станций Аргентины сырой вероятностный прогноз двух ансамблей (ECMWF IFS и GFS) на срок до 15 дней, а также суточные максимальная и минимальная температуры, наблюдавшиеся SMN за последние 30 дней. Приложение читает только статические файлы на GitHub Pages: сервера и API нет.",
-  "aboutNoSkillTitle": "Без метрик skill",
-  "aboutNoSkill": "Приложение не показывает CRPS, CRPSS, ошибку Бриера, надёжность, покрытие и рейтинг. Эти числа не публикуются до порога в 15 дат выпуска.",
+  "aboutNoSkillTitle": "Оперативные метрики skill",
+  "aboutNoSkill": "Оперативные результаты верификации (CRPS, CRPSS, Brier, надёжность, покрытие, рейтинг) не публикуются до порога в 15 дат выпуска. Экран Skill показывает только hindcast-метки калибровки из исторического реплея; они никогда не смешиваются с оперативным архивом.",
+  "skillTitle": "Калибровочный skill (hindcast)",
+  "skillHindcastBanner": "Только hindcast: эти оценки получены из исторического реплея против архивных наблюдений, а не из живого архива прогнозов. Они никогда не смешиваются с оперативной верификацией.",
+  "skillUnavailable": "Прогон калибровки hindcast пока недоступен.",
+  "skillLabel": "Метка",
+  "skillMeanEmos": "Средний CRPSS (EMOS vs сырой)",
+  "skillMeanQm": "Средний CRPSS (QM vs сырой)",
+  "skillCellsCount": "{sufficient} из {total} ячеек с достаточными обучающими данными",
+  "@skillCellsCount": {
+    "placeholders": {
+      "sufficient": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "skillDidNotBeat": "Средний CRPSS ≤ 0: на этом hindcast-окне калибровка не обошла сырой ансамбль.",
+  "skillProvider": "Провайдер",
+  "skillWindow": "Окно",
+  "skillRetrieved": "Получено",
+  "skillLeads": "Сроки",
+  "skillMode": "Режим",
+  "skillGateTitle": "Оперативный порог",
+  "skillGateArchived": "Архивные даты выпуска: {archived} из {required}",
+  "@skillGateArchived": {
+    "placeholders": {
+      "archived": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "skillGateOpen": "Порог открыт — оперативный рейтинг может быть опубликован.",
+  "skillGateClosed": "Порог закрыт — оперативный рейтинг не публикуется.",
+  "skillCellsTitle": "Ячейки по станции и сроку",
+  "skillCellStation": "Станция",
+  "comparatorTitle": "Сравнение источников",
+  "comparatorNote": "Перцентили дневного максимума рядом для каждой модели (°C): p10–p90 · медиана. Никогда не объединяются.",
   "aboutStatusTitle": "Статус данных",
   "aboutSourcesTitle": "Источники и лицензии",
   "aboutDataset": "Датасет",
@@ -202,5 +244,34 @@
   "mapReportProblem": "Сообщить о проблеме карты",
   "mapTilesFailed": "Не удалось загрузить тайлы карты. Станции показаны на нейтральном фоне.",
   "aboutMapTilesTitle": "Тайлы карты",
-  "aboutMapTilesNote": "Карта загружает тайлы напрямую с серверов OpenStreetMap."
+  "aboutMapTilesNote": "Карта загружает тайлы напрямую с серверов OpenStreetMap.",
+  "searchStationsGroup": "Станции",
+  "searchPlacesGroup": "Места",
+  "placesUnavailable": "Поиск мест сейчас недоступен.",
+  "nearestStation": "Ближайшая станция: {station}",
+  "distanceKm": "Расстояние: {km} км",
+  "nearestStationWarning": "Нет станции в радиусе 100 км — прогноз относится к ближайшей станции и может не отражать ваше местоположение.",
+  "useMyLocation": "Использовать моё местоположение",
+  "locationDenied": "Доступ к местоположению запрещён. Найдите место поиском.",
+  "locationUnavailable": "Местоположение недоступно на этом устройстве.",
+  "locationTimeout": "Не удалось определить местоположение. Повторите попытку или найдите место.",
+  "yourLocation": "Ваше местоположение",
+  "aboutPlacesTitle": "Данные о местах",
+  "aboutPlacesNote": "Названия мест взяты из GeoNames и используются только для поиска на этом устройстве.",
+  "aboutPrivacyTitle": "Конфиденциальность",
+  "aboutPrivacyNote": "Поиск мест и местоположение остаются на этом устройстве; у поставщика карт запрашиваются только тайлы карты.",
+  "@nearestStation": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  }
 }

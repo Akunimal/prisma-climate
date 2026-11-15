@@ -7,6 +7,7 @@ import '../l10n.dart';
 import '../model_labels.dart';
 import '../widgets/band_chart.dart';
 import '../widgets/common.dart';
+import 'comparator_card.dart';
 
 class ForecastScreen extends StatefulWidget {
   const ForecastScreen({
@@ -172,6 +173,7 @@ class _ForecastBody extends StatelessWidget {
           title: l10n.variableT2mMin,
           subtitle: modelNames,
         ),
+        SourceComparatorCard(document: document),
         _PrecipCard(document: document),
         _ObservedCard(document: document),
         Card(

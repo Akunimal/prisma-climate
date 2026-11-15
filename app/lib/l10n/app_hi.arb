@@ -4,8 +4,9 @@
   "appTagline": "Open-Meteo का कच्चा एन्सेम्बल पूर्वानुमान (GFS और ECMWF IFS), अर्जेंटीना के 19 स्टेशनों के लिए।",
   "tabStations": "स्टेशन",
   "tabForecast": "पूर्वानुमान",
+  "tabSkill": "स्किल",
   "tabAbout": "जानकारी / स्थिति",
-  "searchHint": "स्टेशन खोजें",
+  "searchHint": "स्टेशन या स्थान खोजें",
   "searchNoResults": "कोई स्टेशन खोज से मेल नहीं खाता।",
   "stationsIntro": "पूर्वानुमान देखने के लिए कोई स्टेशन चुनें।",
   "clearSearch": "साफ़ करें",
@@ -57,8 +58,49 @@
   "aboutTitle": "जानकारी / स्थिति",
   "aboutWhatTitle": "यह ऐप क्या दिखाता है",
   "aboutWhat": "PRISMA अर्जेंटीना के 19 स्टेशनों के लिए दो एन्सेम्बल (ECMWF IFS और GFS) का कच्चा संभाव्य पूर्वानुमान 15 दिनों तक, साथ ही पिछले 30 दिनों में SMN द्वारा अवलोकित दैनिक अधिकतम और न्यूनतम तापमान प्रकाशित करता है। ऐप केवल GitHub Pages पर प्रकाशित स्थिर फ़ाइलें पढ़ता है: कोई सर्वर या API नहीं है।",
-  "aboutNoSkillTitle": "कोई स्किल मेट्रिक नहीं",
-  "aboutNoSkill": "ऐप CRPS, CRPSS, Brier स्कोर, विश्वसनीयता, कवरेज या लीडरबोर्ड नहीं दिखाता। ये संख्याएँ 15 जारी तिथियों के गेट से पहले प्रकाशित नहीं होतीं।",
+  "aboutNoSkillTitle": "संचालन सत्यापन मेट्रिक",
+  "aboutNoSkill": "संचालन सत्यापन परिणाम (CRPS, CRPSS, Brier, विश्वसनीयता, कवरेज, लीडरबोर्ड) 15 जारी तिथियों के गेट से पहले प्रकाशित नहीं होते। स्किल स्क्रीन केवल hindcast-लेबल वाले ऐतिहासिक रीप्ले कैलिब्रेशन स्कोर दिखाती है; उन्हें कभी संचालन आर्काइव के साथ नहीं मिलाया जाता।",
+  "skillTitle": "कैलिब्रेशन स्किल (hindcast)",
+  "skillHindcastBanner": "केवल hindcast: ये स्कोर संग्रहित अवलोकनों के खिलाफ ऐतिहासिक रीप्ले से आते हैं, लाइव पूर्वानुमान आर्काइव से नहीं। उन्हें कभी संचालन सत्यापन के साथ नहीं मिलाया जाता।",
+  "skillUnavailable": "अभी कोई hindcast कैलिब्रेशन रन उपलब्ध नहीं है।",
+  "skillLabel": "लेबल",
+  "skillMeanEmos": "मीन CRPSS (EMOS बनाम कच्चा)",
+  "skillMeanQm": "मीन CRPSS (QM बनाम कच्चा)",
+  "skillCellsCount": "{total} में से {sufficient} कोशिकाओं में पर्याप्त प्रशिक्षण डेटा",
+  "@skillCellsCount": {
+    "placeholders": {
+      "sufficient": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "skillDidNotBeat": "मीन CRPSS ≤ 0: इस hindcast विंडो में कैलिब्रेशन कच्चे एन्सेम्बल को नहीं हरा पाया।",
+  "skillProvider": "प्रदाता",
+  "skillWindow": "विंडो",
+  "skillRetrieved": "प्राप्त",
+  "skillLeads": "लीड",
+  "skillMode": "मोड",
+  "skillGateTitle": "संचालन गेट",
+  "skillGateArchived": "संग्रहित जारी तिथियाँ: {archived} / {required}",
+  "@skillGateArchived": {
+    "placeholders": {
+      "archived": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "skillGateOpen": "गेट खुला — संचालन लीडरबोर्ड प्रकाशित किया जा सकता है।",
+  "skillGateClosed": "गेट बंद — संचालन लीडरबोर्ड प्रकाशित नहीं होता।",
+  "skillCellsTitle": "स्टेशन और लीड के अनुसार कोशिकाएँ",
+  "skillCellStation": "स्टेशन",
+  "comparatorTitle": "स्रोत तुलना",
+  "comparatorNote": "प्रति मॉडल दैनिक अधिकतम पर्सेंटाइल साथ-साथ (°C): p10–p90 · माध्यिका। कभी मिलाए नहीं जाते।",
   "aboutStatusTitle": "डेटा की स्थिति",
   "aboutSourcesTitle": "स्रोत और लाइसेंस",
   "aboutDataset": "डेटासेट",
@@ -202,5 +244,34 @@
   "mapReportProblem": "मानचित्र समस्या रिपोर्ट करें",
   "mapTilesFailed": "मानचित्र टाइल लोड नहीं हो सके। न्यूट्रल पृष्ठभूमि पर स्टेशन दिखाए जा रहे हैं।",
   "aboutMapTilesTitle": "मानचित्र टाइल",
-  "aboutMapTilesNote": "मानचित्र सीधे OpenStreetMap सर्वर से टाइल लोड करता है।"
+  "aboutMapTilesNote": "मानचित्र सीधे OpenStreetMap सर्वर से टाइल लोड करता है।",
+  "searchStationsGroup": "स्टेशन",
+  "searchPlacesGroup": "स्थान",
+  "placesUnavailable": "स्थान खोज अभी उपलब्ध नहीं है।",
+  "nearestStation": "निकटतम स्टेशन: {station}",
+  "distanceKm": "दूरी: {km} km",
+  "nearestStationWarning": "100 km के भीतर कोई स्टेशन नहीं है — पूर्वानुमान निकटतम स्टेशन का है, जो आपके स्थान को नहीं दर्शा सकता।",
+  "useMyLocation": "मेरा स्थान उपयोग करें",
+  "locationDenied": "स्थान की अनुमति अस्वीकृत। कृपया स्थान खोजें।",
+  "locationUnavailable": "इस डिवाइस पर स्थान उपलब्ध नहीं है।",
+  "locationTimeout": "आपका स्थान प्राप्त नहीं हो सका। पुनः प्रयास करें या स्थान खोजें।",
+  "yourLocation": "आपका स्थान",
+  "aboutPlacesTitle": "स्थान डेटा",
+  "aboutPlacesNote": "स्थान नाम GeoNames से आते हैं और केवल इस डिवाइस पर खोज के लिए उपयोग होते हैं।",
+  "aboutPrivacyTitle": "गोपनीयता",
+  "aboutPrivacyNote": "स्थान खोज और स्थान इस डिवाइस पर ही रहते हैं; केवल मानचित्र टाइल मानचित्र प्रदाता से अनुरोधित होते हैं।",
+  "@nearestStation": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  }
 }

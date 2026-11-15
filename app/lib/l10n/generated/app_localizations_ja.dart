@@ -23,10 +23,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tabForecast => '予報';
 
   @override
+  String get tabSkill => 'スキル';
+
+  @override
   String get tabAbout => '情報 / 状態';
 
   @override
-  String get searchHint => '観測所を検索';
+  String get searchHint => '観測所または場所を検索';
 
   @override
   String get searchNoResults => '検索に一致する観測所がありません。';
@@ -158,11 +161,81 @@ class AppLocalizationsJa extends AppLocalizations {
       'PRISMA は、アルゼンチンの 19 観測所について、2 つのアンサンブル（ECMWF IFS と GFS）の未校正確率予報を最大 15 日先まで、さらに SMN が過去 30 日間に観測した日最高・日最低気温を公開します。アプリは GitHub Pages 上の静的ファイルのみを読み込みます：サーバーも API もありません。';
 
   @override
-  String get aboutNoSkillTitle => 'スキル指標なし';
+  String get aboutNoSkillTitle => '運用検証指標';
 
   @override
   String get aboutNoSkill =>
-      'アプリは CRPS、CRPSS、Brier スコア、信頼性、被覆率、リーダーボードを表示しません。これらの数値は 15 発表日のゲートを前にして公開されません。';
+      '運用検証結果（CRPS、CRPSS、Brier、信頼性、被覆率、リーダーボード）は 15 発表日のゲートを前にして公開されません。スキル画面は hindcast ラベル付きの履歴リプレイ校準スコアのみを表示し、運用アーカイブと混ぜることは決してありません。';
+
+  @override
+  String get skillTitle => '校準スキル（hindcast）';
+
+  @override
+  String get skillHindcastBanner =>
+      'hindcast のみ：これらのスコアはアーカイブ観測に対する履歴リプレイ由来で、ライブ予報アーカイブ由来ではありません。運用検証と混ぜることは決してありません。';
+
+  @override
+  String get skillUnavailable => '利用可能な hindcast 校準ランはまだありません。';
+
+  @override
+  String get skillLabel => 'ラベル';
+
+  @override
+  String get skillMeanEmos => '平均 CRPSS（EMOS 対 生）';
+
+  @override
+  String get skillMeanQm => '平均 CRPSS（QM 対 生）';
+
+  @override
+  String skillCellsCount(int sufficient, int total) {
+    return '訓練データが十分なセル $sufficient / $total';
+  }
+
+  @override
+  String get skillDidNotBeat =>
+      '平均 CRPSS ≤ 0：この hindcast 窗で校準は生アンサンブルを上回りませんでした。';
+
+  @override
+  String get skillProvider => 'プロバイダ';
+
+  @override
+  String get skillWindow => '期間';
+
+  @override
+  String get skillRetrieved => '取得日時';
+
+  @override
+  String get skillLeads => '予報日数';
+
+  @override
+  String get skillMode => 'モード';
+
+  @override
+  String get skillGateTitle => '運用ゲート';
+
+  @override
+  String skillGateArchived(int archived, int required) {
+    return 'アーカイブ済み発表日：$archived / $required';
+  }
+
+  @override
+  String get skillGateOpen => 'ゲート開放 — 運用リーダーボードを公開できます。';
+
+  @override
+  String get skillGateClosed => 'ゲートクローズ — 運用リーダーボードは公開されません。';
+
+  @override
+  String get skillCellsTitle => '観測所・予報日数別のセル';
+
+  @override
+  String get skillCellStation => '観測所';
+
+  @override
+  String get comparatorTitle => 'ソース比較';
+
+  @override
+  String get comparatorNote =>
+      'モデルごとの日最高温パーセンタイルを横並び（°C）：p10–p90 · 中央値。混ぜ合わせることは決してありません。';
 
   @override
   String get aboutStatusTitle => 'データの状態';
@@ -301,4 +374,54 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aboutMapTilesNote => '地図は OpenStreetMap サーバーから直接タイルを読み込みます。';
+
+  @override
+  String get searchStationsGroup => '観測所';
+
+  @override
+  String get searchPlacesGroup => '場所';
+
+  @override
+  String get placesUnavailable => '現在、場所検索を利用できません。';
+
+  @override
+  String nearestStation(String station) {
+    return '最寄りの観測所：$station';
+  }
+
+  @override
+  String distanceKm(String km) {
+    return '距離：$km km';
+  }
+
+  @override
+  String get nearestStationWarning =>
+      '100 km 以内に観測所がありません。予報は最寄りの観測所のもので、お住まいの場所を表さない場合があります。';
+
+  @override
+  String get useMyLocation => '現在地を使う';
+
+  @override
+  String get locationDenied => '位置情報の権限が拒否されました。場所を検索してください。';
+
+  @override
+  String get locationUnavailable => 'このデバイスでは位置情報を利用できません。';
+
+  @override
+  String get locationTimeout => '現在地を取得できませんでした。再試行するか、場所を検索してください。';
+
+  @override
+  String get yourLocation => '現在地';
+
+  @override
+  String get aboutPlacesTitle => '場所データ';
+
+  @override
+  String get aboutPlacesNote => '場所名は GeoNames に由来し、このデバイス上の検索にのみ使用されます。';
+
+  @override
+  String get aboutPrivacyTitle => 'プライバシー';
+
+  @override
+  String get aboutPrivacyNote => '場所検索と位置情報はこのデバイス内に留まり、地図タイルのみが地図提供元に要求されます。';
 }

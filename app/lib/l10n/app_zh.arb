@@ -4,8 +4,9 @@
   "appTagline": "Open-Meteo 原始集合预报（GFS 与 ECMWF IFS），覆盖阿根廷 19 个站点。",
   "tabStations": "观测站",
   "tabForecast": "预报",
+  "tabSkill": "技巧",
   "tabAbout": "关于 / 状态",
-  "searchHint": "搜索站点",
+  "searchHint": "搜索观测站或地点",
   "searchNoResults": "没有站点符合搜索条件。",
   "stationsIntro": "选择一个站点查看其预报。",
   "clearSearch": "清除",
@@ -57,8 +58,49 @@
   "aboutTitle": "关于 / 状态",
   "aboutWhatTitle": "本应用展示什么",
   "aboutWhat": "PRISMA 为阿根廷 19 个站点发布两个集合（ECMWF IFS 与 GFS）的原始概率预报，最远 15 天，另加 SMN 最近 30 天观测的日最高、最低气温。本应用只读取发布在 GitHub Pages 上的静态文件：没有服务器，也没有 API。",
-  "aboutNoSkillTitle": "无技巧评分",
-  "aboutNoSkill": "本应用不显示 CRPS、CRPSS、Brier 分数、可靠性、覆盖率或排行榜。在 15 个起报日期的门槛之前不发布这些数字。",
+  "aboutNoSkillTitle": "业务检验指标",
+  "aboutNoSkill": "在 15 个起报日期的门槛之前，不发布任何业务检验结果（CRPS、CRPSS、Brier、可靠性、覆盖率、排行榜）。技巧页面仅显示带 hindcast 标签的历史回放校准评分，绝不与业务档案混用。",
+  "skillTitle": "校准技巧（hindcast）",
+  "skillHindcastBanner": "仅 hindcast：这些评分来自对存档观测的历史回放，而非实时预报档案，绝不与业务检验混用。",
+  "skillUnavailable": "尚无可用的 hindcast 校准运行。",
+  "skillLabel": "标签",
+  "skillMeanEmos": "平均 CRPSS（EMOS 对原始）",
+  "skillMeanQm": "平均 CRPSS（QM 对原始）",
+  "skillCellsCount": "{total} 个格点中 {sufficient} 个训练数据充足",
+  "@skillCellsCount": {
+    "placeholders": {
+      "sufficient": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "skillDidNotBeat": "平均 CRPSS ≤ 0：在该 hindcast 窗口上，校准未胜过原始集合。",
+  "skillProvider": "提供方",
+  "skillWindow": "窗口",
+  "skillRetrieved": "获取时间",
+  "skillLeads": "时效",
+  "skillMode": "模式",
+  "skillGateTitle": "业务门槛",
+  "skillGateArchived": "已存档起报日期：{archived} / {required}",
+  "@skillGateArchived": {
+    "placeholders": {
+      "archived": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "skillGateOpen": "门槛已开——可发布业务排行榜。",
+  "skillGateClosed": "门槛未开——不发布业务排行榜。",
+  "skillCellsTitle": "按站点与时效的格点",
+  "skillCellStation": "站点",
+  "comparatorTitle": "来源对比",
+  "comparatorNote": "各模型日最高温分位数并排显示（°C）：p10–p90 · 中位数。绝不混合。",
   "aboutStatusTitle": "数据状态",
   "aboutSourcesTitle": "来源与许可",
   "aboutDataset": "数据集",
@@ -202,5 +244,34 @@
   "mapReportProblem": "报告地图问题",
   "mapTilesFailed": "无法加载地图瓦片。在中性背景上显示站点。",
   "aboutMapTilesTitle": "地图瓦片",
-  "aboutMapTilesNote": "地图直接从 OpenStreetMap 服务器加载瓦片。"
+  "aboutMapTilesNote": "地图直接从 OpenStreetMap 服务器加载瓦片。",
+  "searchStationsGroup": "观测站",
+  "searchPlacesGroup": "地点",
+  "placesUnavailable": "地点搜索当前不可用。",
+  "nearestStation": "最近的气象站：{station}",
+  "distanceKm": "距离：{km} km",
+  "nearestStationWarning": "100 km 内没有气象站——预报来自最近的气象站，可能不代表您的位置。",
+  "useMyLocation": "使用我的位置",
+  "locationDenied": "位置权限被拒绝。请改为搜索地点。",
+  "locationUnavailable": "此设备无法获取位置。",
+  "locationTimeout": "无法获取您的位置。请重试或搜索地点。",
+  "yourLocation": "您的位置",
+  "aboutPlacesTitle": "地点数据",
+  "aboutPlacesNote": "地点名称来自 GeoNames，仅用于本设备上的搜索。",
+  "aboutPrivacyTitle": "隐私",
+  "aboutPrivacyNote": "地点搜索和位置信息保留在本设备上；仅向地图提供商请求地图瓦片。",
+  "@nearestStation": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  }
 }

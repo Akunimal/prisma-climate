@@ -166,6 +166,140 @@ class StationSummary {
   final String climateZone;
 }
 
+class PlaceRecord {
+  const PlaceRecord({
+    required this.name,
+    required this.admin1,
+    required this.lat,
+    required this.lon,
+    required this.population,
+  });
+
+  factory PlaceRecord.fromJson(Object? value) {
+    final json = _map(value, 'place');
+    return PlaceRecord(
+      name: _string(json, 'name'),
+      admin1: _string(json, 'admin1'),
+      lat: _doubleOrNull(json, 'lat') ?? 0,
+      lon: _doubleOrNull(json, 'lon') ?? 0,
+      population: _integer(json, 'population'),
+    );
+  }
+
+  final String name;
+  final String admin1;
+  final double lat;
+  final double lon;
+  final int population;
+}
+
+class PlaceRegion {
+  const PlaceRegion({
+    required this.file,
+    required this.country,
+    required this.source,
+    required this.placeCount,
+  });
+
+  factory PlaceRegion.fromJson(Object? value) {
+    final json = _map(value, 'place region');
+    return PlaceRegion(
+      file: _string(json, 'file'),
+      country: _string(json, 'country'),
+      source: _string(json, 'source'),
+      placeCount: _integer(json, 'place_count'),
+    );
+  }
+
+  final String file;
+  final String country;
+  final String source;
+  final int placeCount;
+}
+
+class PlaceIndex {
+  const PlaceIndex({required this.schemaVersion, required this.regions});
+
+  factory PlaceIndex.parse(String body, {String document = 'places/index.json'}) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(body);
+    } on FormatException catch (error) {
+      throw DataException(
+        'Invalid JSON in $document: ${error.message}',
+        kind: DataErrorKind.invalidJson,
+        document: document,
+        detail: error.message,
+      );
+    }
+    final json = _map(decoded, document);
+    _checkSchema(json, document);
+    final regions = <String, PlaceRegion>{};
+    _map(json['regions'], 'regions').forEach((regionId, value) {
+      regions[regionId] = PlaceRegion.fromJson(value);
+    });
+    return PlaceIndex(
+      schemaVersion: _string(json, 'schema_version'),
+      regions: regions,
+    );
+  }
+
+  final String schemaVersion;
+  final Map<String, PlaceRegion> regions;
+
+  PlaceRegion? regionById(String id) => regions[id];
+}
+
+class PlaceDocument {
+  const PlaceDocument({
+    required this.schemaVersion,
+    required this.country,
+    required this.source,
+    required this.attribution,
+    required this.attributionUrl,
+    required this.licence,
+    required this.licenceUrl,
+    required this.places,
+  });
+
+  factory PlaceDocument.parse(String body, {String document = 'places/ar.json'}) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(body);
+    } on FormatException catch (error) {
+      throw DataException(
+        'Invalid JSON in $document: ${error.message}',
+        kind: DataErrorKind.invalidJson,
+        document: document,
+        detail: error.message,
+      );
+    }
+    final json = _map(decoded, document);
+    _checkSchema(json, document);
+    return PlaceDocument(
+      schemaVersion: _string(json, 'schema_version'),
+      country: _string(json, 'country'),
+      source: _string(json, 'source'),
+      attribution: _string(json, 'attribution'),
+      attributionUrl: _string(json, 'attribution_url'),
+      licence: _string(json, 'licence'),
+      licenceUrl: _string(json, 'licence_url'),
+      places: _list(json['places'], 'places')
+          .map((value) => PlaceRecord.fromJson(value))
+          .toList(),
+    );
+  }
+
+  final String schemaVersion;
+  final String country;
+  final String source;
+  final String attribution;
+  final String attributionUrl;
+  final String licence;
+  final String licenceUrl;
+  final List<PlaceRecord> places;
+}
+
 class LatestDocument {
   const LatestDocument({
     required this.schemaVersion,
@@ -507,4 +641,161 @@ class AboutDocument {
   final List<AboutSource> sources;
   final Map<String, String> status;
   final String? smnSnapshotDate;
+}
+
+class SkillGate {
+  const SkillGate({
+    required this.requiredIssueDates,
+    required this.archivedIssueDates,
+    required this.open,
+    required this.operationalLeaderboardPublished,
+    required this.note,
+  });
+
+  factory SkillGate.fromJson(Object? value) {
+    final json = _map(value, 'gate');
+    return SkillGate(
+      requiredIssueDates: _integer(json, 'required_issue_dates'),
+      archivedIssueDates: _integer(json, 'archived_issue_dates'),
+      open: json['open'] == true,
+      operationalLeaderboardPublished:
+          json['operational_leaderboard_published'] == true,
+      note: _string(json, 'note'),
+    );
+  }
+
+  final int requiredIssueDates;
+  final int archivedIssueDates;
+  final bool open;
+  final bool operationalLeaderboardPublished;
+  final String note;
+}
+
+/// Hindcast-labelled calibration scores from `skill.json`.
+///
+/// Operational leaderboard numbers are never present: `gate`
+/// always reports `operationalLeaderboardPublished == false` until the
+/// 15-issue-date gate opens.
+class SkillDocument {
+  const SkillDocument({
+    required this.schemaVersion,
+    required this.label,
+    required this.available,
+    required this.gate,
+    this.message,
+    this.provider,
+    this.retrievedAt,
+    this.mode,
+    this.windowStart,
+    this.windowEnd,
+    this.leads,
+    this.nCells,
+    this.nSufficient,
+    this.meanCrpssEmos,
+    this.meanCrpssQm,
+    this.note,
+    this.cells = const [],
+  });
+
+  factory SkillDocument.parse(String body, {String document = 'skill.json'}) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(body);
+    } on FormatException catch (error) {
+      throw DataException(
+        'Invalid JSON in $document: ${error.message}',
+        kind: DataErrorKind.invalidJson,
+        document: document,
+        detail: error.message,
+      );
+    }
+    final json = _map(decoded, document);
+    _checkSchema(json, document);
+
+    final window = json['window'];
+    String? windowStart;
+    String? windowEnd;
+    if (window is Map<String, dynamic>) {
+      windowStart = window['start'] is String ? window['start'] as String : null;
+      windowEnd = window['end'] is String ? window['end'] as String : null;
+    }
+
+    final cells = <SkillCell>[
+      if (json['cells'] is List)
+        for (final value in json['cells'] as List<dynamic>)
+          SkillCell.fromJson(value),
+    ];
+
+    return SkillDocument(
+      schemaVersion: _string(json, 'schema_version'),
+      label: json['label'] is String ? json['label'] as String : 'hindcast',
+      available: json['available'] == true,
+      gate: SkillGate.fromJson(json['gate']),
+      message: json['message'] is String ? json['message'] as String : null,
+      provider: json['provider'] is String ? json['provider'] as String : null,
+      retrievedAt:
+          json['retrieved_at'] is String ? json['retrieved_at'] as String : null,
+      mode: json['mode'] is String ? json['mode'] as String : null,
+      windowStart: windowStart,
+      windowEnd: windowEnd,
+      leads: json['leads'] is List
+          ? (json['leads'] as List<dynamic>)
+              .whereType<num>()
+              .map((value) => value.toInt())
+              .toList()
+          : null,
+      nCells: json['n_cells'] is num ? (json['n_cells'] as num).toInt() : null,
+      nSufficient:
+          json['n_sufficient'] is num ? (json['n_sufficient'] as num).toInt() : null,
+      meanCrpssEmos: _doubleOrNull(json, 'mean_crpss_emos_vs_raw'),
+      meanCrpssQm: _doubleOrNull(json, 'mean_crpss_qm_vs_raw'),
+      note: json['note'] is String ? json['note'] as String : null,
+      cells: cells,
+    );
+  }
+
+  final String schemaVersion;
+  final String label;
+  final bool available;
+  final SkillGate gate;
+  final String? message;
+  final String? provider;
+  final String? retrievedAt;
+  final String? mode;
+  final String? windowStart;
+  final String? windowEnd;
+  final List<int>? leads;
+  final int? nCells;
+  final int? nSufficient;
+  final double? meanCrpssEmos;
+  final double? meanCrpssQm;
+  final String? note;
+  final List<SkillCell> cells;
+}
+
+class SkillCell {
+  const SkillCell({
+    required this.station,
+    required this.leadDay,
+    required this.insufficient,
+    this.crpssEmos,
+    this.crpssQm,
+  });
+
+  factory SkillCell.fromJson(Object? value) {
+    final json = _map(value, 'skill cell');
+    return SkillCell(
+      station: json['station'] is String ? json['station'] as String : '',
+      leadDay: json['lead_day'] is num ? (json['lead_day'] as num).toInt() : 0,
+      insufficient: json['insufficient'] == true,
+      crpssEmos: _doubleOrNull(json, 'crpss_emos_vs_raw'),
+      crpssQm: _doubleOrNull(json, 'crpss_qm_vs_raw'),
+    );
+  }
+
+  final String station;
+  final int leadDay;
+  final bool insufficient;
+  final double? crpssEmos;
+  final double? crpssQm;
 }
