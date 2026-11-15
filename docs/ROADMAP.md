@@ -26,7 +26,8 @@ Done:
 - Redundant archive cron slots (**06:47, 09:47, 12:17, 14:43, 18:31 UTC** since 2026-11-13; previously 06:47, 12:17, 18:31 — redesigned after every 2026-11-12 schedule run started hours late, with the original 06:47 slot kept for spread) plus a same-day no-op test; first `event=schedule` run 2026-11-12 (run 43249798026, success — 12:17 UTC slot, delayed ~3h20m; data no-op, that day was archived by a manual `workflow_dispatch` rescue). Archive-coverage watchdog (`scripts/archive_watchdog.py`) records missing days in `results/ingest_status.json` — visibility only, no repair; it reads HF via a cache-prone listing, so a missing day can be a false positive.
 
 Not started (by design): leaderboard numbers, calibration, API. A read-only Flutter web
-app exists (Stations, Forecast, About / Status, station map); see README.
+app exists (Stations, Forecast, About / Status, station map, place search and GPS);
+see README.
 
 ## Phase 1 checklist
 
@@ -40,21 +41,34 @@ app exists (Stations, Forecast, About / Status, station map); see README.
 
 ## Phase 2 checklist
 
-- [ ] Calibration (EMOS / quantile mapping) with CRPSS > 0 vs raw ensemble.
-- [ ] FastAPI with `/forecast`, `/skill`, `/sources`, `/enso`.
-- [ ] Flutter app (web + Android): probabilistic forecast, skill screen, source comparator.
-- [ ] Public link to the app.
+- [ ] Calibration (EMOS / quantile mapping) with CRPSS > 0 vs raw ensemble — full hindcast run in progress; smoke means EMOS −0.0774 / QM +0.0002 (n_train=10, not the gate).
+- [x] FastAPI with `/forecast`, `/skill`, `/sources`, `/enso`.
+- [x] Flutter app (web + Android): probabilistic forecast, skill screen, source comparator.
+- [ ] Public link to the app — `https://akunimal.github.io/prisma-climate/` is live, but Phase 2 (skill screen + `skill.json`) reaches Pages only after these changes are pushed.
 
 ## App stages (after the station map)
 
-### Place search and GPS (next)
+### Place search and GPS (done, 2026-11-15)
 
 - Goal: let a user find a place by name or by their own location and see the nearest
   PRISMA station, its distance and a warning when it is far, then open that station's
   forecast. No interpolation, no runtime geocoding, no storage of location.
-- Design note: [`docs/design/LOCATION_SEARCH.md`](design/LOCATION_SEARCH.md).
-- Entry condition: station map (T35) merged; gazetteer source verified.
-- Exit condition: the acceptance checklist in the design note.
+- Design note: [`docs/design/LOCATION_SEARCH.md`](design/LOCATION_SEARCH.md) — acceptance
+  checklist checked, with the verification status recorded there.
+- Shipped: a committed GeoNames gazetteer for Argentina (`data/places/ar.json`,
+  14,888 places, 1.3 MiB, built by `scripts/build_places.py`), lazily loaded on the
+  first non-empty query; grouped station/place results with accent-insensitive
+  exact → prefix → substring ranking; each place card shows its nearest station,
+  the distance and a >100 km warning, and opens that station's forecast; "Use my
+  location" through the browser geolocation API with denied / unavailable / timeout
+  handling; place, user and station markers plus a link line on the map; GeoNames /
+  CC BY 4.0 attribution and a privacy note in About; all ten locales.
+- Verified: `flutter analyze` clean, `flutter test` 89/89, backend `ruff` + `pytest`
+  clean, and the GPS path driven end-to-end in the embedded WebView2 browser with a
+  simulated position (637 km to Buenos Aires, warning shown). Typed place search in
+  a real browser is still unverified — Flutter web ignored synthetic text input in
+  that session — so it rests on widget tests plus a direct run of the shipped
+  gazetteer through the app's Dart code.
 
 ### Candidates (undecided, unordered)
 

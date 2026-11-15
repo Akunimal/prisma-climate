@@ -116,15 +116,35 @@ location. All new terms go into `docs/APP_GLOSSARY.md` before translation.
 
 ## 10. Acceptance criteria
 
-- [ ] Gazetteer file loads lazily and search works offline after first load.
-- [ ] Place search returns grouped results with correct ranking.
-- [ ] Nearest station and distance shown; warning above the constant.
-- [ ] "View forecast" opens the correct station.
-- [ ] Map shows place, station and link.
-- [ ] GPS button works only on press; denied/unavailable/timeout handled.
-- [ ] User position shown on map and not persisted.
-- [ ] All 10 locales carry the new strings.
-- [ ] `flutter analyze` and `flutter test` green.
+- [x] Gazetteer file loads lazily and search works offline after first load.
+- [x] Place search returns grouped results with correct ranking.
+- [x] Nearest station and distance shown; warning above the constant.
+- [x] "View forecast" opens the correct station.
+- [x] Map shows place, station and link.
+- [x] GPS button works only on press; denied/unavailable/timeout handled.
+- [x] User position shown on map and not persisted.
+- [x] All 10 locales carry the new strings.
+- [x] `flutter analyze` and `flutter test` green.
+
+### Verification status (2026-11-15)
+
+- `flutter analyze`: no issues. `flutter test`: 89/89. Backend `ruff` + `pytest`: clean.
+  Widget coverage now includes the map's place/user marker with its link line to the
+  nearest station, "View forecast" from a place card opening that station, and a failed
+  place load that is reported and retried on the next query.
+- Real browser (MiMo embedded WebView2, `flutter build web --release` served
+  locally with the shipped `data/places/`): the app boots on the real gazetteer,
+  the hint reads "Search stations or places", and **"Use my location" was driven
+  end-to-end with a CDP-simulated position** (−31.42, −64.18): nearest station
+  Buenos Aires, 637 km, the 100 km warning, and "View forecast" rendered — the
+  same 637.0 km the app's own `nearestStation` returns for that point.
+- Place-search typing could not be driven in that WebView2 session: Flutter web
+  ignores synthetic DOM/`Input.insertText` text. Grouping and ranking are covered
+  by widget tests, and the shipped `data/places/ar.json` was exercised directly
+  with the app's Dart code (14,888 places; "cordoba" → Córdoba/Cordoba,
+  "la paz" → Entre Rios then Mendoza by population). A typed search in a real
+  browser remains unverified; the widget tests stand in for it.
+
 
 ## 11. Risks
 

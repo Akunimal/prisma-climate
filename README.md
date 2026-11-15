@@ -23,9 +23,11 @@ Current gate status: 4 of 15 distinct issue dates archived; no verification numb
 - An SMN observation archive workflow ([`.github/workflows/observations.yml`](.github/workflows/observations.yml)) that captures the open-data payloads exactly as served into Hugging Face; its first run succeeded on 2026-11-13 ([run 43484816198](https://github.com/Akunimal/prisma-climate/actions/runs/43484816198)), so `observations/smn/{datohorario,observaciones,regtemp}/2026-11-12/` is archived. The earlier `regtemp` snapshot of `2026-11-10` — the input of the frozen 2026-11-13 climatology adjustment table — is published too, on 2026-11-14, from its GitHub Release by `.github/workflows/hf-backfill.yml`.
 - A GitHub Actions workflow that archives the ensemble forecast on a daily schedule (past member values are retained by the provider for about 3 days, but the past run's issue-dated lead structure is not reconstructible — a 2026-11-13 probe showed `past_days` returns the current run's future segment unchanged and past-day cells that do not match the archived issue-dated forecasts, with no run/cycle id in the payload — so a missed day **cannot** be repaired into verification data and is lost; no deep uniform-cycle ensemble backfill exists). The archive mechanism and the schedule trigger are both proven — see [Daily forecast archive](#daily-forecast-archive).
 - Verification metrics (`backend/src/prisma/verify/metrics.py`) implemented as code and tests; no numbers published until the 15-issue-date gate in [`docs/EVALUATION_PROTOCOL.md`](docs/EVALUATION_PROTOCOL.md).
-- A Flutter web app in [`app/`](app/) that reads the same static export read-only: three screens (Stations, Forecast, About / Status), a List/Map toggle on the Stations screen with an OpenStreetMap tile map of the 19 stations coloured by climate zone, a language picker for 10 locales (en, es, pt, fr, de, it, ru, zh, ja, hi) with browser auto-detection and persistence, English as the template and fallback, dates and numbers formatted per locale (Argentina time stays UTC−3), and a machine-translation notice in About and [`docs/APP_GLOSSARY.md`](docs/APP_GLOSSARY.md). `flutter analyze` and `flutter test` run in CI; pushes touching `app/**` redeploy the site.
+- A Flutter web app in [`app/`](app/) that reads the same static export read-only: four screens (Stations, Forecast, Skill, About / Status), a List/Map toggle on the Stations screen with an OpenStreetMap tile map of the 19 stations coloured by climate zone, place search over a committed GeoNames gazetteer (14,888 places) that shows each place's nearest station, the distance and a >100 km warning, a "Use my location" button that reads the browser position only on press and never stores or sends it, a probabilistic forecast with per-model quantile bands and a source comparator that keeps models side by side (never pooled), a Skill screen that shows only hindcast-labelled calibration scores with the operational gate closed until 15 issue dates, and a language picker for 10 locales (en, es, pt, fr, de, it, ru, zh, ja, hi) with browser auto-detection and persistence, English as the template and fallback, dates and numbers formatted per locale (Argentina time stays UTC−3), and a machine-translation notice in About and [`docs/APP_GLOSSARY.md`](docs/APP_GLOSSARY.md). `flutter analyze` and `flutter test` run in CI; pushes touching `app/**` redeploy the site.
+- FastAPI app in [`backend/src/prisma/api/`](backend/src/prisma/api/) with `/forecast`, `/skill`, `/sources` and `/enso` (`uv run --project backend uvicorn prisma.api.app:app`). `/skill` serves the same hindcast-labelled document as `data/skill.json`.
+- Calibration modules (EMOS and quantile mapping) with unit tests under [`backend/src/prisma/calibrate/`](backend/src/prisma/calibrate/). A full hindcast CRPSS run (calibrated vs raw) is in progress; the smoke run at `n_train=10` did **not** beat the raw ensemble (mean EMOS −0.0774, QM +0.0002) and is labelled hindcast only — no operational number is published before the 15-issue-date gate.
 
-**Does not exist yet:** calibration, the API, and SMN precipitation (no field in the open-data payloads; see [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)). Nothing in `results/` was produced by anything other than a script in this repository.
+**Does not exist yet:** a public CRPSS > 0 result (the full hindcast run has not finished), SMN precipitation (no field in the open-data payloads; see [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)), and the Phase 2 app screens on the live Pages deploy until these changes are pushed. Nothing in `results/` was produced by anything other than a script in this repository.
 
 ## Quickstart
 
@@ -66,6 +68,7 @@ Every source is registered in [`configs/sources.yaml`](configs/sources.yaml) and
 | NOAA ONI / SAM indices | Public domain (NOAA/NWS) | Yes | active |
 | SMN Argentina | CC BY 2.5 AR (PAD_legales.pdf, Infoleg disp25.pdf) | Yes | active — **current station reference for temperature** |
 | Map tiles (OpenStreetMap) | © OpenStreetMap contributors | Yes | non-data dependency; loaded directly by the app from OpenStreetMap servers |
+| Place names (GeoNames) | CC BY 4.0 | Yes | committed gazetteer `data/places/ar.json`, built by `scripts/build_places.py`; loaded by the app only when a place search starts |
 
 ## Daily forecast archive
 
@@ -88,13 +91,14 @@ Raw or archived data is never committed; GitHub Actions artifacts are not used a
 
 ```
 configs/     region stations (configs/regions/) and the source registry
+data/places/ committed GeoNames gazetteer for the app (the rest of data/ is gitignored)
 backend/     Python package: ingest connectors, QC (uv, ruff, pytest)
 notebooks/   analysis notebooks
 scripts/     runnable helpers (notebook execution, forecast upload)
 site/        plain HTML page (site/index.html) published at /basic/
 results/     only outputs generated by repository scripts
 docs/        plan, architecture, data sources, evaluation protocol, roadmap, images
-app/         Flutter web app: 10 locales, station map, reads the static export (docs/APP_GLOSSARY.md)
+app/         Flutter web app: 10 locales, station map, place search + GPS, reads the static export (docs/APP_GLOSSARY.md)
 ```
 
 Adding a data source means one new connector under `backend/src/prisma/ingest/` plus one entry in `configs/sources.yaml` — nothing else. Adding a country means one new file under `configs/regions/`.
