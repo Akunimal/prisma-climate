@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from collections.abc import Sequence
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -281,7 +282,18 @@ def fetch_window(
 
     def _one(job: tuple[date, int, str, list[StationPoint]]) -> list[dict[str, Any]]:
         issue, lead, member, needed = job
-        fc = fetch_member_tmax(issue, member, lead, needed)
+        last_exc: Exception | None = None
+        for attempt in range(3):
+            try:
+                fc = fetch_member_tmax(issue, member, lead, needed)
+                break
+            except Exception as exc:  # flaky S3 must not kill the whole run
+                last_exc = exc
+                time.sleep(1 + attempt)
+        else:
+            raise RuntimeError(
+                f"{issue.isoformat()} lead={lead} {member}: {last_exc!r}"
+            ) from last_exc
         if fc is None:
             return []
         return [
@@ -297,21 +309,43 @@ def fetch_window(
             for sid, val in fc.values_c.items()
         ]
 
+    failures = 0
+
+    def _flush_cache() -> None:
+        nonlocal cache
+        if not new_rows:
+            return
+        cache = pd.concat([cache, pd.DataFrame(new_rows)], ignore_index=True)
+        cache = cache.drop_duplicates(
+            subset=["issue_date", "lead_day", "member", "station_id"], keep="last"
+        )
+        new_rows.clear()
+        save_cache(root, cache)
+
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
         futures = {pool.submit(_one, job): job for job in jobs}
         for fut in as_completed(futures):
-            rows = fut.result()
+            job = futures[fut]
+            try:
+                rows = fut.result()
+            except Exception as exc:  # noqa: BLE001 — log and keep going
+                failures += 1
+                rows = []
+                print(
+                    f"  job failed {job[0].isoformat()} lead={job[1]} "
+                    f"{job[2]}: {exc!r}",
+                    flush=True,
+                )
             for row in rows:
                 lock_free_append(row)
             done += 1
             if progress and done % 50 == 0:
                 print(f"  fetched {done}/{total} member-lead slots", flush=True)
-    if new_rows:
-        cache = pd.concat([cache, pd.DataFrame(new_rows)], ignore_index=True)
-        cache = cache.drop_duplicates(
-            subset=["issue_date", "lead_day", "member", "station_id"], keep="last"
-        )
-        save_cache(root, cache)
+            if done % 1000 == 0:
+                _flush_cache()
+    if failures:
+        print(f"  {failures} of {total} jobs failed and were skipped", flush=True)
+    _flush_cache()
     return cache
 
 
