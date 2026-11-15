@@ -64,11 +64,13 @@ def download(url: str, cache_dir: Path) -> Path:
 
 def read_country_rows(archive_path: Path, country: str) -> Iterator[list[str]]:
     """Yield tab-separated rows of ``<country>.txt`` from the dump ZIP."""
-    with zipfile.ZipFile(archive_path) as archive:
-        with archive.open(f"{country}.txt") as handle:
-            with io.TextIOWrapper(handle, encoding="utf-8") as text:
-                for line in text:
-                    yield line.rstrip("\n").split("\t")
+    with (
+        zipfile.ZipFile(archive_path) as archive,
+        archive.open(f"{country}.txt") as handle,
+        io.TextIOWrapper(handle, encoding="utf-8") as text,
+    ):
+        for line in text:
+            yield line.rstrip("\n").split("\t")
 
 
 def load_admin1(path: Path) -> dict[str, str]:
@@ -199,7 +201,7 @@ def build_gazetteer(
 def _read_json(path: Path) -> dict[str, Any]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
-        raise ValueError(f"{path} must contain a JSON object")
+        raise TypeError(f"{path} must contain a JSON object")
     return data
 
 
