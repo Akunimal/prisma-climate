@@ -25,7 +25,8 @@ Done:
 - Verification metrics module + unit tests (`backend/src/prisma/verify/metrics.py`); leaderboard gated until archive ≥ 15 issue dates.
 - Redundant archive cron slots (**06:47, 09:47, 12:17, 14:43, 18:31 UTC** since 2026-11-13; previously 06:47, 12:17, 18:31 — redesigned after every 2026-11-12 schedule run started hours late, with the original 06:47 slot kept for spread) plus a same-day no-op test; first `event=schedule` run 2026-11-12 (run 43249798026, success — 12:17 UTC slot, delayed ~3h20m; data no-op, that day was archived by a manual `workflow_dispatch` rescue). Archive-coverage watchdog (`scripts/archive_watchdog.py`) records missing days in `results/ingest_status.json` — visibility only, no repair; it reads HF via a cache-prone listing, so a missing day can be a false positive.
 
-Not started (by design): leaderboard numbers, calibration, API, Flutter app.
+Not started (by design): leaderboard numbers, calibration, API. A read-only Flutter web
+app exists (Stations, Forecast, About / Status, station map); see README.
 
 ## Phase 1 checklist
 
@@ -44,7 +45,25 @@ Not started (by design): leaderboard numbers, calibration, API, Flutter app.
 - [ ] Flutter app (web + Android): probabilistic forecast, skill screen, source comparator.
 - [ ] Public link to the app.
 
-## Later
+## App stages (after the station map)
+
+### Place search and GPS (next)
+
+- Goal: let a user find a place by name or by their own location and see the nearest
+  PRISMA station, its distance and a warning when it is far, then open that station's
+  forecast. No interpolation, no runtime geocoding, no storage of location.
+- Design note: [`docs/design/LOCATION_SEARCH.md`](design/LOCATION_SEARCH.md).
+- Entry condition: station map (T35) merged; gazetteer source verified.
+- Exit condition: the acceptance checklist in the design note.
+
+### Candidates (undecided, unordered)
+
+- Forecast values on the map.
+- Verification results on the map (only after the 15-issue-date gate).
+- Android build.
+- Climatological normal range on the forecast chart.
+- Dark theme.
+
 
 - Subseasonal (2–6 weeks) ML with ENSO conditioning.
 - Additional sources (Tier 2/3) as gates open.

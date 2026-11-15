@@ -101,4 +101,4 @@ Adding a data source means one new connector under `backend/src/prisma/ingest/` 
 
 ## Citation and license
 
-Apache-2.0, see [`LICENSE`](LICENSE). Citation metadata is in [`CITATION.cff`](CITATION.cff). The project plan (Spanish) is [`docs/PLAN.md`](docs/PLAN.md).
+Apache-2.0, see [`LICENSE`](LICENSE). Citation metadata is in [`CITATION.cff`](CITATION.cff). The project plan (Spanish) is [`docs/PLAN.md`](docs/PLAN.md). Roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md).

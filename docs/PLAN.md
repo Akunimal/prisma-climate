@@ -242,6 +242,8 @@ Regla de escala: la lógica específica de un país vive solo en el conector de 
 
 **Stack: Flutter.** Una base de código para Android, iOS, web y Windows; soporte maduro de mapas (`flutter_map`) y gráficos.
 
+Design note for the next app stage (place search and GPS): [`docs/design/LOCATION_SEARCH.md`](design/LOCATION_SEARCH.md).
+
 Primera versión publicable como **web** (sin tiendas, se comparte con un link) + **APK de Android**.
 
 ### Pantallas
