@@ -8,6 +8,7 @@ data/observations/
 # Generated site data: built and deployed by .github/workflows/site.yml
 data/latest.json
 data/about.json
+data/skill.json
 data/stations/
 _site/
 # Scratch Hugging Face downloads

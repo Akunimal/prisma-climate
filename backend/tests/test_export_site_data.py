@@ -371,6 +371,7 @@ def test_export_writes_the_tree(export, workspace: Path, tmp_path: Path) -> None
         "estacion_dos.json",
         "estacion_uno.json",
         "latest.json",
+        "skill.json",
     ]
 
     latest = _read(out / "latest.json")
@@ -461,12 +462,59 @@ def test_export_warns_but_writes_when_a_station_has_no_rows(
 
 
 def test_export_carries_no_skill_metric_fields(export, workspace: Path, tmp_path: Path) -> None:
+    """Forecast/about/station files expose no skill metrics.
+
+    ``skill.json`` is the single exception: it may carry CRPSS fields only
+    when it is hindcast-labelled with the operational leaderboard closed.
+    """
     out, written, _path = _run_export(export, workspace, tmp_path)
     forbidden = {"crps", "crpss", "brier", "reliability", "coverage", "skill", "leaderboard"}
     for path in written:
-        found = _keys(_read(path))
+        document = _read(path)
+        if path.name == "skill.json":
+            assert document["label"] == "hindcast"
+            assert document["gate"]["operational_leaderboard_published"] is False
+            continue
+        found = _keys(document)
         assert not (found & forbidden), f"{path.name} exposes a skill-metric field"
     assert out.exists()
+
+
+def test_export_skill_json_carries_hindcast_result(
+    export, workspace: Path, tmp_path: Path
+) -> None:
+    hindcast = workspace / "results" / "hindcast"
+    hindcast.mkdir(parents=True, exist_ok=True)
+    (hindcast / "crpss_smoke.meta.json").write_text(
+        json.dumps(
+            {
+                "label": "hindcast",
+                "provider": "gfs",
+                "retrieved_at": "2026-11-15T11:17:06Z",
+                "mode": "real",
+                "window_start": "2026-05-12",
+                "window_end": "2026-05-31",
+                "leads": [1],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (hindcast / "crpss_smoke.csv").write_text(
+        "station,lead_day,n_train,crps_raw,crps_emos,crps_qm,"
+        "crpss_emos_vs_raw,crpss_qm_vs_raw,insufficient\n"
+        "A,1,10,2.0,2.1,2.0,-0.05,0.0,0\n",
+        encoding="utf-8",
+    )
+    (hindcast / "crpss_smoke.md").write_text("# hindcast report\n", encoding="utf-8")
+
+    out, _written, _path = _run_export(export, workspace, tmp_path)
+    skill = _read(out / "skill.json")
+    assert skill["label"] == "hindcast"
+    assert skill["available"] is True
+    assert skill["provider"] == "gfs"
+    assert skill["mean_crpss_emos_vs_raw"] == -0.05
+    assert skill["gate"]["operational_leaderboard_published"] is False
+    assert skill["gate"]["open"] is False
 
 
 def test_main_prints_the_written_count(export, workspace: Path, tmp_path: Path, capsys) -> None:
@@ -484,5 +532,6 @@ def test_main_prints_the_written_count(export, workspace: Path, tmp_path: Path, 
         download=download,
     )
     assert code == 0
-    assert "wrote 4 file(s)" in capsys.readouterr().out
+    assert "wrote 5 file(s)" in capsys.readouterr().out
     assert (out / "stations" / "estacion_uno.json").is_file()
+    assert (out / "skill.json").is_file()

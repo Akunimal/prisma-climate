@@ -10,6 +10,8 @@ Face dataset, and writes a small versioned JSON tree:
 - ``stations/<station_id>.json`` — per variable, per lead day and per model,
   member quantiles; the last 30 days of SMN observed t2m_max/t2m_min.
 - ``about.json`` — sources, licences, attribution and the status block.
+- ``skill.json`` — hindcast-labelled calibration scores only (label, provider,
+  retrieved_at, gate); operational leaderboard numbers stay unpublished.
 
 Models are never pooled. The 80 % member rule of the 2026-11-14 amendment
 (``docs/EVALUATION_PROTOCOL.md``) is applied per case: a case whose usable
@@ -17,9 +19,11 @@ members (``quality_flag == ok`` and non-null) are below 80 % of the model's
 nominal count is exported as ``missing_members`` with null quantiles, never
 filled.
 
-No skill metric is computed here. The exported numbers are descriptive
+No skill metric is computed here. Forecast files carry only descriptive
 statistics of the raw ensemble members and the archived observations;
-verification results stay gated on 15 distinct issue dates.
+``skill.json`` is assembled from ``results/hindcast/`` by
+``prisma.calibrate.skill_doc`` and never from the operational archive —
+verification stays gated on 15 distinct issue dates.
 
 Usage::
 
@@ -41,6 +45,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from prisma.calibrate.skill_doc import build_skill_document
 from prisma.ingest.base import find_repo_root, load_region
 from prisma.verify.run import MEMBER_FRACTION, _parse_payload_zip, load_member_counts
 
@@ -410,6 +415,7 @@ def export_site_data(
     written = [
         _write_json(out / "latest.json", latest_document),
         _write_json(out / "about.json", about_document),
+        _write_json(out / "skill.json", build_skill_document(root)),
     ]
     for station_id, document in station_documents:
         written.append(_write_json(out / "stations" / f"{station_id}.json", document))
