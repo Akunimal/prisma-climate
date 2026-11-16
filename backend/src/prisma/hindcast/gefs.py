@@ -128,6 +128,78 @@ def find_field_range(
     return None
 
 
+# --- local-day (UTC-3) period plan --------------------------------------------
+# America/Argentina/Buenos_Aires = UTC−3, no DST: local day V runs
+# [03Z V, 03Z V+1). GEFS TMAX/TMIN messages are period maxima/minima whose
+# idx label states the exact period, e.g. ``30-36 hour max fcst`` (the
+# 6-hour series at f006/f012/… tiles the whole timeline; a 3-hour series
+# coexists at f003/f009/… but never tiles alone). The day value uses only
+# periods fully inside the local day:
+#
+#   TMAX: 06-12, 12-18, 18-24 UTC of V → local 03-09, 09-15, 15-21
+#   TMIN: 06-12, 12-18 UTC of V        → local 03-09, 09-15 (night/morning)
+#
+# The [00-06] UTC straddlers are excluded: they start before 03Z V, so they
+# are not fully inside the local day. See docs/EVALUATION_PROTOCOL.md
+# amendment §2b (2026-11-15).
+LOCAL_DAY_TMAX_PERIODS = ((6, 12), (12, 18), (18, 24))  # UTC hours of day V
+LOCAL_DAY_TMIN_PERIODS = ((6, 12), (12, 18))
+
+_PERIOD_RE = re.compile(r"(\d+)-(\d+) hour (max|min) fcst")
+
+
+def local_day_periods(
+    lead_day: int,
+    periods: Sequence[tuple[int, int]] = LOCAL_DAY_TMAX_PERIODS,
+) -> tuple[tuple[int, int], ...]:
+    """idx-label periods (forecast hours after the 00Z cycle) for local day t+lead.
+
+    The local day V = t + lead starts at forecast hour 24·lead (00Z of V);
+    a period (s, e) of V therefore has label hours (24·lead+s, 24·lead+e),
+    and the message lives in file ``f{24·lead+e}`` (label end = file hour).
+    """
+    base = 24 * int(lead_day)
+    return tuple((base + s, base + e) for s, e in periods)
+
+
+def find_field_range_for_period(
+    records: Sequence[tuple[int, int, str]],
+    var_name: str,
+    start_hour: int,
+    end_hour: int,
+    file_size: int,
+    cap_bytes: int = 2_000_000,
+) -> tuple[int, int] | None:
+    """Byte range of the message whose idx label states exactly this period.
+
+    The period is read from the label (``30-36 hour max fcst``), never
+    inferred from the file's forecast hour: a 3-hour neighbour label, a
+    different window or the wrong max/min kind returns None.
+    """
+    target = var_name.upper()
+    kind = {"TMAX": "max", "TMIN": "min"}.get(target)
+    if kind is None:
+        return None
+    offsets = sorted({off for _, off, _ in records})
+    for _, offset, rest in records:
+        # idx rest = "d=YYYYMMDDHH:VAR:level:period:…" — match VAR as a token
+        if target not in rest.split(":"):
+            continue
+        m = _PERIOD_RE.search(rest)
+        if m is None:
+            continue
+        if (int(m.group(1)), int(m.group(2))) != (start_hour, end_hour):
+            continue
+        if m.group(3) != kind:
+            continue
+        nxt = next((o for o in offsets if o > offset), file_size)
+        end = min(nxt, offset + cap_bytes) - 1
+        if end < offset:
+            return None
+        return offset, end
+    return None
+
+
 def lead_forecast_hour(lead_day: int) -> int:
     return 24 * int(lead_day)
 
@@ -226,9 +298,11 @@ class MemberForecast:
     issue_date: date
     lead_day: int
     member: str
-    values_c: dict[str, float]  # station_id → degC (tmax)
+    values_c: dict[str, float]  # station_id → degC (local-day t2m_max)
     layout: str
     key: str
+    # station_id → degC (local-day t2m_min); None on the legacy single-message path
+    values_min_c: dict[str, float] | None = None
 
 
 # Last layout that answered (modern_ap5 after the flat era) — tried first.
@@ -241,7 +315,8 @@ def resolve_key(
     hour: int,
     http_get: HttpGet,
     bucket: str = DEFAULT_BUCKET,
-) -> GefsKey | None:
+) -> tuple[GefsKey, int] | None:
+    """(key, file_size) — size from the successful Range probe, 0 if unknown."""
     global _PREFERRED_LAYOUT
     cands = candidate_keys(issue, member, hour)
     if _PREFERRED_LAYOUT:
@@ -250,8 +325,14 @@ def resolve_key(
         status, _, headers = http_get(f"{bucket}/{cand.key}", {"Range": "bytes=0-0"})
         if status in (200, 206):
             _PREFERRED_LAYOUT = cand.layout
-            _ = headers
-            return cand
+            size = 0
+            content_range = headers.get("Content-Range") or headers.get("content-range") or ""
+            if "/" in content_range:
+                try:
+                    size = int(content_range.rsplit("/", 1)[-1])
+                except ValueError:
+                    size = 0
+            return cand, size
         if status == 404:
             continue
     return None
@@ -265,30 +346,24 @@ def fetch_member_tmax(
     http_get: HttpGet = default_http_get,
     bucket: str = DEFAULT_BUCKET,
 ) -> MemberForecast | None:
-    """Download TMAX for one member/lead and sample stations. None if missing."""
+    """Download TMAX for one member/lead and sample stations. None if missing.
+
+    Legacy single-message path (Run A): one period, joined to local day
+    ``issue + lead_day`` even when the period lies on the previous local day
+    (defect (iii) of the 2026-11-15 amendment). Kept for provenance only —
+    Run B scores use :func:`fetch_member_local_day`.
+    """
     hour = lead_forecast_hour(lead_day)
     resolved = resolve_key(issue, member, hour, http_get, bucket)
     if resolved is None:
         return None
-    base = f"{bucket}/{resolved.key}"
+    key, probed_size = resolved
+    base = f"{bucket}/{key.key}"
     status, idx_body, _ = http_get(f"{base}.idx")
     if status != 200 or not idx_body:
         return None
     records = parse_idx(idx_body.decode("utf-8", errors="replace"))
-    # file size from idx last offset approximation: use Range probe
-    status2, head_body, headers = http_get(base, {"Range": "bytes=0-0"})
-    if status2 not in (200, 206):
-        return None
-    content_range = headers.get("Content-Range") or headers.get("content-range") or ""
-    file_size = 0
-    if "/" in content_range:
-        try:
-            file_size = int(content_range.rsplit("/", 1)[-1])
-        except ValueError:
-            file_size = 0
-    if file_size <= 0:
-        # fallback: assume flat ~4.5 MB cap scan
-        file_size = 5_000_000
+    file_size = probed_size if probed_size > 0 else 5_000_000
     rng = find_field_range(records, "TMAX", file_size)
     if rng is None:
         rng = find_field_range(records, "2T", file_size)
@@ -316,8 +391,113 @@ def fetch_member_tmax(
         lead_day=lead_day,
         member=member,
         values_c=values,
-        layout=resolved.layout,
-        key=resolved.key,
+        layout=key.layout,
+        key=key.key,
+    )
+
+
+def fetch_member_local_day(
+    issue: date,
+    member: str,
+    lead_day: int,
+    stations: Sequence[StationPoint],
+    http_get: HttpGet = default_http_get,
+    bucket: str = DEFAULT_BUCKET,
+) -> MemberForecast | None:
+    """Local-day t2m_max + t2m_min for V = issue + lead (UTC-3, label-verified).
+
+    t2m_max = max of the TMAX periods fully inside [03Z V, 03Z V+1)
+    (06-12, 12-18, 18-24 UTC of V); t2m_min = min of the TMIN periods
+    covering local night/morning (06-12, 12-18 UTC of V). Every message is
+    selected by its exact idx label — a missing or mismatched label fails
+    the whole slot (None) rather than substituting another forecast hour.
+    """
+    tmax_plan = local_day_periods(lead_day, LOCAL_DAY_TMAX_PERIODS)
+    tmin_plan = local_day_periods(lead_day, LOCAL_DAY_TMIN_PERIODS)
+    tmax_by_end = {e: (s, e) for s, e in tmax_plan}
+    tmin_by_end = {e: (s, e) for s, e in tmin_plan}
+    file_hours = sorted(set(tmax_by_end) | set(tmin_by_end))
+
+    period_values: dict[str, dict[tuple[int, int], dict[str, float]]] = {
+        "TMAX": {},
+        "TMIN": {},
+    }
+    keys: list[str] = []
+    layout = ""
+    for hour in file_hours:
+        resolved = resolve_key(issue, member, hour, http_get, bucket)
+        if resolved is None:
+            return None
+        key, probed_size = resolved
+        base = f"{bucket}/{key.key}"
+        status, idx_body, _ = http_get(f"{base}.idx")
+        if status != 200 or not idx_body:
+            return None
+        records = parse_idx(idx_body.decode("utf-8", errors="replace"))
+        file_size = probed_size if probed_size > 0 else 5_000_000
+        wanted: list[tuple[str, tuple[int, int]]] = []
+        if hour in tmax_by_end:
+            wanted.append(("TMAX", tmax_by_end[hour]))
+        if hour in tmin_by_end:
+            wanted.append(("TMIN", tmin_by_end[hour]))
+        ranges: dict[str, tuple[int, int, tuple[int, int]]] = {}
+        for var, period in wanted:
+            rng = find_field_range_for_period(
+                records, var, period[0], period[1], file_size
+            )
+            if rng is None:
+                return None
+            ranges[var] = (rng[0], rng[1], period)
+        # one Range request covering every wanted message of this file
+        start = min(r[0] for r in ranges.values())
+        end = max(r[1] for r in ranges.values())
+        status2, blob, _ = http_get(base, {"Range": f"bytes={start}-{end}"})
+        if status2 not in (200, 206) or not blob:
+            return None
+        for var, (r0, r1, period) in ranges.items():
+            sub = blob[r0 - start : r1 - start + 1]
+            if not sub:
+                return None
+            try:
+                field, lats, lons = decode_tmax_from_grib_bytes(sub)
+            except Exception:
+                return None
+            vals: dict[str, float] = {}
+            for st in stations:
+                try:
+                    k = sample_nearest(field, lats, lons, st.lat, st.lon)
+                    vals[st.station_id] = kelvin_to_celsius(k)
+                except ValueError:
+                    continue
+            if not vals:
+                return None
+            period_values[var][period] = vals
+        keys.append(key.key)
+        layout = key.layout
+
+    if len(period_values["TMAX"]) != len(tmax_plan):
+        return None
+    if len(period_values["TMIN"]) != len(tmin_plan):
+        return None
+    values_c: dict[str, float] = {}
+    values_min_c: dict[str, float] = {}
+    for st in stations:
+        sid = st.station_id
+        try:
+            values_c[sid] = max(period_values["TMAX"][p][sid] for p in tmax_plan)
+            values_min_c[sid] = min(period_values["TMIN"][p][sid] for p in tmin_plan)
+        except KeyError:
+            continue  # station not sampled in some period → slot incomplete
+    if not values_c:
+        return None
+    return MemberForecast(
+        issue_date=issue,
+        lead_day=lead_day,
+        member=member,
+        values_c=values_c,
+        layout=layout,
+        key=";".join(keys),
+        values_min_c=values_min_c,
     )
 
 
@@ -398,6 +578,8 @@ __all__ = [
     "DEFAULT_BUCKET",
     "HINDCAST_LABEL",
     "LEAD_DAYS_DEFAULT",
+    "LOCAL_DAY_TMAX_PERIODS",
+    "LOCAL_DAY_TMIN_PERIODS",
     "MEMBERS",
     "N_MEMBERS",
     "PROVIDER",
@@ -408,12 +590,15 @@ __all__ = [
     "build_ensemble_matrix",
     "candidate_keys",
     "decode_tmax_from_grib_bytes",
+    "fetch_member_local_day",
     "fetch_member_tmax",
     "find_field_range",
+    "find_field_range_for_period",
     "flat_key",
     "hindcast_metadata",
     "kelvin_to_celsius",
     "lead_forecast_hour",
+    "local_day_periods",
     "modern_key",
     "parse_idx",
     "required_members",

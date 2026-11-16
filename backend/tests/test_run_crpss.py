@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 from prisma.calibrate.run_crpss import (
+    CACHE_RULE,
     MIN_SAMPLE,
     ROLLING_WINDOW,
     aggregate_crpss,
@@ -212,3 +213,57 @@ def test_rolling_cell_below_min_sample_never_raw() -> None:
     assert np.isnan(row["crps_emos"])
     assert np.isnan(row["crpss_emos_vs_raw"])
     assert np.isnan(row["crpss_qm_vs_raw"])
+
+
+def test_evaluate_rolling_rule_filter_and_t2m_min() -> None:
+    """Only CACHE_RULE rows are scored; t2m_min comes from tmin_c.
+
+    Corrected rows are placed first and legacy rows last: without the rule
+    filter the legacy values would win by overwrite order and the scores
+    would match the legacy-only run.
+    """
+    st, _dates, cache, obs = _rolling_fixture(13, pivot_index=11)
+    corrected = cache.copy()
+    corrected["rule"] = CACHE_RULE
+    corrected["value_c"] = corrected["value_c"] + 1.5
+    corrected["tmin_c"] = corrected["value_c"] - 12.0
+    legacy = cache.copy()
+    legacy["rule"] = np.nan
+    mixed = pd.concat([corrected, legacy], ignore_index=True)
+
+    obs2 = pd.concat(
+        [obs, obs.assign(variable="t2m_min", value=obs["value"] - 12.0)],
+        ignore_index=True,
+    )
+
+    cells = evaluate_rolling(mixed, obs2, [st], leads=[1])
+    assert set(cells["variable"]) == {"t2m_max", "t2m_min"}
+
+    only = evaluate_rolling(corrected, obs2, [st], leads=[1])
+    merged = cells.merge(
+        only, on=["variable", "lead_day", "station_id"], suffixes=("_mixed", "_only")
+    )
+    assert len(merged) == 2
+    assert list(merged["crps_raw_mixed"]) == pytest.approx(
+        list(merged["crps_raw_only"])
+    )
+
+    # t2m_min was read from tmin_c (= value_c − 12) and scored against the
+    # −12 obs: CRPS is translation-invariant, so it equals the t2m_max CRPS.
+    by_var = cells.set_index("variable")
+    assert by_var.loc["t2m_max", "crps_raw"] == pytest.approx(
+        by_var.loc["t2m_min", "crps_raw"]
+    )
+    assert by_var.loc["t2m_max", "n_eval"] == by_var.loc["t2m_min", "n_eval"]
+
+    # legacy-only cache (no rule column) scores different numbers → the
+    # mixed run above really did select the corrected rows.
+    legacy_norule = cache.copy()
+    cells_legacy = evaluate_rolling(legacy_norule, obs2, [st], leads=[1])
+    cmp = cells.merge(
+        cells_legacy,
+        on=["variable", "lead_day", "station_id"],
+        suffixes=("_mixed", "_legacy"),
+    )
+    assert len(cmp) == 1  # legacy cache has no tmin_c → t2m_max only
+    assert not np.allclose(cmp["crps_raw_mixed"], cmp["crps_raw_legacy"])

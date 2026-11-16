@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date
 
 import numpy as np
@@ -156,3 +157,171 @@ def test_hindcast_metadata_labels() -> None:
     assert "GEFS" in meta["provider"]
     assert meta["retrieved_at"].endswith("Z")
     assert meta["n_members"] == 31
+
+
+def test_local_day_periods_labels() -> None:
+    from prisma.hindcast.gefs import (
+        LOCAL_DAY_TMIN_PERIODS,
+        local_day_periods,
+    )
+
+    # lead 1: local day V = t+1 starts at forecast hour 24 (00Z of V)
+    assert local_day_periods(1) == ((30, 36), (36, 42), (42, 48))
+    assert local_day_periods(15) == ((366, 372), (372, 378), (378, 384))
+    assert local_day_periods(1, LOCAL_DAY_TMIN_PERIODS) == ((30, 36), (36, 42))
+    p = local_day_periods(3)
+    # contiguous tiling of [24L+6, 24L+24) = local 03:00–21:00 of V
+    assert p[0][0] == 24 * 3 + 6
+    assert p[-1][1] == 24 * 3 + 24
+    assert all(p[i][1] == p[i + 1][0] for i in range(len(p) - 1))
+    # file hour (= label end) exists in GEFS ap5: multiple of 6, ≤ 384
+    assert all(e % 6 == 0 for _, e in p)
+    assert local_day_periods(15)[-1][1] == 384
+
+
+def test_find_field_range_for_period_reads_label() -> None:
+    from prisma.hindcast.gefs import find_field_range_for_period
+
+    text = (
+        "60:1000000:d=2026051200:TMAX:2 m above ground:30-33 hour max fcst:ENS=low-res ctl\n"
+        "61:1100000:d=2026051200:TMAX:2 m above ground:30-36 hour max fcst:ENS=low-res ctl\n"
+        "62:1200000:d=2026051200:TMIN:2 m above ground:30-36 hour min fcst:ENS=low-res ctl\n"
+        "63:1300000:d=2026051200:UGRD:10 m above ground:30-36 hour avg fcst:ENS=low-res ctl\n"
+    )
+    recs = parse_idx(text)
+    # exact label match — not the 3-hour neighbour, not the file hour alone
+    assert find_field_range_for_period(recs, "TMAX", 30, 36, 5_000_000) == (
+        1100000,
+        1199999,
+    )
+    assert find_field_range_for_period(recs, "TMAX", 30, 33, 5_000_000) == (
+        1000000,
+        1099999,
+    )
+    assert find_field_range_for_period(recs, "TMAX", 31, 36, 5_000_000) is None
+    assert find_field_range_for_period(recs, "TMAX", 30, 42, 5_000_000) is None
+    # max/min kind follows the variable, not just the window
+    assert find_field_range_for_period(recs, "TMIN", 30, 36, 5_000_000) == (
+        1200000,
+        1299999,
+    )
+    assert find_field_range_for_period(recs, "TMIN", 30, 33, 5_000_000) is None
+
+
+def _fake_localday_http(
+    files: dict[int, dict[str, int | None]],
+    *,
+    three_hour_tmax: frozenset[int] = frozenset(),
+):
+    """Synthetic S3: .idx text + byte ranges whose first message byte is °C."""
+
+    def idx_text(hour: int) -> str:
+        spec = files[hour]
+        start = hour - 3 if hour in three_hour_tmax else hour - 6
+        lines = [
+            f"1:100:d=2026051200:UGRD:10 m above ground:"
+            f"{start}-{hour} hour avg fcst:ENS=low-res ctl",
+            f"2:5000:d=2026051200:TMAX:2 m above ground:"
+            f"{start}-{hour} hour max fcst:ENS=low-res ctl",
+        ]
+        if spec["tmin"] is not None:
+            lines.append(
+                f"3:6000:d=2026051200:TMIN:2 m above ground:"
+                f"{start}-{hour} hour min fcst:ENS=low-res ctl"
+            )
+        lines.append(
+            f"4:7000:d=2026051200:PRMSL:mean sea level:"
+            f"{start}-{hour} hour avg fcst:ENS=low-res ctl"
+        )
+        return "\n".join(lines) + "\n"
+
+    def file_bytes(hour: int) -> bytes:
+        spec = files[hour]
+        buf = bytearray(8000)
+        buf[5000] = int(spec["tmax"])
+        if spec["tmin"] is not None:
+            buf[6000] = int(spec["tmin"])
+        return bytes(buf)
+
+    def fake_http(
+        url: str, headers: dict[str, str] | None = None
+    ) -> tuple[int, bytes, dict[str, str]]:
+        m = re.search(r"\.f(\d{3})(?:\.idx)?$", url)
+        if m is None:
+            return 404, b"", {}  # flat-layout probe never matches modern keys
+        hour = int(m.group(1))
+        if hour not in files:
+            return 404, b"", {}
+        if url.endswith(".idx"):
+            return 200, idx_text(hour).encode(), {}
+        rng = (headers or {}).get("Range", "")
+        if rng == "bytes=0-0":
+            return 206, b"\x00", {"Content-Range": "bytes 0-0/8000"}
+        a, b = (int(x) for x in rng.removeprefix("bytes=").split("-"))
+        content = file_bytes(hour)
+        return 206, content[a : b + 1], {}
+
+    return fake_http
+
+
+def _fake_decode_marker(blob: bytes):
+    """Fake GRIB decode: first byte of the message = degC."""
+    k = 273.15 + float(blob[0])
+    return np.array([[k]]), np.array([0.0]), np.array([0.0])
+
+
+def test_fetch_member_local_day_combines_periods_and_beats_old_rule(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Local-day max comes from day V's periods; the legacy single-message
+    rule (f024 = 18-24 UTC of V−1) reads a bigger spike on the wrong day."""
+    from prisma.hindcast import gefs
+
+    issue = date(2026, 5, 12)
+    st = StationPoint("s1", -34.6, -58.4)
+    # f024 (old rule): 45 °C spike on local May 12 (V−1) 15-21;
+    # f036/f042/f048 cover local May 13 03-21 (day V): 25 / 28 / 30 °C
+    files = {
+        24: {"tmax": 45, "tmin": 20},
+        36: {"tmax": 25, "tmin": 18},
+        42: {"tmax": 28, "tmin": 16},
+        48: {"tmax": 30, "tmin": None},
+    }
+    fake_http = _fake_localday_http(files)
+    monkeypatch.setattr(gefs, "decode_tmax_from_grib_bytes", _fake_decode_marker)
+
+    fc = gefs.fetch_member_local_day(issue, "gec00", 1, [st], http_get=fake_http)
+    assert fc is not None
+    # day V t2m_max = max(25, 28, 30); t2m_min = min(18, 16)
+    assert fc.values_c["s1"] == pytest.approx(30.0)
+    assert fc.values_min_c is not None
+    assert fc.values_min_c["s1"] == pytest.approx(16.0)
+    assert fc.key.count(";") == 2  # three files joined
+
+    # old single-message rule (f024, period 18-24 of V−1) → 45 °C: wrong day
+    legacy = gefs.fetch_member_tmax(issue, "gec00", 1, [st], http_get=fake_http)
+    assert legacy is not None
+    assert legacy.values_c["s1"] == pytest.approx(45.0)
+    assert legacy.values_c["s1"] != fc.values_c["s1"]
+
+
+def test_fetch_member_local_day_fails_on_missing_label(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A 3-hour neighbour label must not be substituted for the 6-hour one."""
+    from prisma.hindcast import gefs
+
+    issue = date(2026, 5, 12)
+    st = StationPoint("s1", -34.6, -58.4)
+    files = {
+        36: {"tmax": 25, "tmin": 18},
+        42: {"tmax": 28, "tmin": 16},  # idx only states 39-42, not 36-42
+        48: {"tmax": 30, "tmin": None},
+    }
+    fake_http = _fake_localday_http(files, three_hour_tmax=frozenset({42}))
+    monkeypatch.setattr(gefs, "decode_tmax_from_grib_bytes", _fake_decode_marker)
+
+    assert (
+        gefs.fetch_member_local_day(issue, "gec00", 1, [st], http_get=fake_http)
+        is None
+    )

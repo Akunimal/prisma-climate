@@ -15,6 +15,14 @@ gates Phase 1 publication and is not overridden here.
 Train/eval are strictly split by issue date; EMOS and quantile mapping
 are fitted on train only (protocol §3, §8 ablation on train window).
 
+Forecast → local-day mapping (amendment 2026-11-15 §2b, ``CACHE_RULE``):
+the verifying local day is V = t + L (America/Argentina/Buenos_Aires,
+UTC−3). The cached t2m_max is the max of the TMAX period messages whose
+idx labels state periods fully inside [03Z V, 03Z V+1) — 06-12, 12-18
+and 18-24 UTC of V — and t2m_min the min of the TMIN messages for
+06-12 and 12-18 UTC of V. Legacy single-message rows (Run A) stay in the
+same cache file with ``rule`` NaN so Run A remains reproducible.
+
 Two training designs (protocol amendment, Run A vs Run B):
 
 * default — one chronological split (``--n-train``) over the whole window;
@@ -45,7 +53,7 @@ from ..hindcast.gefs import (
     MEMBERS,
     PROVIDER,
     StationPoint,
-    fetch_member_tmax,
+    fetch_member_local_day,
     hindcast_metadata,
     issue_dates_between,
     split_train_eval,
@@ -63,6 +71,10 @@ DEFAULT_N_EVAL = 180
 MIN_SAMPLE = 10
 # Fixed by the amendment before any Run B numbers were seen; never tuned.
 ROLLING_WINDOW = 45
+# Corrected local-day mapping (amendment 2026-11-15 §2b): rows with this
+# rule are the Run B forecast values; legacy single-message rows (Run A)
+# keep rule NaN in the same cache file and are never scored by evaluate_*.
+CACHE_RULE = "localday-3p-v1"
 OUT_DIR_REL = Path("results") / "hindcast"
 CACHE_REL = Path("data") / "cache" / "hindcast"
 REGTEMP_REL = Path("data") / "smn_probe" / "regtemp" / "registro_temperatura365d_smn.txt"
@@ -240,6 +252,8 @@ def load_cache(root: Path) -> pd.DataFrame:
             "value_c",
             "layout",
             "key",
+            "rule",
+            "tmin_c",
         ]
     )
 
@@ -248,6 +262,19 @@ def save_cache(root: Path, frame: pd.DataFrame) -> None:
     path = _cache_path(root)
     path.parent.mkdir(parents=True, exist_ok=True)
     frame.to_parquet(path, index=False)
+
+
+def _rule_filter(cache: pd.DataFrame) -> pd.DataFrame:
+    """Keep only the corrected local-day rows (Run B scoring input)."""
+    if "rule" not in cache.columns:
+        return cache
+    selected = cache[cache["rule"] == CACHE_RULE]
+    if selected.empty:
+        raise ValueError(
+            f"cache has no rows for rule {CACHE_RULE!r} — fetch the "
+            "local-day window before scoring"
+        )
+    return selected
 
 
 def fetch_window(
@@ -260,20 +287,43 @@ def fetch_window(
     progress: bool = True,
     max_workers: int = 8,
 ) -> pd.DataFrame:
-    """Fetch (or reuse cache) member × station values for the window."""
+    """Fetch (or reuse cache) member × station values for the window.
+
+    Rows carry ``rule = CACHE_RULE`` (local-day t2m_max in ``value_c``,
+    t2m_min in ``tmin_c``). Legacy single-message rows with rule NaN stay
+    in the file untouched, so only slots the corrected mapping needs are
+    downloaded and Run A remains reproducible.
+    """
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
-    cache = pd.DataFrame() if refresh else load_cache(root)
+    # --refresh re-fetches the corrected-rule rows only; legacy Run A rows
+    # (rule NaN) are never dropped, so diagnose_emos keeps reproducing Run A.
+    cache = load_cache(root)
+    if refresh and not cache.empty and "rule" in cache.columns:
+        cache = cache[cache["rule"] != CACHE_RULE].reset_index(drop=True)
     have = set()
     if not cache.empty:
+        rules = (
+            cache["rule"]
+            if "rule" in cache.columns
+            else pd.Series(np.nan, index=cache.index)
+        )
         have = {
             (
-                pd.Timestamp(r.issue_date).date(),
-                int(r.lead_day),
-                str(r.member),
-                str(r.station_id),
+                pd.Timestamp(issue).date(),
+                int(lead),
+                str(member),
+                str(station),
+                None if pd.isna(rule) else str(rule),
             )
-            for r in cache.itertuples(index=False)
+            for issue, lead, member, station, rule in zip(
+                cache["issue_date"],
+                cache["lead_day"],
+                cache["member"],
+                cache["station_id"],
+                rules,
+                strict=False,
+            )
         }
     jobs: list[tuple[date, int, str, list[StationPoint]]] = []
     for issue in dates:
@@ -282,7 +332,7 @@ def fetch_window(
                 needed = [
                     st
                     for st in stations
-                    if (issue, lead, member, st.station_id) not in have
+                    if (issue, lead, member, st.station_id, CACHE_RULE) not in have
                 ]
                 if needed:
                     jobs.append((issue, lead, member, needed))
@@ -298,7 +348,7 @@ def fetch_window(
         last_exc: Exception | None = None
         for attempt in range(3):
             try:
-                fc = fetch_member_tmax(issue, member, lead, needed)
+                fc = fetch_member_local_day(issue, member, lead, needed)
                 break
             except Exception as exc:  # flaky S3 must not kill the whole run
                 last_exc = exc
@@ -309,6 +359,7 @@ def fetch_window(
             ) from last_exc
         if fc is None:
             return []
+        tmin = fc.values_min_c or {}
         return [
             {
                 "issue_date": issue.isoformat(),
@@ -318,6 +369,8 @@ def fetch_window(
                 "value_c": val,
                 "layout": fc.layout,
                 "key": fc.key,
+                "rule": CACHE_RULE,
+                "tmin_c": tmin.get(sid, np.nan),
             }
             for sid, val in fc.values_c.items()
         ]
@@ -330,7 +383,8 @@ def fetch_window(
             return
         cache = pd.concat([cache, pd.DataFrame(new_rows)], ignore_index=True)
         cache = cache.drop_duplicates(
-            subset=["issue_date", "lead_day", "member", "station_id"], keep="last"
+            subset=["issue_date", "lead_day", "member", "station_id", "rule"],
+            keep="last",
         )
         new_rows.clear()
         save_cache(root, cache)
@@ -362,17 +416,24 @@ def fetch_window(
     return cache
 
 
-def evaluate_from_cache(
+def _evaluate_variable(
     cache: pd.DataFrame,
     obs: pd.DataFrame,
     stations: Sequence[StationPoint],
     *,
     n_train: int,
     leads: Sequence[int],
+    variable: str,
+    value_column: str,
 ) -> pd.DataFrame:
-    """Fit on train dates, score eval dates; one row per station × lead."""
+    """Fit on train dates, score eval dates; one row per station × lead.
+
+    ``value_column`` is the cache column holding the forecast for
+    ``variable`` (``value_c`` = local-day t2m_max, ``tmin_c`` = t2m_min).
+    """
     if cache.empty:
         raise ValueError("empty hindcast cache — nothing to score")
+    cache = _rule_filter(cache)
     loc_map = location_to_station_id(find_repo_root())
     # invert: station_id -> location name (region station name)
     id_to_loc = {v: k for k, v in loc_map.items()}
@@ -394,7 +455,10 @@ def evaluate_from_cache(
                     & (cache["station_id"] == _sid)
                     & (cache["issue_date"] == day.isoformat())
                 ]
-                by = {str(r.member): float(r.value_c) for r in sub.itertuples(index=False)}
+                by = {
+                    str(r.member): float(getattr(r, value_column))
+                    for r in sub.itertuples(index=False)
+                }
                 if len(by) < int(np.ceil(len(MEMBERS) * 4 / 5)):
                     return None
                 present = [by[m] for m in MEMBERS if m in by]
@@ -413,8 +477,6 @@ def evaluate_from_cache(
                 valid = day + timedelta(days=_lead)
                 return obs_idx.get((loc, variable, valid))
 
-            # use t2m_max as primary target
-            variable = "t2m_max"
             train_pairs: list[tuple[np.ndarray, float]] = []
             for day in train_dates:
                 m = members_on(day)
@@ -516,6 +578,37 @@ def evaluate_from_cache(
     return pd.DataFrame.from_records(records)
 
 
+def evaluate_from_cache(
+    cache: pd.DataFrame,
+    obs: pd.DataFrame,
+    stations: Sequence[StationPoint],
+    *,
+    n_train: int,
+    leads: Sequence[int],
+) -> pd.DataFrame:
+    """Chronological-split scores for every cached variable (t2m_max primary).
+
+    Rows come from the CACHE_RULE forecast values only; t2m_min is scored
+    when the cache carries its ``tmin_c`` column (secondary variable).
+    """
+    value_columns = {"t2m_max": "value_c"}
+    if "tmin_c" in cache.columns:
+        value_columns["t2m_min"] = "tmin_c"
+    frames = [
+        _evaluate_variable(
+            cache,
+            obs,
+            stations,
+            n_train=n_train,
+            leads=leads,
+            variable=variable,
+            value_column=value_columns[variable],
+        )
+        for variable in value_columns
+    ]
+    return pd.concat(frames, ignore_index=True)
+
+
 def rolling_train_dates(
     all_dates: Sequence[date],
     lead: int,
@@ -537,13 +630,15 @@ def rolling_train_dates(
     return eligible[-window:]
 
 
-def evaluate_rolling(
+def _evaluate_rolling_variable(
     cache: pd.DataFrame,
     obs: pd.DataFrame,
     stations: Sequence[StationPoint],
     *,
     leads: Sequence[int],
     window: int = ROLLING_WINDOW,
+    variable: str = "t2m_max",
+    value_column: str = "value_c",
 ) -> pd.DataFrame:
     """Per-issue-date rolling fit (Run B); same cell schema as chronological.
 
@@ -552,14 +647,15 @@ def evaluate_rolling(
     full day before D (``t + L + 2 ≤ D``, see ``rolling_train_dates``).
     Dates with fewer than MIN_SAMPLE training pairs are skipped entirely
     (never scored as raw); cells with fewer than MIN_SAMPLE scored dates
-    end ``insufficient`` with NaN CRPSS.
+    end ``insufficient`` with NaN CRPSS. ``value_column`` names the cache
+    column holding the forecast for ``variable``.
     """
     if cache.empty:
         raise ValueError("empty hindcast cache — nothing to score")
+    cache = _rule_filter(cache)
     loc_map = location_to_station_id(find_repo_root())
     id_to_loc = {v: k for k, v in loc_map.items()}
     obs_idx = obs_lookup(obs)
-    variable = "t2m_max"
     dates = sorted({pd.Timestamp(d).date() for d in cache["issue_date"].unique()})
     station_ids = [st.station_id for st in stations]
     min_members = int(np.ceil(len(MEMBERS) * 4 / 5))
@@ -577,7 +673,9 @@ def evaluate_rolling(
             members_by_date: dict[date, dict[str, float]] = {}
             for r in sub.itertuples(index=False):
                 day = pd.Timestamp(r.issue_date).date()
-                members_by_date.setdefault(day, {})[str(r.member)] = float(r.value_c)
+                members_by_date.setdefault(day, {})[str(r.member)] = float(
+                    getattr(r, value_column)
+                )
             loc = id_to_loc.get(sid)
 
             def obs_at(
@@ -671,6 +769,37 @@ def evaluate_rolling(
                 }
             )
     return pd.DataFrame.from_records(records)
+
+
+def evaluate_rolling(
+    cache: pd.DataFrame,
+    obs: pd.DataFrame,
+    stations: Sequence[StationPoint],
+    *,
+    leads: Sequence[int],
+    window: int = ROLLING_WINDOW,
+) -> pd.DataFrame:
+    """Rolling-45 scores for every cached variable (t2m_max primary).
+
+    Uses the CACHE_RULE forecast values only; t2m_min is scored when the
+    cache carries its ``tmin_c`` column (secondary variable).
+    """
+    value_columns = {"t2m_max": "value_c"}
+    if "tmin_c" in cache.columns:
+        value_columns["t2m_min"] = "tmin_c"
+    frames = [
+        _evaluate_rolling_variable(
+            cache,
+            obs,
+            stations,
+            leads=leads,
+            window=window,
+            variable=variable,
+            value_column=value_columns[variable],
+        )
+        for variable in value_columns
+    ]
+    return pd.concat(frames, ignore_index=True)
 
 
 def write_outputs(
@@ -805,6 +934,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     meta["n_train_dates"] = n_train
     meta["training"] = (
         f"rolling-{ROLLING_WINDOW}" if args.rolling else f"chronological-{n_train}"
+    )
+    meta["cache_rule"] = CACHE_RULE
+    meta["forecast_mapping"] = (
+        "local day V=t+L (America/Argentina/Buenos_Aires, UTC-3): "
+        "t2m_max=max(TMAX 06-12,12-18,18-24 UTC of V); "
+        "t2m_min=min(TMIN 06-12,12-18 UTC of V); "
+        "every message selected by its exact idx label (amendment §2b)"
     )
     meta["leads"] = list(leads)
     meta["window_start"] = window[0].isoformat()
