@@ -121,13 +121,13 @@ that window:
 
 | Slice | Role | Size |
 |---|---|---|
-| Train | fit EMOS / quantile mapping | **180** issue dates (00Z), first half of the capture |
-| Eval | score raw vs calibrated (held out) | **180** issue dates, strictly after train |
+| Train | fit EMOS / quantile mapping | **180** issue dates (00Z), 2025-11-11 → 2026-05-09 |
+| Eval | score raw vs calibrated (held out) | **185** issue dates, 2026-05-10 → 2026-11-10, strictly after train |
 | Leads | protocol leads | 1, 3, 7, 10, 15 (subset; `MIN_SAMPLE = 10` still applies per cell) |
 | Members | all 31 | 80 % rule (2026-11-14 rule 1) → ≥ 25 present |
 | Target | primary | `t2m_max` (precip arm suspended, 2026-11-12) |
 
-180+180 = 360 ≤ 365 keeps every scored day inside observed SMN coverage
+180+185 = 365 keeps every scored day inside observed SMN coverage
 while clearing `MIN_SAMPLE = 10` for every reported cell. A full 400+400
 window is the protocol ideal and is a straight constant change once a
 longer observation capture exists; it is **not** claimed as done.
