@@ -90,19 +90,41 @@ region stations; only those scalars are stored.
 
 ## 5. Pairing with observations
 
-- Forecast target: GEFS `tmax` / `tmin` at forecast hour `24 × lead_day`
-  (lead days 1…15 as in the protocol).
-- Valid time = issue 00Z + lead days; mapped to the **local calendar
-  day** (America/Argentina/Buenos_Aires) for joining SMN.
+Corrected mapping (protocol amendment **2026-11-15 §2b**, `rule =
+localday-3p-v1`; the pre-amendment single-message rule is what Run A used
+and Run A stays frozen):
+
+- Issue = GEFS cycle **00Z** on UTC date `t` (that instant is 21:00 local
+  on `t − 1`, America/Argentina/Buenos_Aires, UTC−3). For lead L the
+  verifying **local day is V = t + L**, which in UTC spans
+  **`[03Z V, 03Z V+1)`**.
+- Per member, **`t2m_max` = max over the three 6-hour TMAX messages of
+  day V that lie fully inside the local day**: idx labels
+  `(24L+6, 24L+12)`, `(24L+12, 24L+18)`, `(24L+18, 24L+24)`
+  `hour max fcst`, read from files `f{24L+12}`, `f{24L+18}`,
+  `f{24L+24}` respectively (a message lives in the file of its label's
+  end hour) — local **03:00–09:00, 09:00–15:00, 15:00–21:00 of V**.
+  Message selection is **by exact `.idx` label** (variable token,
+  start/end hours and max/min kind must all match); a missing or
+  mismatched label fails the whole member slot for that lead, never a
+  fallback period. The 6-hour periods that straddle a local-day
+  boundary — `[00Z V, 06Z V)` and `[00Z V+1, 06Z V+1)` — are excluded.
+- The straddling 3-hour labels (GEFS v12 ships both series) are never
+  substituted for a required 6-hour label; only the 6-hour series tiles
+  the day.
+- Valid time = local calendar day **V = t + L** for joining SMN
+  (`valid = issue_date + timedelta(days=lead)` in `run_crpss`,
+  unchanged — only the forecast messages change).
 - Observation reference: SMN Argentina daily TMAX/TMIN
   (`observations/smn/`, 2026-11-13 amendment; regtemp precedence per
   2026-11-14 rule 6).
-- **Stated limit:** NCEP’s `TMAX`/`TMIN` GRIB fields are period max/min
-  labels (e.g. “18-24 hour max fcst”), not guaranteed identical to a
-  station’s local-calendar-day max. This window mismatch is a documented
-  limitation of the hindcast, not a silent assumption; operational
-  archive scoring (Phase 1 leaderboard) uses the archive’s own daily
-  aggregates.
+- **Stated limit:** this rule covers local **03:00–21:00 of V** for
+  `t2m_max`; local **00:00–03:00 and 21:00–24:00 of V are uncovered**
+  by construction — a stated limitation of the rule, not an assumption
+  of completeness. `t2m_min` (secondary) would cover only
+  03:00–15:00; **Run B computes `t2m_max` only** and fetches no TMIN.
+  Operational archive scoring (Phase 1 leaderboard) uses the archive’s
+  own daily aggregates.
 
 ## 6. Cycle / issue-hour choice
 
@@ -125,7 +147,7 @@ that window:
 | Eval | score raw vs calibrated (held out) | **185** issue dates, 2026-05-10 → 2026-11-10, strictly after train |
 | Leads | protocol leads | 1, 3, 7, 10, 15 (subset; `MIN_SAMPLE = 10` still applies per cell) |
 | Members | all 31 | 80 % rule (2026-11-14 rule 1) → ≥ 25 present |
-| Target | primary | `t2m_max` (precip arm suspended, 2026-11-12) |
+| Target | primary | `t2m_max` (precip arm suspended, 2026-11-12); Run B computes `t2m_max` only, no TMIN (2026-11-16) |
 
 180+185 = 365 keeps every scored day inside observed SMN coverage
 while clearing `MIN_SAMPLE = 10` for every reported cell. A full 400+400
