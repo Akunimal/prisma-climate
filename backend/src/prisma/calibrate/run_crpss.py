@@ -14,6 +14,15 @@ gates Phase 1 publication and is not overridden here.
 
 Train/eval are strictly split by issue date; EMOS and quantile mapping
 are fitted on train only (protocol §3, §8 ablation on train window).
+
+Two training designs (protocol amendment, Run A vs Run B):
+
+* default — one chronological split (``--n-train``) over the whole window;
+* ``--rolling`` — per issue date D, fit on the ``ROLLING_WINDOW`` most
+  recent issue dates whose verifying local day ended at least one full
+  day before D (``t + L + 2 ≤ D``: issue 00Z on D is 21:00 local on D−1,
+  so local day D−1 has not ended at issue time). No information from D or
+  later is ever used for fitting.
 """
 
 from __future__ import annotations
@@ -50,6 +59,10 @@ from .quantile_mapping import fit_quantile_mapping
 # Train/eval must fit inside that observation window.
 DEFAULT_N_TRAIN = 180
 DEFAULT_N_EVAL = 180
+# 2026-11-14 rules 4–5: fewer training pairs than this ⇒ insufficient.
+MIN_SAMPLE = 10
+# Fixed by the amendment before any Run B numbers were seen; never tuned.
+ROLLING_WINDOW = 45
 OUT_DIR_REL = Path("results") / "hindcast"
 CACHE_REL = Path("data") / "cache" / "hindcast"
 REGTEMP_REL = Path("data") / "smn_probe" / "regtemp" / "registro_temperatura365d_smn.txt"
@@ -476,7 +489,7 @@ def evaluate_from_cache(
                 emos_list.append(scored["crps_emos"])
                 qm_list.append(scored["crps_qm"])
             n_eval = len(raw_list)
-            insufficient = n_eval < 10  # MIN_SAMPLE
+            insufficient = n_eval < MIN_SAMPLE
             raw = np.asarray(raw_list, dtype=float)
             emos_s = np.asarray(emos_list, dtype=float)
             qm_s = np.asarray(qm_list, dtype=float)
@@ -487,6 +500,163 @@ def evaluate_from_cache(
                     "variable": variable,
                     "lead_day": lead,
                     "n_train": len(train_pairs),
+                    "n_eval": n_eval,
+                    "insufficient": insufficient,
+                    "crps_raw": float(raw.mean()) if n_eval else np.nan,
+                    "crps_emos": float(emos_s.mean()) if n_eval else np.nan,
+                    "crps_qm": float(qm_s.mean()) if n_eval else np.nan,
+                    "crpss_emos_vs_raw": (
+                        np.nan if insufficient else aggregate_crpss(raw, emos_s)
+                    ),
+                    "crpss_qm_vs_raw": (
+                        np.nan if insufficient else aggregate_crpss(raw, qm_s)
+                    ),
+                }
+            )
+    return pd.DataFrame.from_records(records)
+
+
+def rolling_train_dates(
+    all_dates: Sequence[date],
+    lead: int,
+    issue: date,
+    *,
+    window: int = ROLLING_WINDOW,
+) -> list[date]:
+    """Issue dates usable to fit the model issued at ``issue``.
+
+    A training issue date t contributes only if its verifying local day
+    ended before the issue instant: the cycle is 00Z on date D, i.e.
+    21:00 local on D−1, so even local day D−1 has not ended at issue
+    time — the verifying local day t+L must end at least one full day
+    before D, i.e. ``t + L + 2 ≤ D``. Returns up to ``window`` most
+    recent eligible dates, ascending; ``issue`` itself is excluded
+    (lead ≥ 1 guarantees this).
+    """
+    eligible = sorted(d for d in all_dates if d + timedelta(days=lead + 2) <= issue)
+    return eligible[-window:]
+
+
+def evaluate_rolling(
+    cache: pd.DataFrame,
+    obs: pd.DataFrame,
+    stations: Sequence[StationPoint],
+    *,
+    leads: Sequence[int],
+    window: int = ROLLING_WINDOW,
+) -> pd.DataFrame:
+    """Per-issue-date rolling fit (Run B); same cell schema as chronological.
+
+    For each issue date D and lead L: fit EMOS + QM on the up-to-``window``
+    most recent issue dates whose verifying local day ended at least one
+    full day before D (``t + L + 2 ≤ D``, see ``rolling_train_dates``).
+    Dates with fewer than MIN_SAMPLE training pairs are skipped entirely
+    (never scored as raw); cells with fewer than MIN_SAMPLE scored dates
+    end ``insufficient`` with NaN CRPSS.
+    """
+    if cache.empty:
+        raise ValueError("empty hindcast cache — nothing to score")
+    loc_map = location_to_station_id(find_repo_root())
+    id_to_loc = {v: k for k, v in loc_map.items()}
+    obs_idx = obs_lookup(obs)
+    variable = "t2m_max"
+    dates = sorted({pd.Timestamp(d).date() for d in cache["issue_date"].unique()})
+    station_ids = [st.station_id for st in stations]
+    min_members = int(np.ceil(len(MEMBERS) * 4 / 5))
+
+    def stack(by: dict[str, float]) -> np.ndarray | None:
+        if len(by) < min_members:
+            return None
+        return np.asarray([by[m] for m in MEMBERS if m in by], dtype=float)
+
+    records: list[dict[str, Any]] = []
+
+    for lead in leads:
+        for sid in station_ids:
+            sub = cache[(cache["lead_day"] == lead) & (cache["station_id"] == sid)]
+            members_by_date: dict[date, dict[str, float]] = {}
+            for r in sub.itertuples(index=False):
+                day = pd.Timestamp(r.issue_date).date()
+                members_by_date.setdefault(day, {})[str(r.member)] = float(r.value_c)
+            loc = id_to_loc.get(sid)
+
+            def obs_at(
+                day: date, _lead: int = lead, _loc: str | None = loc
+            ) -> float | None:
+                if _loc is None:
+                    return None
+                return obs_idx.get((_loc, variable, day + timedelta(days=_lead)))
+
+            raw_list: list[float] = []
+            emos_list: list[float] = []
+            qm_list: list[float] = []
+            scored_sizes: list[int] = []
+            attempted_sizes: list[int] = []
+            for issue in dates:
+                eval_members = stack(members_by_date.get(issue, {}))
+                eval_obs = obs_at(issue)
+                if (
+                    eval_members is None
+                    or eval_obs is None
+                    or not np.isfinite(eval_obs)
+                ):
+                    continue
+                candidates = rolling_train_dates(dates, lead, issue, window=window)
+                train_pairs: list[tuple[np.ndarray, float]] = []
+                for day in candidates:
+                    m = stack(members_by_date.get(day, {}))
+                    o = obs_at(day)
+                    if m is None or o is None or not np.isfinite(o):
+                        continue
+                    train_pairs.append((m, float(o)))
+                attempted_sizes.append(len(train_pairs))
+                if len(train_pairs) < MIN_SAMPLE:
+                    continue
+                lengths = {m.shape[0] for m, _ in train_pairs}
+                if len(lengths) != 1:
+                    modal = max(
+                        lengths,
+                        key=lambda L: sum(1 for m, _ in train_pairs if m.shape[0] == L),
+                    )
+                    train_pairs = [
+                        (m, o) for m, o in train_pairs if m.shape[0] == modal
+                    ]
+                if len(train_pairs) < MIN_SAMPLE:
+                    continue
+                train_members = np.stack([m for m, _ in train_pairs], axis=0)
+                train_obs_arr = np.asarray([o for _, o in train_pairs], dtype=float)
+                if eval_members.shape[0] != train_members.shape[1]:
+                    continue
+                try:
+                    emos, qm = fit_calibrators(train_members, train_obs_arr)
+                except ValueError:
+                    continue
+                scored = score_case(
+                    eval_members, float(eval_obs), emos_params=emos, qm=qm
+                )
+                raw_list.append(scored["crps_raw"])
+                emos_list.append(scored["crps_emos"])
+                qm_list.append(scored["crps_qm"])
+                scored_sizes.append(len(train_pairs))
+
+            n_eval = len(raw_list)
+            if scored_sizes:
+                n_train: float | int = float(np.mean(scored_sizes))
+            elif attempted_sizes:
+                n_train = float(np.mean(attempted_sizes))
+            else:
+                n_train = 0
+            insufficient = n_eval < MIN_SAMPLE
+            raw = np.asarray(raw_list, dtype=float)
+            emos_s = np.asarray(emos_list, dtype=float)
+            qm_s = np.asarray(qm_list, dtype=float)
+            records.append(
+                {
+                    "label": HINDCAST_LABEL,
+                    "station_id": sid,
+                    "variable": variable,
+                    "lead_day": lead,
+                    "n_train": n_train,
                     "n_eval": n_eval,
                     "insufficient": insufficient,
                     "crps_raw": float(raw.mean()) if n_eval else np.nan,
@@ -576,6 +746,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         default=list(LEAD_DAYS_DEFAULT),
         help="lead days to score",
     )
+    parser.add_argument(
+        "--rolling",
+        action="store_true",
+        help=f"per-issue-date fit on the {ROLLING_WINDOW} most recent "
+        "issue dates with observations published before the issue date "
+        "(Run B); default is one chronological split",
+    )
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     if args.synthetic:
@@ -616,12 +793,19 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"stations={len(stations)} members={len(MEMBERS)} provider={PROVIDER}")
     cache = fetch_window(root, window, leads, stations, refresh=args.refresh)
     print(f"cache rows={len(cache)}")
-    cells = evaluate_from_cache(
-        cache, obs, stations, n_train=n_train, leads=leads
-    )
+    if args.rolling:
+        print(f"training=rolling-{ROLLING_WINDOW} (per issue date)")
+        cells = evaluate_rolling(cache, obs, stations, leads=leads)
+    else:
+        cells = evaluate_from_cache(
+            cache, obs, stations, n_train=n_train, leads=leads
+        )
     meta = hindcast_metadata()
     meta["mode"] = "smoke" if args.smoke else "full"
     meta["n_train_dates"] = n_train
+    meta["training"] = (
+        f"rolling-{ROLLING_WINDOW}" if args.rolling else f"chronological-{n_train}"
+    )
     meta["leads"] = list(leads)
     meta["window_start"] = window[0].isoformat()
     meta["window_end"] = window[-1].isoformat()
