@@ -403,17 +403,23 @@ def fetch_member_local_day(
     stations: Sequence[StationPoint],
     http_get: HttpGet = default_http_get,
     bucket: str = DEFAULT_BUCKET,
+    *,
+    tmin: bool = False,
 ) -> MemberForecast | None:
-    """Local-day t2m_max + t2m_min for V = issue + lead (UTC-3, label-verified).
+    """Local-day t2m_max (optionally t2m_min) for V = issue + lead.
 
     t2m_max = max of the TMAX periods fully inside [03Z V, 03Z V+1)
-    (06-12, 12-18, 18-24 UTC of V); t2m_min = min of the TMIN periods
-    covering local night/morning (06-12, 12-18 UTC of V). Every message is
-    selected by its exact idx label — a missing or mismatched label fails
-    the whole slot (None) rather than substituting another forecast hour.
+    (06-12, 12-18, 18-24 UTC of V); with ``tmin=True``, t2m_min = min of
+    the TMIN periods covering local night/morning (06-12, 12-18 UTC of V).
+    Every message is selected by its exact idx label — a missing or
+    mismatched label fails the whole slot (None) rather than substituting
+    another forecast hour. Run B fetches TMAX only (``tmin=False``;
+    amendment 2026-11-15 §5: no TMIN messages are fetched).
     """
     tmax_plan = local_day_periods(lead_day, LOCAL_DAY_TMAX_PERIODS)
-    tmin_plan = local_day_periods(lead_day, LOCAL_DAY_TMIN_PERIODS)
+    tmin_plan = (
+        local_day_periods(lead_day, LOCAL_DAY_TMIN_PERIODS) if tmin else []
+    )
     tmax_by_end = {e: (s, e) for s, e in tmax_plan}
     tmin_by_end = {e: (s, e) for s, e in tmin_plan}
     file_hours = sorted(set(tmax_by_end) | set(tmin_by_end))
@@ -485,7 +491,10 @@ def fetch_member_local_day(
         sid = st.station_id
         try:
             values_c[sid] = max(period_values["TMAX"][p][sid] for p in tmax_plan)
-            values_min_c[sid] = min(period_values["TMIN"][p][sid] for p in tmin_plan)
+            if tmin:
+                values_min_c[sid] = min(
+                    period_values["TMIN"][p][sid] for p in tmin_plan
+                )
         except KeyError:
             continue  # station not sampled in some period → slot incomplete
     if not values_c:
@@ -497,7 +506,7 @@ def fetch_member_local_day(
         values_c=values_c,
         layout=layout,
         key=";".join(keys),
-        values_min_c=values_min_c,
+        values_min_c=values_min_c or None,
     )
 
 

@@ -289,10 +289,11 @@ def fetch_window(
 ) -> pd.DataFrame:
     """Fetch (or reuse cache) member × station values for the window.
 
-    Rows carry ``rule = CACHE_RULE`` (local-day t2m_max in ``value_c``,
-    t2m_min in ``tmin_c``). Legacy single-message rows with rule NaN stay
-    in the file untouched, so only slots the corrected mapping needs are
-    downloaded and Run A remains reproducible.
+    Rows carry ``rule = CACHE_RULE`` (local-day t2m_max in ``value_c``).
+    TMIN messages are not fetched (``tmin_c`` stays NaN) — Run B scores
+    ``t2m_max`` only (amendment 2026-11-15 §5). Legacy single-message
+    rows with rule NaN stay in the file untouched, so only slots the
+    corrected mapping needs are downloaded and Run A remains reproducible.
     """
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -589,10 +590,11 @@ def evaluate_from_cache(
     """Chronological-split scores for every cached variable (t2m_max primary).
 
     Rows come from the CACHE_RULE forecast values only; t2m_min is scored
-    when the cache carries its ``tmin_c`` column (secondary variable).
+    only when the cache carries actual ``tmin_c`` values (a present but
+    all-NaN column — the Run B TMAX-only fetch — is skipped).
     """
     value_columns = {"t2m_max": "value_c"}
-    if "tmin_c" in cache.columns:
+    if "tmin_c" in cache.columns and cache["tmin_c"].notna().any():
         value_columns["t2m_min"] = "tmin_c"
     frames = [
         _evaluate_variable(
@@ -781,11 +783,12 @@ def evaluate_rolling(
 ) -> pd.DataFrame:
     """Rolling-45 scores for every cached variable (t2m_max primary).
 
-    Uses the CACHE_RULE forecast values only; t2m_min is scored when the
-    cache carries its ``tmin_c`` column (secondary variable).
+    Uses the CACHE_RULE forecast values only; t2m_min is scored only when
+    the cache carries actual ``tmin_c`` values (a present but all-NaN
+    column — the Run B TMAX-only fetch — is skipped).
     """
     value_columns = {"t2m_max": "value_c"}
-    if "tmin_c" in cache.columns:
+    if "tmin_c" in cache.columns and cache["tmin_c"].notna().any():
         value_columns["t2m_min"] = "tmin_c"
     frames = [
         _evaluate_rolling_variable(
@@ -882,6 +885,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         "issue dates with observations published before the issue date "
         "(Run B); default is one chronological split",
     )
+    parser.add_argument(
+        "--fetch-only",
+        action="store_true",
+        help="download/reuse the corrected-rule cache and exit without "
+        "scoring (Run B download step; resume-safe via the cache)",
+    )
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     if args.synthetic:
@@ -922,6 +931,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"stations={len(stations)} members={len(MEMBERS)} provider={PROVIDER}")
     cache = fetch_window(root, window, leads, stations, refresh=args.refresh)
     print(f"cache rows={len(cache)}")
+    if args.fetch_only:
+        n_rule = (
+            int((cache["rule"] == CACHE_RULE).sum())
+            if "rule" in cache.columns
+            else 0
+        )
+        print(
+            f"fetch-only: {n_rule} rows for rule {CACHE_RULE} "
+            "(no scoring performed)"
+        )
+        return 0
     if args.rolling:
         print(f"training=rolling-{ROLLING_WINDOW} (per issue date)")
         cells = evaluate_rolling(cache, obs, stations, leads=leads)
@@ -939,8 +959,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     meta["forecast_mapping"] = (
         "local day V=t+L (America/Argentina/Buenos_Aires, UTC-3): "
         "t2m_max=max(TMAX 06-12,12-18,18-24 UTC of V); "
-        "t2m_min=min(TMIN 06-12,12-18 UTC of V); "
-        "every message selected by its exact idx label (amendment §2b)"
+        "every message selected by its exact idx label (amendment §2b); "
+        "Run B fetches/scores t2m_max only — no TMIN (amendment §5)"
     )
     meta["leads"] = list(leads)
     meta["window_start"] = window[0].isoformat()

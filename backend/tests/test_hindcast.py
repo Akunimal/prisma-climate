@@ -290,7 +290,9 @@ def test_fetch_member_local_day_combines_periods_and_beats_old_rule(
     fake_http = _fake_localday_http(files)
     monkeypatch.setattr(gefs, "decode_tmax_from_grib_bytes", _fake_decode_marker)
 
-    fc = gefs.fetch_member_local_day(issue, "gec00", 1, [st], http_get=fake_http)
+    fc = gefs.fetch_member_local_day(
+        issue, "gec00", 1, [st], http_get=fake_http, tmin=True
+    )
     assert fc is not None
     # day V t2m_max = max(25, 28, 30); t2m_min = min(18, 16)
     assert fc.values_c["s1"] == pytest.approx(30.0)
@@ -325,3 +327,41 @@ def test_fetch_member_local_day_fails_on_missing_label(
         gefs.fetch_member_local_day(issue, "gec00", 1, [st], http_get=fake_http)
         is None
     )
+
+
+def test_fetch_member_local_day_default_fetches_tmax_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Run B default (tmin=False): TMAX messages only, no TMIN byte ranges."""
+    from prisma.hindcast import gefs
+
+    issue = date(2026, 5, 12)
+    st = StationPoint("s1", -34.6, -58.4)
+    files = {
+        36: {"tmax": 25, "tmin": 18},
+        42: {"tmax": 28, "tmin": 16},
+        48: {"tmax": 30, "tmin": None},
+    }
+    fake_http = _fake_localday_http(files)
+    ranges: list[str] = []
+
+    def recording_http(
+        url: str, headers: dict[str, str] | None = None
+    ) -> tuple[int, bytes, dict[str, str]]:
+        if (
+            headers
+            and headers.get("Range")
+            and headers["Range"] != "bytes=0-0"  # skip resolve_key size probe
+        ):
+            ranges.append(headers["Range"])
+        return fake_http(url, headers)
+
+    monkeypatch.setattr(gefs, "decode_tmax_from_grib_bytes", _fake_decode_marker)
+
+    fc = gefs.fetch_member_local_day(issue, "gec00", 1, [st], http_get=recording_http)
+    assert fc is not None
+    assert fc.values_c["s1"] == pytest.approx(30.0)
+    # no TMIN requested: files 36/42 stop at the TMAX message (TMIN @6000
+    # would push the range to 6999); file 48 has no TMIN record at all
+    assert ranges == ["bytes=5000-5999", "bytes=5000-5999", "bytes=5000-6999"]
+    assert fc.values_min_c is None

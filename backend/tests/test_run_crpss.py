@@ -267,3 +267,17 @@ def test_evaluate_rolling_rule_filter_and_t2m_min() -> None:
     )
     assert len(cmp) == 1  # legacy cache has no tmin_c → t2m_max only
     assert not np.allclose(cmp["crps_raw_mixed"], cmp["crps_raw_legacy"])
+
+
+def test_evaluate_rolling_skips_all_nan_tmin_column() -> None:
+    """Run B fetch keeps tmin_c as an all-NaN column → t2m_max only.
+
+    The TMAX-only download (amendment §5) still writes a ``tmin_c`` column;
+    a present-but-empty column must not produce t2m_min rows.
+    """
+    st, _dates, cache, obs = _rolling_fixture(13, pivot_index=11)
+    corrected = cache.copy()
+    corrected["rule"] = CACHE_RULE
+    corrected["tmin_c"] = np.nan
+    cells = evaluate_rolling(corrected, obs, [st], leads=[1])
+    assert set(cells["variable"]) == {"t2m_max"}
