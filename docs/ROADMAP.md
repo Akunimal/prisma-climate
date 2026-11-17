@@ -24,14 +24,10 @@ Done:
 - ERA5 vs GHCN discrepancy report with t2m_max bias decomposition and precip orography check; SMN leg added over the regtemp capture (19/19 stations by NRO, local-calendar joins, gaps reported, never filled).
 - Verification metrics module + unit tests (`backend/src/prisma/verify/metrics.py`); leaderboard gated until archive ≥ 15 issue dates.
 - Redundant archive cron slots (**06:47, 09:47, 12:17, 14:43, 18:31 UTC** since 2026-11-13; previously 06:47, 12:17, 18:31 — redesigned after every 2026-11-12 schedule run started hours late, with the original 06:47 slot kept for spread) plus a same-day no-op test; first `event=schedule` run 2026-11-12 (run 43249798026, success — 12:17 UTC slot, delayed ~3h20m; data no-op, that day was archived by a manual `workflow_dispatch` rescue). Archive-coverage watchdog (`scripts/archive_watchdog.py`) records missing days in `results/ingest_status.json` — visibility only, no repair; it reads HF via a cache-prone listing, so a missing day can be a false positive.
+- Phase 2 calibration exit gate: Run B completed (rolling-45 window, anti-leakage rule $t+L+2 \le D$, corrected localday alignment) across all 95 station-lead cells (32,879 station-days). EMOS improved at 12 of 19 stations (63.2% $\ge$ 60% threshold under 7-day block bootstrap 1,000 resamples; cell mean CRPSS: +0.2187 EMOS, +0.0943 QM). Checkpoint verified via `scripts/checkpoint_runb.py`.
+- Release `v0.1.0 — frozen evaluation protocol` published on GitHub; Zenodo software & dataset archive registered with concept DOI `10.5281/zenodo.24309946` and version DOI `10.5281/zenodo.24309947`.
 
-Not started (by design): leaderboard numbers. Calibration code exists and the full
-hindcast run has finished (its numbers are held for the dated protocol amendment, not
-published here); there is **no API server this phase** (owner decision 2026-11-15:
-static data on Pages) — the FastAPI code exists and its endpoints are tested, but it
-is not deployed. A read-only Flutter
-**web** app exists (Stations, Forecast, Skill, About / Status, station map, place
-search and GPS, source comparator); there is **no Android build**; see README.
+Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue dates; 7 archived as of 2026-11-17). There is **no API server this phase** (owner decision 2026-11-15: static data on Pages) — the FastAPI code exists and its endpoints are tested, but it is not deployed. A read-only Flutter **web** app exists (Stations, Forecast, Skill, About / Status, station map, place search and GPS, source comparator); there is **no Android build**; see README.
 
 ## Phase 1 checklist
 
@@ -45,10 +41,22 @@ search and GPS, source comparator); there is **no Android build**; see README.
 
 ## Phase 2 checklist
 
-- [ ] Calibration (EMOS / quantile mapping) with CRPSS > 0 vs raw ensemble — the full hindcast run has finished; its numbers are reported in the pending dated amendment to `EVALUATION_PROTOCOL.md` and are not published here before approval. Smoke run, labelled **hindcast, smoke** (n_train=10, not the gate): EMOS −0.0774 / QM +0.0002.
+- [x] Calibration (EMOS / quantile mapping) with CRPSS > 0 vs raw ensemble — Run B completed (rolling-45, anti-leakage, localday-3p-v1): 95/95 cells valid, 12/19 stations improved (63.2% $\ge$ 60% threshold, 7-day block bootstrap 95% CI > 0; EMOS cell mean CRPSS +0.2187, QM +0.0943). Gate passed. Results kept in local hindcast cache; web skill screen pending owner export decision.
 - [ ] FastAPI with `/forecast`, `/skill`, `/sources`, `/enso` — the code exists and its endpoints are tested (`backend/src/prisma/api/`; 9 endpoint tests pass and uvicorn serves the routes locally), but it is **not deployed in this phase** (owner decision, 2026-11-15: static data on Pages); the app reads the static export.
 - [x] Flutter **web** app: probabilistic forecast, skill screen, source comparator. Web only — there is no Android build (it stays under Candidates below).
-- [x] Public link to the app — `https://akunimal.github.io/prisma-climate/` is live and the Phase 2 skill screen is deployed; it shows "not available" until hindcast results are committed and the amendment is approved.
+- [x] Public link to the app — `https://akunimal.github.io/prisma-climate/` is live and the Phase 2 skill screen is deployed; it shows "not available" until hindcast results are committed or exported to Pages.
+
+## Phase 3 checklist
+
+- [ ] Subseasonal (2–6 weeks) ML models trained and benchmarked against Phase 2 calibration.
+- [ ] ENSO conditioning (requires multi-year hindcast dataset).
+- [ ] App screens 4–5 (subseasonal forecast and alerts).
+
+## Phase 4 checklist
+
+- [x] Dataset and models/software with DOI (Zenodo) — archived under release `v0.1.0`: Concept DOI [`10.5281/zenodo.24309946`](https://doi.org/10.5281/zenodo.24309946), Version DOI [`10.5281/zenodo.24309947`](https://doi.org/10.5281/zenodo.24309947).
+- [ ] Preprint or technical report.
+- [ ] Contact with university / CONICET / INTA (at least one institutional partner).
 
 ## App stages (after the station map)
 
@@ -81,8 +89,3 @@ search and GPS, source comparator); there is **no Android build**; see README.
 - Android build.
 - Climatological normal range on the forecast chart.
 - Dark theme.
-
-
-- Subseasonal (2–6 weeks) ML with ENSO conditioning.
-- Additional sources (Tier 2/3) as gates open.
-- DOI via Zenodo, preprint, institutional partners (Phase 4).
