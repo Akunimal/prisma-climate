@@ -129,7 +129,7 @@ def moving_block_bootstrap(
 
 
 def analyze_run_b() -> dict[str, Any]:
-    csv_path, meta_path, cases_path, md_path = find_latest_run_b()
+    csv_path, meta_path, cases_path, _md_path = find_latest_run_b()
     cells = pd.read_csv(csv_path)
     cases = pd.read_parquet(cases_path)
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
@@ -200,7 +200,7 @@ def analyze_run_b() -> dict[str, Any]:
 
         # Decision rule: station CRPSS > 0 AND 95% CI of (calibrated - raw)
         # excludes 0 in improving direction (upper bound < 0)
-        ci_lower_e, ci_upper_e = boot["diff_emos"]
+        _ci_lower_e, ci_upper_e = boot["diff_emos"]
         improved = bool(crpss_emos > 0 and ci_upper_e < 0)
 
         station_rows.append({
