@@ -262,12 +262,24 @@ def analyze_run_b() -> dict[str, Any]:
 
 
 if __name__ == "__main__":
+    import sys
     res = analyze_run_b()
-    print(f"Artifact: {res['csv_path']}")
-    pct_str = f"{res['pct_improved']:.1f}%"
-    print(f"Improved stations: {res['n_improved']} / {res['n_denom']} ({pct_str})")
-    print(f"Hypothesis (X=60%): {'HOLDS' if res['hypothesis_holds'] else 'FAILS'}")
-    emos_str = f"{res['mean_cell_emos']:.4f} (Run A: {res['run_a_cell_emos']:.4f})"
-    print(f"Mean cell CRPSS EMOS: {emos_str}")
-    qm_str = f"{res['mean_cell_qm']:.4f} (Run A: {res['run_a_cell_qm']:.4f})"
-    print(f"Mean cell CRPSS QM:   {qm_str}")
+    if "--markdown" in sys.argv:
+        print("| Estación | Nombre | Celdas suf. | Fechas | CRPS Raw | CRPS EMOS | CRPSS EMOS | IC 95% diff EMOS | CRPSS QM | IC 95% diff QM | ¿Mejora? |")
+        print("|---|---|---|---|---|---|---|---|---|---|---|")
+        for s in res["stations"]:
+            de0, de1 = s["ci_diff_emos"]
+            dq0, dq1 = s["ci_diff_qm"]
+            d_e = f"[{de0:.3f}, {de1:.3f}]"
+            d_q = f"[{dq0:.3f}, {dq1:.3f}]"
+            imp = "**SÍ**" if s["improved"] else "NO"
+            print(f"| `{s['station_id']}` | {s['name']} | {s['n_sufficient']}/{s['total_cells']} | {s['n_dates']} | {s['crps_raw']:.3f} | {s['crps_emos']:.3f} | **{s['crpss_emos']:+.4f}** | `{d_e}` | {s['crpss_qm']:+.4f} | `{d_q}` | {imp} |")
+    else:
+        print(f"Artifact: {res['csv_path']}")
+        pct_str = f"{res['pct_improved']:.1f}%"
+        print(f"Improved stations: {res['n_improved']} / {res['n_denom']} ({pct_str})")
+        print(f"Hypothesis (X=60%): {'HOLDS' if res['hypothesis_holds'] else 'FAILS'}")
+        emos_str = f"{res['mean_cell_emos']:.4f} (Run A: {res['run_a_cell_emos']:.4f})"
+        print(f"Mean cell CRPSS EMOS: {emos_str}")
+        qm_str = f"{res['mean_cell_qm']:.4f} (Run A: {res['run_a_cell_qm']:.4f})"
+        print(f"Mean cell CRPSS QM:   {qm_str}")
