@@ -641,7 +641,8 @@ def _evaluate_rolling_variable(
     window: int = ROLLING_WINDOW,
     variable: str = "t2m_max",
     value_column: str = "value_c",
-) -> pd.DataFrame:
+    return_cases: bool = False,
+) -> Any:
     """Per-issue-date rolling fit (Run B); same cell schema as chronological.
 
     For each issue date D and lead L: fit EMOS + QM on the up-to-``window``
@@ -668,6 +669,7 @@ def _evaluate_rolling_variable(
         return np.asarray([by[m] for m in MEMBERS if m in by], dtype=float)
 
     records: list[dict[str, Any]] = []
+    case_records: list[dict[str, Any]] = []
 
     for lead in leads:
         for sid in station_ids:
@@ -738,6 +740,19 @@ def _evaluate_rolling_variable(
                 emos_list.append(scored["crps_emos"])
                 qm_list.append(scored["crps_qm"])
                 scored_sizes.append(len(train_pairs))
+                if return_cases:
+                    case_records.append(
+                        {
+                            "station_id": sid,
+                            "variable": variable,
+                            "lead_day": lead,
+                            "issue_date": issue.isoformat(),
+                            "valid_date": (issue + timedelta(days=lead)).isoformat(),
+                            "crps_raw": float(scored["crps_raw"]),
+                            "crps_emos": float(scored["crps_emos"]),
+                            "crps_qm": float(scored["crps_qm"]),
+                        }
+                    )
 
             n_eval = len(raw_list)
             if scored_sizes:
@@ -770,7 +785,10 @@ def _evaluate_rolling_variable(
                     ),
                 }
             )
-    return pd.DataFrame.from_records(records)
+    cells_df = pd.DataFrame.from_records(records)
+    if return_cases:
+        return cells_df, pd.DataFrame.from_records(case_records)
+    return cells_df
 
 
 def evaluate_rolling(
@@ -780,7 +798,8 @@ def evaluate_rolling(
     *,
     leads: Sequence[int],
     window: int = ROLLING_WINDOW,
-) -> pd.DataFrame:
+    return_cases: bool = False,
+) -> Any:
     """Rolling-45 scores for every cached variable (t2m_max primary).
 
     Uses the CACHE_RULE forecast values only; t2m_min is scored only when
@@ -790,6 +809,26 @@ def evaluate_rolling(
     value_columns = {"t2m_max": "value_c"}
     if "tmin_c" in cache.columns and cache["tmin_c"].notna().any():
         value_columns["t2m_min"] = "tmin_c"
+    if return_cases:
+        cell_frames: list[pd.DataFrame] = []
+        case_frames: list[pd.DataFrame] = []
+        for variable in value_columns:
+            cells_v, cases_v = _evaluate_rolling_variable(
+                cache,
+                obs,
+                stations,
+                leads=leads,
+                window=window,
+                variable=variable,
+                value_column=value_columns[variable],
+                return_cases=True,
+            )
+            cell_frames.append(cells_v)
+            case_frames.append(cases_v)
+        return (
+            pd.concat(cell_frames, ignore_index=True),
+            pd.concat(case_frames, ignore_index=True),
+        )
     frames = [
         _evaluate_rolling_variable(
             cache,
@@ -799,6 +838,7 @@ def evaluate_rolling(
             window=window,
             variable=variable,
             value_column=value_columns[variable],
+            return_cases=False,
         )
         for variable in value_columns
     ]
@@ -811,6 +851,7 @@ def write_outputs(
     meta: dict[str, Any],
     *,
     mode: str,
+    cases: pd.DataFrame | None = None,
 ) -> list[Path]:
     out_dir = root / OUT_DIR_REL
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -820,6 +861,11 @@ def write_outputs(
     json_path = out_dir / f"crpss_{mode}_{stamp}.meta.json"
     cells.to_csv(csv_path, index=False)
     json_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    paths = [csv_path, md_path, json_path]
+    if cases is not None and not cases.empty:
+        cases_path = out_dir / f"crpss_{mode}_{stamp}.cases.parquet"
+        cases.to_parquet(cases_path, index=False)
+        paths.append(cases_path)
 
     n_cells = len(cells)
     n_ok = (
@@ -942,9 +988,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             "(no scoring performed)"
         )
         return 0
+    cases = None
     if args.rolling:
         print(f"training=rolling-{ROLLING_WINDOW} (per issue date)")
-        cells = evaluate_rolling(cache, obs, stations, leads=leads)
+        cells, cases = evaluate_rolling(
+            cache, obs, stations, leads=leads, return_cases=True
+        )
     else:
         cells = evaluate_from_cache(
             cache, obs, stations, n_train=n_train, leads=leads
@@ -967,7 +1016,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     meta["window_end"] = window[-1].isoformat()
     meta["obs_source"] = "smn-regtemp capture (local_calendar)"
     meta["n_cells"] = int(len(cells))
-    paths = write_outputs(root, cells, meta, mode=meta["mode"])
+    import hashlib
+    inputs = [REGTEMP_REL, CATALOGUE_REL, REGION_REL]
+    meta["input_sha256"] = {
+        str(p).replace("\\", "/"): hashlib.sha256((root / p).read_bytes()).hexdigest()
+        for p in inputs
+        if (root / p).is_file()
+    }
+    paths = write_outputs(root, cells, meta, mode=meta["mode"], cases=cases)
     print(f"wrote {paths[0]}")
     if not cells.empty and "crpss_emos_vs_raw" in cells:
         sufficient = cells.loc[~cells["insufficient"]]
