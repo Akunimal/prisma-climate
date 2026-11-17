@@ -1,5 +1,7 @@
 # PRISMA
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24309947.svg)](https://doi.org/10.5281/zenodo.24309947)
+
 **Starting with Argentina, designed to scale globally.**
 
 ![PRISMA station map](docs/images/app-map.png)
@@ -105,10 +107,13 @@ Adding a data source means one new connector under `backend/src/prisma/ingest/` 
 
 ## Cite this work
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24309947.svg)](https://doi.org/10.5281/zenodo.24309947)
+
 If you use PRISMA Climate in your research, forecasts, or software, please cite it using [`CITATION.cff`](CITATION.cff):
 
 - **Release:** `v0.1.0 — frozen evaluation protocol`
-- **Status:** DOI pending (Zenodo deposit)
+- **DOI (v0.1.0):** [10.5281/zenodo.24309947](https://doi.org/10.5281/zenodo.24309947)
+- **Concept DOI (all versions):** [10.5281/zenodo.24309946](https://doi.org/10.5281/zenodo.24309946)
 - **Evaluation Protocol:** [`docs/EVALUATION_PROTOCOL.md`](docs/EVALUATION_PROTOCOL.md)
 - **AI Use Disclosure:** [`docs/AI_USE.md`](docs/AI_USE.md)
 

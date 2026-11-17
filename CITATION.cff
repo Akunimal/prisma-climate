@@ -6,7 +6,7 @@ version: 0.1.0
 license: Apache-2.0
 repository-code: "https://github.com/Akunimal/prisma-climate"
 url: "https://akunimal.github.io/prisma-climate/"
-# DOI added after the v0.1.0 Zenodo deposit.
+doi: 10.5281/zenodo.24309947
 authors:
   - family-names: "Rodríguez Roncoroni"
     given-names: "Inti Sol"
