@@ -2,17 +2,27 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "PRISMA: open climate forecast verification, starting with Argentina"
 type: software
-authors:
-  - name: "PRISMA contributors"
+version: 0.1.0
 license: Apache-2.0
+repository-code: "https://github.com/Akunimal/prisma-climate"
+url: "https://akunimal.github.io/prisma-climate/"
+# DOI added after the v0.1.0 Zenodo deposit.
+authors:
+  - family-names: "Rodríguez Roncoroni"
+    given-names: "Inti Sol"
+    orcid: "https://orcid.org/0009-0000-5082-5877"
 abstract: >-
-  Open cross-platform project that ingests open weather and climate data,
-  verifies forecasts against observations, and shows calibrated
-  probabilities instead of single numbers. Starting with Argentina,
-  designed to scale globally.
+  Open, independent research software for archiving, verifying, and locally
+  calibrating numerical weather prediction ensemble forecasts against station
+  observations. Implements a frozen verification protocol, fair CRPS scoring,
+  ensemble model output statistics (EMOS), and quantile mapping across 19
+  meteorological stations in Argentina.
 keywords:
-  - weather
-  - climate
-  - forecast verification
-  - ensemble
-  - open data
+  - weather-forecasting
+  - climate-prediction
+  - forecast-verification
+  - ensemble-forecasting
+  - statistical-postprocessing
+  - emos
+  - quantile-mapping
+  - argentina

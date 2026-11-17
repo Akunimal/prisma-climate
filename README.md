@@ -12,7 +12,7 @@ PRISMA is an open, cross-platform project that cross-references real-time weathe
 
 Early-stage independent research. Be precise about what exists today:
 
-Current gate status: 5 of 15 distinct issue dates archived; no verification number published.
+Current gate status: 7 of 15 distinct issue dates archived; no verification number published.
 
 **Works today:**
 
@@ -103,6 +103,26 @@ app/         Flutter web app: 10 locales, station map, place search + GPS, reads
 
 Adding a data source means one new connector under `backend/src/prisma/ingest/` plus one entry in `configs/sources.yaml` — nothing else. Adding a country means one new file under `configs/regions/`.
 
-## Citation and license
+## Cite this work
 
-Apache-2.0, see [`LICENSE`](LICENSE). Citation metadata is in [`CITATION.cff`](CITATION.cff). The project plan (Spanish) is [`docs/PLAN.md`](docs/PLAN.md). Roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md).
+If you use PRISMA Climate in your research, forecasts, or software, please cite it using [`CITATION.cff`](CITATION.cff):
+
+- **Release:** `v0.1.0 — frozen evaluation protocol`
+- **Status:** DOI pending (Zenodo deposit)
+- **Evaluation Protocol:** [`docs/EVALUATION_PROTOCOL.md`](docs/EVALUATION_PROTOCOL.md)
+- **AI Use Disclosure:** [`docs/AI_USE.md`](docs/AI_USE.md)
+
+## Development
+
+PRISMA Climate is developed under direct human leadership with the assistance of AI coding agents. Roles, verification practices, and scientific reproducibility standards are documented in [`docs/AI_USE.md`](docs/AI_USE.md).
+
+Architecture and operational guidelines:
+- Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- Evaluation Protocol: [`docs/EVALUATION_PROTOCOL.md`](docs/EVALUATION_PROTOCOL.md)
+- Operations and Forensics: [`docs/OPERATIONS.md`](docs/OPERATIONS.md)
+- Roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md)
+- Project Plan (Spanish): [`docs/PLAN.md`](docs/PLAN.md)
+
+## License
+
+Apache-2.0, see [`LICENSE`](LICENSE).

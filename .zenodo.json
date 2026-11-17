@@ -1,0 +1,31 @@
+{
+  "title": "PRISMA: open climate forecast verification, starting with Argentina",
+  "upload_type": "software",
+  "description": "<p>PRISMA Climate is an open, independent scientific research codebase for archiving, verifying, and locally post-processing numerical weather and climate prediction ensembles against meteorological station observations in Argentina.</p><p>This release (v0.1.0) anchors the frozen evaluation protocol (<code>docs/EVALUATION_PROTOCOL.md</code>) defining operational verification gates, local calibration methods (joint Gaussian EMOS minimizing mean continuous ranked probability score and empirical quantile mapping), and statistical decision rules (1000-resample moving-block bootstrap with block length 7 days). Operational forecast verification remains gated on archiving &ge; 15 distinct issue dates.</p>",
+  "creators": [
+    {
+      "name": "Rodríguez Roncoroni, Inti Sol",
+      "orcid": "0009-0000-5082-5877"
+    }
+  ],
+  "access_right": "open",
+  "license": "apache-2.0",
+  "keywords": [
+    "weather-forecasting",
+    "climate-prediction",
+    "forecast-verification",
+    "ensemble-forecasting",
+    "statistical-postprocessing",
+    "emos",
+    "quantile-mapping",
+    "argentina"
+  ],
+  "version": "0.1.0",
+  "related_identifiers": [
+    {
+      "identifier": "https://huggingface.co/datasets/Akunimal/prisma-climate",
+      "relation": "isSupplementedBy",
+      "resource_type": "dataset"
+    }
+  ]
+}
