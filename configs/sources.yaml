@@ -181,10 +181,10 @@ sources:
   # ---------------------------------------------------------------------------
   - id: metar-south-america
     name: "NOAA Aviation Weather / MADIS METAR (South America)"
-    day_convention: utc
+    day_convention: local_calendar
     connector: "metar.MetarSouthAmerica"
     tier: 2
-    status: planned
+    status: active
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
@@ -193,7 +193,7 @@ sources:
     update_frequency: "hourly"
     license: "US Government / NOAA open data (Public Domain)"
     redistributable: yes
-    verified_on: null
+    verified_on: "2026-11-17"
     notes: >-
       Bridge observation network providing near-real-time observations across South American
       airports with ICAO codes. Acts as a unified observation backbone while country-specific

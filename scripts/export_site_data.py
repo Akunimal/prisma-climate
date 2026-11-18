@@ -81,6 +81,16 @@ ABOUT_SOURCES = [
         "attribution_url": "https://www.smn.gob.ar/",
         "note": "values archived as served; gaps are never filled",
     },
+    {
+        "id": "metar-south-america",
+        "name": "NOAA Aviation Weather / MADIS METAR",
+        "role": "aerodrome observations across South America",
+        "licence": "Public Domain",
+        "licence_url": "https://aviationweather.gov/data/metar/",
+        "attribution": "NOAA / Aviation Weather Center",
+        "attribution_url": "https://aviationweather.gov/",
+        "note": "near-real-time observations via ICAO airport network",
+    },
 ]
 
 

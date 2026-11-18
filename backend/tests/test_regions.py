@@ -61,5 +61,5 @@ def test_metar_source_registered_under_tier2() -> None:
     metar = next((s for s in registry if s["id"] == "metar-south-america"), None)
     assert metar is not None
     assert metar["tier"] == 2
-    assert metar["status"] == "planned"
+    assert metar["status"] == "active"
     assert is_valid_day_convention(metar["day_convention"])
