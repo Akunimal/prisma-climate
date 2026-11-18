@@ -271,6 +271,7 @@ def test_metar_regional_subclasses_sources() -> None:
 
 def test_fetch_awc_batch_session_and_resilience() -> None:
     import requests
+
     from prisma.ingest.metar import create_resilient_session
 
     session = create_resilient_session()

@@ -12,9 +12,6 @@ import os
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
-
-import pandas as pd
 
 from prisma.ingest.base import load_all_regions
 from prisma.ingest.metar import MetarGlobal
@@ -53,7 +50,7 @@ def upload_to_hf(parquet_path: Path, repo_id: str, token: str, replace: bool = F
         if not replace and api.file_exists(repo_id, target, repo_type="dataset"):
             print(f"target {target} already exists on {repo_id}; skipping")
             return False
-    except Exception as exc:
+    except (RuntimeError, OSError) as exc:
         print(f"warning: file_exists check failed ({exc}); attempting upload")
 
     api.upload_file(

@@ -7,7 +7,6 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pandas as pd
 import pytest
 
 SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "capture_metar.py"
