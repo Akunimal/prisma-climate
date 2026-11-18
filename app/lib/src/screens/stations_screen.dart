@@ -47,6 +47,7 @@ class _StationsScreenState extends State<StationsScreen> {
   bool _mapView = false;
   String? _selectedMarkerId;
   bool _tilesFailed = false;
+  bool _legendExpanded = false;
 
   PlaceDocument? _places;
   Future<void>? _placesLoading;
@@ -526,7 +527,10 @@ class _StationsScreenState extends State<StationsScreen> {
   ) {
     final allBounds = computeStationBounds(widget.latest.stations);
     final cameraFit = allBounds != null
-        ? CameraFit.bounds(bounds: allBounds, padding: const EdgeInsets.all(48))
+        ? CameraFit.bounds(
+            bounds: allBounds,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          )
         : null;
     final point = _selectedPoint;
     final nearest = point == null
@@ -545,7 +549,7 @@ class _StationsScreenState extends State<StationsScreen> {
             interactionOptions: const InteractionOptions(
               flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
             ),
-            minZoom: 3,
+            minZoom: 1.2,
             maxZoom: 10,
           ),
           children: [
@@ -575,10 +579,11 @@ class _StationsScreenState extends State<StationsScreen> {
             MarkerLayer(
               markers: mapStations.map((station) {
                 final selected = station.id == _selectedMarkerId;
+                final size = selected ? 26.0 : 18.0;
                 return Marker(
                   point: LatLng(station.lat, station.lon),
-                  width: 44,
-                  height: 44,
+                  width: size,
+                  height: size,
                   child: Semantics(
                     label: station.name,
                     button: true,
@@ -591,17 +596,18 @@ class _StationsScreenState extends State<StationsScreen> {
                             color: zoneColors[station.climateZone],
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: selected ? Colors.white : Colors.black54,
-                              width: selected ? 3 : 1,
+                              color: selected ? Colors.white : Colors.black87,
+                              width: selected ? 2.5 : 1.2,
                             ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            station.name.isNotEmpty ? station.name[0] : '?',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                  alpha: selected ? 0.4 : 0.2,
+                                ),
+                                blurRadius: selected ? 4 : 2,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -668,39 +674,100 @@ class _StationsScreenState extends State<StationsScreen> {
             ),
           ),
         Positioned(
-          bottom: 80,
+          bottom: 24,
           left: 8,
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(l10n.mapLegend, style: theme.textTheme.titleSmall),
-                  for (final zone in zones)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
+          child: _legendExpanded
+              ? Card(
+                  elevation: 4,
+                  child: Container(
+                    constraints: const BoxConstraints(maxHeight: 260, maxWidth: 320),
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(l10n.mapLegend, style: theme.textTheme.titleSmall),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () => setState(() => _legendExpanded = false),
+                              child: const Padding(
+                                padding: EdgeInsets.all(2),
+                                child: Icon(Icons.expand_more, size: 20),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(height: 12),
+                        Flexible(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                for (final zone in zones)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 4),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 10,
+                                          height: 10,
+                                          decoration: BoxDecoration(
+                                            color: zoneColors[zone],
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Flexible(
+                                          child: Text(
+                                            zone,
+                                            style: theme.textTheme.bodySmall,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : Card(
+                  elevation: 2,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => setState(() => _legendExpanded = true),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: zoneColors[zone],
-                              shape: BoxShape.circle,
-                            ),
+                          Icon(
+                            Icons.palette_outlined,
+                            size: 16,
+                            color: theme.colorScheme.primary,
                           ),
                           const SizedBox(width: 6),
-                          Text(zone),
+                          Text(
+                            l10n.mapLegend,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.expand_less, size: 18),
                         ],
                       ),
                     ),
-                ],
-              ),
-            ),
-          ),
+                  ),
+                ),
         ),
       ],
     );
