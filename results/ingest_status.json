@@ -1,13 +1,13 @@
 {
-  "last_run": "2026-11-18T13:00:19",
-  "region": "the_americas",
+  "last_run": "2026-11-18T15:59:17",
+  "region": "global",
   "rows": {
-    "openmeteo-ensemble": 212544
+    "openmeteo-ensemble": 551040
   },
   "failures": [],
   "status": "ok",
   "archive_watchdog": {
-    "checked_at": "2026-11-18T13:19:53Z",
+    "checked_at": "2026-11-18T16:05:41Z",
     "since": "2026-11-11",
     "as_of": "2026-11-18",
     "archived_issue_dates": 8,
