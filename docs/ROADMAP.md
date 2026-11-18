@@ -104,5 +104,16 @@ Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue d
 
 - [x] Regional definition for South America (`configs/regions/south_america.yaml` with 17 representative stations across major climate zones, ICAO codes, and timezones).
 - [x] METAR registered under Tier 2 (`configs/sources.yaml`).
-- [ ] METAR observation connector (`backend/src/prisma/ingest/metar.py`) to parse and archive aerodrome observations.
+- [x] METAR observation connector (`backend/src/prisma/ingest/metar.py`) to parse and archive aerodrome observations.
 - [ ] National meteorological service connectors (progressively added per country).
+
+## Regional expansion (North America)
+
+- **Strategy:**
+  - **Immediate forecast coverage:** Open-Meteo Ensemble (GFS + ECMWF IFS) covers North America out of the box using `configs/regions/north_america.yaml`.
+  - **Observational bridge:** METAR airport network (FAA ASOS/AWOS, Nav Canada, SENEAM Mexico) via `backend/src/prisma/ingest/metar.py`.
+  - **Progressive national connectors:** Direct station network connectors (NOAA NCEI ISD/GHCN, Environment and Climate Change Canada, CONAGUA/SMN Mexico) to be evaluated and added progressively.
+
+- [x] Regional definition for North America (`configs/regions/north_america.yaml` with 18 representative stations across US, Canada, and Mexico).
+- [x] METAR North America connector (`metar-north-america`) active in `configs/sources.yaml`.
+- [ ] National station network connectors (NOAA, ECCC, SMN Mexico).

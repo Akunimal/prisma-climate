@@ -84,7 +84,7 @@ ABOUT_SOURCES = [
     {
         "id": "metar-south-america",
         "name": "NOAA Aviation Weather / MADIS METAR",
-        "role": "aerodrome observations across South America",
+        "role": "aerodrome observations across the Americas (South & North America)",
         "licence": "Public Domain",
         "licence_url": "https://aviationweather.gov/data/metar/",
         "attribution": "NOAA / Aviation Weather Center",

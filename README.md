@@ -29,6 +29,7 @@ Current gate status: 7 of 15 distinct issue dates archived; no verification numb
 - FastAPI code in [`backend/src/prisma/api/`](backend/src/prisma/api/) with `/forecast`, `/skill`, `/sources` and `/enso` (9 endpoint tests; run locally with `uv run --project backend uvicorn prisma.api.app:app`; `/skill` serves the same hindcast-labelled document as `data/skill.json`). **No server is offered in Phase 2** (owner decision, 2026-11-15): the app reads the static export, not this API.
 - Calibration modules (EMOS and quantile mapping) with unit tests under [`backend/src/prisma/calibrate/`](backend/src/prisma/calibrate/). The full hindcast CRPSS evaluation (Run B, rolling-45 window, anti-leakage rule) passed the Phase 2 exit gate: 12 of 19 stations improved (63.2% $\ge$ 60% threshold, 7-day block bootstrap 95% CI > 0; EMOS cell mean CRPSS: +0.2187, QM: +0.0943), formally approved and released under [`v0.1.0`](https://github.com/Akunimal/prisma-climate/releases/tag/v0.1.0).
 - Regional expansion for South America ([`configs/regions/south_america.yaml`](configs/regions/south_america.yaml)) covering 17 aerodrome stations across 9 countries with ICAO identifiers and local timezones, providing immediate continental forecast coverage via Open-Meteo Ensemble and an active METAR observation bridge ([`backend/src/prisma/ingest/metar.py`](backend/src/prisma/ingest/metar.py)).
+- Regional expansion for North America ([`configs/regions/north_america.yaml`](configs/regions/north_america.yaml)) covering 18 aerodrome stations across the United States, Canada, and Mexico with ICAO identifiers and local timezones, integrated with Open-Meteo Ensemble and the active METAR observation bridge.
 
 **Does not exist yet:** published operational leaderboard numbers (awaiting the $\ge 15$ issue dates gate), SMN precipitation (no field in the open-data payloads; see [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)), an API server (none is offered this phase — see above), an Android build, and a published skill document: the live Skill screen shows "not available" until hindcast results are committed to Pages and the operational gate opens. Nothing in `results/` was produced by anything other than a script in this repository.
 
@@ -70,7 +71,7 @@ Every source is registered in [`configs/sources.yaml`](configs/sources.yaml) and
 | NOAA GHCN-Daily | Public domain (NOAA/NCEI) | Yes | active, but **stale at source**: last valid rows 2025-08-24 (~50% daily coverage since 2005) |
 | NOAA ONI / SAM indices | Public domain (NOAA/NWS) | Yes | active |
 | SMN Argentina | CC BY 2.5 AR (PAD_legales.pdf, Infoleg disp25.pdf) | Yes | active — **current station reference for Argentina** |
-| NOAA Aviation Weather / MADIS METAR | Public domain (NOAA) | Yes | active — **aerodrome observation bridge for South America** |
+| NOAA Aviation Weather / MADIS METAR | Public domain (NOAA) | Yes | active — **aerodrome observation bridge for the Americas (South & North America)** |
 | Map tiles (OpenStreetMap) | © OpenStreetMap contributors | Yes | non-data dependency; loaded directly by the app from OpenStreetMap servers |
 | Place names (GeoNames) | CC BY 4.0 | Yes | committed gazetteer `data/places/ar.json`, built by `scripts/build_places.py`; loaded by the app only when a place search starts |
 

@@ -200,6 +200,25 @@ sources:
       national connectors (DMC Chile, INMET Brazil, INUMET Uruguay, SENAMHI Peru) are
       progressively evaluated and added.
 
+  - id: metar-north-america
+    name: "NOAA Aviation Weather / MADIS METAR (North America)"
+    day_convention: local_calendar
+    connector: "metar.MetarNorthAmerica"
+    tier: 2
+    status: active
+    variables: [t2m_max, t2m_min, precip]
+    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
+    endpoint: "https://aviationweather.gov/api/data/metar"
+    coverage: "North America airport station network (ICAO aerodromes: US, Canada, Mexico)"
+    latency: "hours (hourly to sub-hourly reports)"
+    update_frequency: "hourly"
+    license: "US Government / NOAA open data (Public Domain)"
+    redistributable: yes
+    verified_on: "2026-11-18"
+    notes: >-
+      Bridge observation network providing near-real-time observations across North American
+      airports with ICAO codes (FAA ASOS/AWOS, Nav Canada, SENEAM Mexico).
+
   - id: inta
     name: "INTA (Argentina) agrometeorology"
     day_convention: unknown

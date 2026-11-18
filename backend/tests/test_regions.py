@@ -58,8 +58,54 @@ def test_openmeteo_parses_south_america_station() -> None:
 
 def test_metar_source_registered_under_tier2() -> None:
     registry = load_registry(ROOT / "configs" / "sources.yaml")
-    metar = next((s for s in registry if s["id"] == "metar-south-america"), None)
-    assert metar is not None
-    assert metar["tier"] == 2
-    assert metar["status"] == "active"
-    assert is_valid_day_convention(metar["day_convention"])
+    for source_id in ("metar-south-america", "metar-north-america"):
+        metar = next((s for s in registry if s["id"] == source_id), None)
+        assert metar is not None
+        assert metar["tier"] == 2
+        assert metar["status"] == "active"
+        assert is_valid_day_convention(metar["day_convention"])
+
+
+def test_north_america_region_validates() -> None:
+    path = ROOT / "configs" / "regions" / "north_america.yaml"
+    region = load_region(path)
+
+    assert region["id"] == "north_america"
+    assert region["name"] == "North America"
+    assert len(region["stations"]) >= 15
+
+    station_ids = [s["id"] for s in region["stations"]]
+    assert len(station_ids) == len(set(station_ids)), "station ids must be unique"
+
+    icaos = [s["icao"] for s in region["stations"] if "icao" in s]
+    assert len(icaos) == len(region["stations"]), "all stations must declare an icao code"
+    assert len(icaos) == len(set(icaos)), "icao codes must be unique"
+
+    for station in region["stations"]:
+        # North America bounding box check
+        assert 15.0 <= station["lat"] <= 75.0, f"station {station['id']} lat out of bounds"
+        assert -170.0 <= station["lon"] <= -50.0, f"station {station['id']} lon out of bounds"
+
+        # Timezone check
+        tz_name = station.get("timezone", region["timezone"])
+        assert ZoneInfo(tz_name) is not None
+
+
+def test_openmeteo_parses_north_america_station() -> None:
+    region = load_region(ROOT / "configs" / "regions" / "north_america.yaml")
+    st = region["stations"][0]  # New York JFK
+
+    payload = {
+        "daily": {
+            "time": ["2026-11-01"],
+            "temperature_2m_max": [15.0],
+            "temperature_2m_max_member1": [14.8],
+            "temperature_2m_min": [8.0],
+            "precipitation_sum": [1.2],
+        }
+    }
+    frame = parse_daily(payload, st, "gfs_seamless")
+    assert not frame.empty
+    assert frame["location"].iloc[0] == st["name"]
+    assert frame["lat"].iloc[0] == st["lat"]
+    assert frame["lon"].iloc[0] == st["lon"]
