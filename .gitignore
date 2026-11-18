@@ -13,6 +13,10 @@ data/stations/
 _site/
 # Scratch Hugging Face downloads
 tmp_hf/
+tmp_*
+*.log
+results/hindcast/
+graphify-out/
 !data/.gitkeep
 *.parquet
 

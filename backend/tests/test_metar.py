@@ -267,3 +267,35 @@ def test_metar_regional_subclasses_sources() -> None:
     assert MetarGlobal.source == "metar-global"
     assert MetarSouthAmerica.source == "metar-south-america"
     assert MetarNorthAmerica.source == "metar-north-america"
+
+
+def test_fetch_awc_batch_session_and_resilience() -> None:
+    import requests
+    from prisma.ingest.metar import create_resilient_session
+
+    session = create_resilient_session()
+    assert session is not None
+
+    call_count = 0
+
+    def mock_flaky_get(url: str, params: dict, headers: dict, timeout: int) -> MagicMock:
+        nonlocal call_count
+        call_count += 1
+        ids = params.get("ids", "")
+        if "FAIL" in ids:
+            raise requests.RequestException("Simulated transient 502/timeout")
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = [{"icaoId": ids, "obsTime": 1700000000, "temp": 15}]
+        return mock_resp
+
+    mock_session = MagicMock()
+    mock_session.get.side_effect = mock_flaky_get
+
+    # 2 batches: first fails with exception, second succeeds
+    reports = fetch_awc_batch(["FAIL"], hours=24, session=mock_session)
+    assert reports == []
+
+    reports = fetch_awc_batch(["OK1"], hours=24, session=mock_session)
+    assert len(reports) == 1
+    assert reports[0]["icaoId"] == "OK1"

@@ -95,6 +95,14 @@ jobs:
           --payloads datohorario observaciones
           --upload
 
+      - name: Capture daily METAR observations
+        id: metar
+        continue-on-error: true
+        run: >
+          uv run --project backend --with huggingface_hub
+          python scripts/capture_metar.py
+          --upload
+
       - name: Capture the weekly regtemp snapshot
         id: regtemp
         # Weekly slot or any manual dispatch. always() keeps this capture

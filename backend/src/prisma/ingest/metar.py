@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import csv
 import io
+import logging
 import re
 from collections import defaultdict
 from collections.abc import Callable
@@ -23,15 +24,44 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from .base import Connector
+
+logger = logging.getLogger(__name__)
 
 AWC_BASE_URL = "https://aviationweather.gov/api/data/metar"
 IEM_BASE_URL = "https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py"
 
 USER_AGENT = "PRISMA-Climate/0.2.0 (+https://github.com/Akunimal/prisma-climate)"
-AWC_MAX_BATCH = 5
+AWC_MAX_BATCH = 10
 DEFAULT_TIMEOUT = 30
+
+
+def create_resilient_session(
+    retries: int = 3,
+    backoff_factor: float = 0.5,
+    status_forcelist: tuple[int, ...] = (429, 500, 502, 503, 504),
+    pool_connections: int = 10,
+    pool_maxsize: int = 10,
+) -> requests.Session:
+    """Create a requests.Session with connection pooling and automated retries."""
+    session = requests.Session()
+    retry_strategy = Retry(
+        total=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+        raise_on_status=False,
+    )
+    adapter = HTTPAdapter(
+        max_retries=retry_strategy,
+        pool_connections=pool_connections,
+        pool_maxsize=pool_maxsize,
+    )
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    return session
 
 _RMK_T_RE = re.compile(r"\bT([01])(\d{3})(?:[01]\d{3})?\b")
 _BODY_TEMP_RE = re.compile(r"\b(M?\d{2})/(?:M?\d{2}|//)\b")
@@ -95,6 +125,7 @@ def fetch_awc_batch(
     hours: int = 48,
     session: requests.Session | None = None,
     get_fn: Callable[..., requests.Response] = requests.get,
+    batch_size: int = AWC_MAX_BATCH,
 ) -> list[dict[str, Any]]:
     """Fetch raw METAR JSON reports from NOAA AWC in safe batches."""
     if not icaos:
@@ -103,21 +134,26 @@ def fetch_awc_batch(
     headers = {"User-Agent": USER_AGENT}
     all_reports: list[dict[str, Any]] = []
 
-    for i in range(0, len(icaos), AWC_MAX_BATCH):
-        batch = icaos[i : i + AWC_MAX_BATCH]
+    for i in range(0, len(icaos), batch_size):
+        batch = icaos[i : i + batch_size]
         params = {
             "ids": ",".join(batch),
             "format": "json",
             "hours": str(hours),
         }
         getter = session.get if session else get_fn
-        resp = getter(AWC_BASE_URL, params=params, headers=headers, timeout=DEFAULT_TIMEOUT)
-        if resp.status_code == 204:  # No Content
-            continue
-        resp.raise_for_status()
-        data = resp.json()
-        if isinstance(data, list):
-            all_reports.extend(data)
+        try:
+            resp = getter(AWC_BASE_URL, params=params, headers=headers, timeout=DEFAULT_TIMEOUT)
+            if resp.status_code == 204:  # No Content
+                continue
+            resp.raise_for_status()
+            data = resp.json()
+            if isinstance(data, list):
+                all_reports.extend(data)
+        except requests.RequestException as exc:
+            logger.warning("fetch_awc_batch: failed to fetch batch %s: %s", batch, exc)
+            if get_fn is not requests.get and session is None:
+                raise
 
     return all_reports
 
@@ -307,11 +343,19 @@ class MetarConnector(Connector):
             raise ValueError(f"{self.source}: no station in region declares an 'icao' code")
 
         icaos = [s["icao"] for s in stations]
-        get_fn = options.get("get_fn", requests.get)
+        session = options.get("session")
+        get_fn = options.get("get_fn")
+        if session is None and get_fn is None:
+            session = create_resilient_session()
         hours = options.get("hours", self.hours)
         convention = options.get("day_convention", self.day_convention)
 
-        raw_reports = fetch_awc_batch(icaos, hours=hours, get_fn=get_fn)
+        raw_reports = fetch_awc_batch(
+            icaos,
+            hours=hours,
+            session=session,
+            get_fn=get_fn or requests.get,
+        )
 
         all_rows: list[dict[str, Any]] = []
         for station in stations:

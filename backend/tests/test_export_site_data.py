@@ -535,3 +535,37 @@ def test_main_prints_the_written_count(export, workspace: Path, tmp_path: Path, 
     assert "wrote 5 file(s)" in capsys.readouterr().out
     assert (out / "stations" / "estacion_uno.json").is_file()
     assert (out / "skill.json").is_file()
+
+
+def test_metar_observed_series_and_listing(export) -> None:
+    listing = [
+        "forecasts/2026-11-14/openmeteo-ensemble_2026-11-14.parquet",
+        "observations/smn/regtemp/20261114/regtemp.zip",
+        "observations/metar/2026-11-17.parquet",
+        "observations/metar/2026-11-18.parquet",
+    ]
+    latest = export.latest_metar_observations(listing)
+    assert latest == "observations/metar/2026-11-18.parquet"
+
+    # Frame with METAR data
+    metar_df = pd.DataFrame(
+        [
+            {
+                "location": "Paris Charles de Gaulle",
+                "time": "2026-11-18 00:00:00",
+                "variable": "t2m_max",
+                "value": 12.4,
+            },
+            {
+                "location": "Paris Charles de Gaulle",
+                "time": "2026-11-18 00:00:00",
+                "variable": "t2m_min",
+                "value": 4.1,
+            },
+        ]
+    )
+    series = export.metar_observed_series(metar_df, "Paris Charles de Gaulle")
+    assert len(series) == 1
+    assert series[0]["date"] == "2026-11-18"
+    assert series[0]["t2m_max"] == 12.4
+    assert series[0]["t2m_min"] == 4.1

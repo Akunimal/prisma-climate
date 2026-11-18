@@ -181,6 +181,25 @@ def latest_regtemp(listing: Iterable[str]) -> tuple[str, str]:
     return snapshot_date, paths[0]
 
 
+def latest_metar_observations(listing: Iterable[str]) -> str | None:
+    """Latest observations/metar/<date>.parquet if present in listing."""
+    by_date: dict[str, str] = {}
+    for raw in listing:
+        parts = _parts(raw)
+        if (
+            len(parts) == 3
+            and parts[0] == "observations"
+            and parts[1] == "metar"
+            and parts[2].endswith(".parquet")
+        ):
+            date_key = parts[2].removesuffix(".parquet")
+            by_date[date_key] = str(raw)
+    if not by_date:
+        return None
+    latest_date = max(by_date)
+    return by_date[latest_date]
+
+
 def member_share_ok(present: int, nominal: int) -> bool:
     """At least 80 % of the nominal member count present (2026-11-14 rule 1)."""
     return present * MEMBER_FRACTION[1] >= nominal * MEMBER_FRACTION[0]
@@ -293,6 +312,43 @@ def observed_series(
     ]
 
 
+def metar_observed_series(
+    metar_frame: pd.DataFrame | None, location_name: str
+) -> list[dict[str, Any]]:
+    """Observed daily t2m_max and t2m_min from METAR frame for one station."""
+    if metar_frame is None or metar_frame.empty:
+        return []
+    subset = metar_frame.loc[
+        metar_frame["location"].eq(location_name)
+        & metar_frame["variable"].isin(["t2m_max", "t2m_min"])
+    ]
+    if subset.empty:
+        return []
+    pivoted = (
+        subset.pivot_table(
+            index="time",
+            columns="variable",
+            values="value",
+            aggfunc="first",
+        )
+        .reset_index()
+        .sort_values("time")
+        .tail(OBSERVED_DAYS)
+    )
+    series: list[dict[str, Any]] = []
+    for row in pivoted.itertuples():
+        tmax = getattr(row, "t2m_max", None)
+        tmin = getattr(row, "t2m_min", None)
+        series.append(
+            {
+                "date": pd.Timestamp(row.time).date().isoformat(),
+                "t2m_max": _rounded(tmax),
+                "t2m_min": _rounded(tmin),
+            }
+        )
+    return series
+
+
 def load_resolution(root: Path) -> dict[str, str]:
     """Region station name -> regtemp payload name (committed resolve table)."""
     path = root / RESOLUTION_REL
@@ -366,6 +422,10 @@ def export_site_data(
     region = load_all_regions(root)
     resolution = load_resolution(root)
     regtemp_frame = _parse_payload_zip(Path(fetch_file(repo, regtemp_path)), "regtemp")
+    metar_path = latest_metar_observations(listing)
+    metar_frame = (
+        pd.read_parquet(fetch_file(repo, metar_path)) if metar_path else None
+    )
 
     stamp = _iso_utc(generated_at if generated_at is not None else datetime.now(UTC))
     issue_time_text = _iso_utc(issue_time)
@@ -386,6 +446,9 @@ def export_site_data(
         if subset.empty:
             print(f"warning: no forecast rows for station {station_id} ({name})")
         payload_name = resolution.get(name)
+        obs = observed_series(regtemp_frame, payload_name)
+        if not obs and metar_frame is not None:
+            obs = metar_observed_series(metar_frame, name)
         station_documents.append(
             (
                 station_id,
@@ -397,7 +460,7 @@ def export_site_data(
                     "issue_time": issue_time_text,
                     "models": models,
                     "forecast": forecast_cases(subset, models, member_counts),
-                    "observed": observed_series(regtemp_frame, payload_name),
+                    "observed": obs,
                 },
             )
         )

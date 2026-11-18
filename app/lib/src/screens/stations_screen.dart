@@ -48,6 +48,7 @@ class _StationsScreenState extends State<StationsScreen> {
   String? _selectedMarkerId;
   bool _tilesFailed = false;
   bool _legendExpanded = false;
+  String _selectedRegion = 'all';
 
   PlaceDocument? _places;
   Future<void>? _placesLoading;
@@ -83,9 +84,70 @@ class _StationsScreenState extends State<StationsScreen> {
     super.dispose();
   }
 
+  static const Set<String> _kAmericas = {
+    'la_quiaca', 'salta', 'tucuman', 'formosa', 'resistencia', 'posadas', 'mendoza',
+    'san_juan', 'malargue', 'cordoba', 'rosario', 'buenos_aires', 'santa_rosa',
+    'mar_del_plata', 'bahia_blanca', 'comodoro_rivadavia', 'bariloche', 'trelew', 'ushuaia',
+    'santiago_pudahuel', 'punta_arenas', 'montevideo_carrasco', 'asuncion_pettirossi',
+    'sao_paulo_congonhas', 'rio_janeiro_galeao', 'brasilia_aeroporto', 'manaus_eduardo_gomes',
+    'lima_jorge_chavez', 'cusco_velasco_astete', 'bogota_el_dorado', 'quito_mariscal_sucre',
+    'la_paz_el_alto', 'santa_cruz_viru_viru', 'buenos_aires_aeroparque', 'cordoba_aeropuerto',
+    'bariloche_aeropuerto', 'new_york_jfk', 'chicago_ohare', 'miami_intl', 'houston_bush',
+    'denver_intl', 'los_angeles_lax', 'seattle_tacoma', 'phoenix_sky_harbor', 'anchorage_intl',
+    'toronto_pearson', 'halifax_stanfield', 'calgary_intl', 'vancouver_intl', 'yellowknife',
+    'mexico_city_juarez', 'monterrey_intl', 'cancun_intl', 'guadalajara_intl',
+  };
+
+  static const Set<String> _kEurope = {
+    'london_heathrow', 'paris_cdg', 'frankfurt_am_main', 'amsterdam_schiphol',
+    'madrid_barajas', 'rome_fiumicino', 'athens_venizelos', 'lisbon_humberto_delgado',
+    'vienna_schwechat', 'zurich_flughafen', 'stockholm_arlanda', 'helsinki_vantaa',
+    'oslo_gardermoen', 'warsaw_chopin', 'prague_vaclav_havel', 'bucharest_otopeni',
+    'reykjavik_keflavik', 'tromso_langnes',
+  };
+
+  static const Set<String> _kAsia = {
+    'beijing_capital', 'shanghai_pudong', 'tokyo_haneda', 'seoul_incheon',
+    'moscow_sheremetyevo', 'novosibirsk_tolmachevo', 'yakutsk_airport', 'delhi_indira_gandhi',
+    'mumbai_chhatrapati', 'bangkok_suvarnabhumi', 'ho_chi_minh_tan_son_nhat',
+    'singapore_changi', 'kuala_lumpur_intl', 'jakarta_soekarno_hatta', 'manila_ninoy_aquino',
+    'taipei_taoyuan', 'almaty_intl', 'tashkent_islam_karimov', 'karachi_jinnah',
+  };
+
+  static const Set<String> _kAfrica = {
+    'cairo_intl', 'casablanca_mohammed_v', 'dakar_blaise_diagne', 'lagos_murtala_muhammed',
+    'accra_kotoka', 'nairobi_jomo_kenyatta', 'addis_ababa_bole', 'dar_es_salaam_julius_nyerere',
+    'johannesburg_or_tambo', 'cape_town_intl', 'antananarivo_ivato', 'mauritius_ramgoolam',
+    'kinshasa_ndjili', 'khartoum_intl', 'tunis_carthage', 'alger_houari_boumediene',
+    'niamey_diori_hamani',
+  };
+
+  static const Set<String> _kOceania = {
+    'sydney_kingsford_smith', 'melbourne_tullamarine', 'brisbane_airport', 'perth_airport',
+    'adelaide_airport', 'darwin_intl', 'alice_springs', 'hobart_airport', 'cairns_airport',
+    'auckland_airport', 'christchurch_intl', 'wellington_intl', 'nadi_intl',
+    'port_moresby_jacksons', 'honolulu_daniel_k_inouye', 'papeete_faa_a',
+  };
+
+  static const Set<String> _kMiddleEast = {
+    'dubai_intl', 'doha_hamad', 'riyadh_king_khalid', 'jeddah_king_abdulaziz',
+    'kuwait_intl', 'bahrain_intl', 'muscat_intl', 'amman_queen_alia', 'beirut_rafic_hariri',
+    'tel_aviv_ben_gurion', 'baghdad_intl', 'basra_intl', 'tehran_imam_khomeini',
+    'shiraz_shahid_dastghaib', 'damascus_intl', 'erbil_intl',
+  };
+
   List<StationSummary> get _filteredStations {
     final query = normalizeSearchText(_query.trim());
     return widget.latest.stations.where((station) {
+      if (_selectedRegion != 'all') {
+        final id = station.id;
+        if (_selectedRegion == 'americas' && !_kAmericas.contains(id)) return false;
+        if (_selectedRegion == 'europe' && !_kEurope.contains(id)) return false;
+        if (_selectedRegion == 'asia' && !_kAsia.contains(id)) return false;
+        if (_selectedRegion == 'africa' && !_kAfrica.contains(id)) return false;
+        if (_selectedRegion == 'oceania' && !_kOceania.contains(id)) return false;
+        if (_selectedRegion == 'middle_east' && !_kMiddleEast.contains(id)) return false;
+      }
       if (query.isEmpty) return true;
       return normalizeSearchText(station.name).contains(query) ||
           normalizeSearchText(station.climateZone).contains(query) ||
@@ -398,6 +460,36 @@ class _StationsScreenState extends State<StationsScreen> {
                 icon: const Icon(Icons.my_location),
                 label: Text(l10n.useMyLocation),
               ),
+            ],
+          ),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
+          child: Row(
+            children: [
+              for (final entry in const [
+                ('all', 'All (140)'),
+                ('americas', 'Americas (54)'),
+                ('europe', 'Europe (18)'),
+                ('asia', 'Asia (19)'),
+                ('africa', 'Africa (17)'),
+                ('oceania', 'Oceania (16)'),
+                ('middle_east', 'Middle East (16)'),
+              ])
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: FilterChip(
+                    visualDensity: VisualDensity.compact,
+                    selected: _selectedRegion == entry.$1,
+                    label: Text(entry.$2),
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedRegion = selected ? entry.$1 : 'all';
+                      });
+                    },
+                  ),
+                ),
             ],
           ),
         ),

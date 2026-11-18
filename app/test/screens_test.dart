@@ -121,6 +121,21 @@ void main() {
     expect(find.text(en.searchNoResults), findsOneWidget);
   });
 
+  testWidgets('Stations region filter chips filter stations list', (tester) async {
+    await pumpApp(tester);
+    expect(find.text('La Quiaca Observatorio'), findsOneWidget);
+
+    // Filter to Europe: Americas fixture stations are hidden
+    await tester.tap(find.text('Europe (18)'));
+    await tester.pumpAndSettle();
+    expect(find.text('La Quiaca Observatorio'), findsNothing);
+
+    // Back to All: fixture stations return
+    await tester.tap(find.text('All (140)'));
+    await tester.pumpAndSettle();
+    expect(find.text('La Quiaca Observatorio'), findsOneWidget);
+  });
+
   testWidgets('place search groups stations and places', (tester) async {
     await pumpApp(tester);
     await tester.enterText(find.byType(TextField), 'buenos');
