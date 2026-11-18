@@ -1,0 +1,230 @@
+# Deployment region: North America.
+#
+# Regional expansion covering key representative climate zones across North America
+# (United States, Canada, and Mexico).
+# Station identifiers carry ICAO airport codes for unified METAR observation bridge
+# support and NOAA GHCN-Daily IDs where mapped.
+#
+# Coordinate provenance:
+#   lat/lon below are official aerodrome coordinates (ICAO/FAA/Transport Canada/SENEAM)
+#   and NOAA GHCN-Daily inventory stations.
+#
+# Observation strategy:
+#   - Forecasts: Open-Meteo Ensemble (GFS + ECMWF IFS) operates globally at any lat/lon.
+#   - Real-time observations: METAR network via ICAO aerodrome identifiers (ASOS/AWOS).
+#   - National connectors (NOAA NCEI, Environment and Climate Change Canada, CONAGUA/SMN Mexico)
+#     to be integrated progressively as open-data adapters are verified.
+
+id: north_america
+name: "North America"
+description: "Regional expansion covering major climate zones across North America."
+timezone: America/New_York
+history_start: "1996-01-01"
+
+stations:
+  # ---------------------------------------------------------------------------
+  # United States
+  # ---------------------------------------------------------------------------
+  - id: new_york_jfk
+    name: "New York JFK International"
+    country: "United States"
+    zone: "Humid Continental / Atlantic Coast"
+    lat: 40.640
+    lon: -73.779
+    elevation_m: 4
+    icao: KJFK
+    ghcn_id: USW00094789
+    timezone: America/New_York
+
+  - id: chicago_ohare
+    name: "Chicago O'Hare International"
+    country: "United States"
+    zone: "Humid Continental / Great Lakes"
+    lat: 41.974
+    lon: -87.907
+    elevation_m: 205
+    icao: KORD
+    ghcn_id: USW00094846
+    timezone: America/Chicago
+
+  - id: miami_intl
+    name: "Miami International"
+    country: "United States"
+    zone: "Tropical Monsoon / Southeast Coast"
+    lat: 25.795
+    lon: -80.290
+    elevation_m: 2
+    icao: KMIA
+    ghcn_id: USW00012839
+    timezone: America/New_York
+
+  - id: houston_bush
+    name: "Houston George Bush Intercontinental"
+    country: "United States"
+    zone: "Humid Subtropical / Gulf Coast"
+    lat: 29.980
+    lon: -95.340
+    elevation_m: 30
+    icao: KIAH
+    ghcn_id: USW00012960
+    timezone: America/Chicago
+
+  - id: denver_intl
+    name: "Denver International"
+    country: "United States"
+    zone: "Semi-arid / High Plains"
+    lat: 39.856
+    lon: -104.674
+    elevation_m: 1656
+    icao: KDEN
+    ghcn_id: USW00003017
+    timezone: America/Denver
+
+  - id: los_angeles_lax
+    name: "Los Angeles International"
+    country: "United States"
+    zone: "Mediterranean / Pacific Coast"
+    lat: 33.942
+    lon: -118.408
+    elevation_m: 38
+    icao: KLAX
+    ghcn_id: USW00023174
+    timezone: America/Los_Angeles
+
+  - id: seattle_tacoma
+    name: "Seattle-Tacoma International"
+    country: "United States"
+    zone: "Oceanic / Pacific Northwest"
+    lat: 47.450
+    lon: -122.312
+    elevation_m: 132
+    icao: KSEA
+    ghcn_id: USW00024233
+    timezone: America/Los_Angeles
+
+  - id: phoenix_sky_harbor
+    name: "Phoenix Sky Harbor"
+    country: "United States"
+    zone: "Hot Desert / Sonoran"
+    lat: 33.434
+    lon: -112.012
+    elevation_m: 346
+    icao: KPHX
+    ghcn_id: USW00023183
+    timezone: America/Phoenix
+
+  - id: anchorage_intl
+    name: "Anchorage Ted Stevens"
+    country: "United States"
+    zone: "Subarctic / Coastal Alaska"
+    lat: 61.174
+    lon: -149.996
+    elevation_m: 46
+    icao: PANC
+    ghcn_id: USW00026451
+    timezone: America/Anchorage
+
+  # ---------------------------------------------------------------------------
+  # Canada
+  # ---------------------------------------------------------------------------
+  - id: toronto_pearson
+    name: "Toronto Pearson International"
+    country: "Canada"
+    zone: "Humid Continental / Great Lakes"
+    lat: 43.677
+    lon: -79.625
+    elevation_m: 173
+    icao: CYYZ
+    ghcn_id: CA006158733
+    timezone: America/Toronto
+
+  - id: halifax_stanfield
+    name: "Halifax Stanfield International"
+    country: "Canada"
+    zone: "Humid Continental / Atlantic Maritime"
+    lat: 44.881
+    lon: -63.509
+    elevation_m: 145
+    icao: CYHZ
+    ghcn_id: CA006352000
+    timezone: America/Halifax
+
+  - id: calgary_intl
+    name: "Calgary International"
+    country: "Canada"
+    zone: "Semi-arid Continental / Canadian Prairies"
+    lat: 51.114
+    lon: -114.020
+    elevation_m: 1084
+    icao: CYYC
+    ghcn_id: CA003031093
+    timezone: America/Edmonton
+
+  - id: vancouver_intl
+    name: "Vancouver International"
+    country: "Canada"
+    zone: "Oceanic / Pacific Coast"
+    lat: 49.195
+    lon: -123.182
+    elevation_m: 4
+    icao: CYVR
+    ghcn_id: CA001108447
+    timezone: America/Vancouver
+
+  - id: yellowknife
+    name: "Yellowknife Airport"
+    country: "Canada"
+    zone: "Subarctic / Northern Canada"
+    lat: 62.463
+    lon: -114.440
+    elevation_m: 206
+    icao: CYZF
+    ghcn_id: CA002204100
+    timezone: America/Yellowknife
+
+  # ---------------------------------------------------------------------------
+  # Mexico
+  # ---------------------------------------------------------------------------
+  - id: mexico_city_juarez
+    name: "Mexico City Benito Juárez"
+    country: "Mexico"
+    zone: "Subtropical Highland / Valley of Mexico"
+    lat: 19.436
+    lon: -99.072
+    elevation_m: 2230
+    icao: MMMX
+    ghcn_id: MX000009048
+    timezone: America/Mexico_City
+
+  - id: monterrey_intl
+    name: "Monterrey International"
+    country: "Mexico"
+    zone: "Semi-arid / Northeast Mexico"
+    lat: 25.778
+    lon: -100.107
+    elevation_m: 390
+    icao: MMMY
+    ghcn_id: MX000019047
+    timezone: America/Monterrey
+
+  - id: cancun_intl
+    name: "Cancún International"
+    country: "Mexico"
+    zone: "Tropical Wet and Dry / Yucatán Peninsula"
+    lat: 21.036
+    lon: -86.877
+    elevation_m: 6
+    icao: MMUN
+    ghcn_id: MX000023024
+    timezone: America/Cancun
+
+  - id: guadalajara_intl
+    name: "Guadalajara International"
+    country: "Mexico"
+    zone: "Humid Subtropical / Western Highlands"
+    lat: 20.522
+    lon: -103.311
+    elevation_m: 1529
+    icao: MMGL
+    ghcn_id: MX000014066
+    timezone: America/Mexico_City

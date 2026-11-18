@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 from prisma.ingest.base import COLUMNS
 from prisma.ingest.metar import (
+    MetarNorthAmerica,
     MetarSouthAmerica,
     aggregate_daily_records,
     fetch_awc_batch,
@@ -196,4 +197,48 @@ def test_metar_connector_fetch_normalized() -> None:
     assert list(frame.columns) == COLUMNS
     assert frame["source"].iloc[0] == "metar-south-america"
     assert frame["location"].iloc[0] == "São Paulo Congonhas"
+    assert set(frame["variable"].unique()) == {"t2m_max", "t2m_min", "precip"}
+
+
+def test_metar_north_america_fetch_normalized() -> None:
+    connector = MetarNorthAmerica()
+    region = {
+        "id": "north_america",
+        "timezone": "America/New_York",
+        "stations": [
+            {
+                "id": "new_york_jfk",
+                "name": "New York JFK International",
+                "icao": "KJFK",
+                "lat": 40.640,
+                "lon": -73.779,
+                "timezone": "America/New_York",
+            }
+        ],
+    }
+
+    base_ts = 1794884400
+    mock_reports = [
+        {
+            "icaoId": "KJFK",
+            "obsTime": base_ts + h * 3600,
+            "rawOb": "KJFK T01500080",
+            "temp": 15.0,
+            "precip": 0.0,
+        }
+        for h in range(22)
+    ]
+
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = mock_reports
+
+    def mock_get(*args: object, **kwargs: object) -> MagicMock:
+        return mock_resp
+
+    frame = connector.fetch_normalized(region, get_fn=mock_get)
+    assert not frame.empty
+    assert list(frame.columns) == COLUMNS
+    assert frame["source"].iloc[0] == "metar-north-america"
+    assert frame["location"].iloc[0] == "New York JFK International"
     assert set(frame["variable"].unique()) == {"t2m_max", "t2m_min", "precip"}

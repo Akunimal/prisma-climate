@@ -275,10 +275,10 @@ def aggregate_daily_records(
     return out_rows
 
 
-class MetarSouthAmerica(Connector):
-    """Bridge observation connector for South American aerodromes via METAR."""
+class MetarConnector(Connector):
+    """Base observation connector for aerodromes via METAR."""
 
-    source = "metar-south-america"
+    source = "metar"
     tier = 2
     day_convention = "local_calendar"
 
@@ -318,3 +318,15 @@ class MetarSouthAmerica(Connector):
             )
 
         return pd.DataFrame(all_rows)
+
+
+class MetarSouthAmerica(MetarConnector):
+    """Bridge observation connector for South American aerodromes via METAR."""
+
+    source = "metar-south-america"
+
+
+class MetarNorthAmerica(MetarConnector):
+    """Bridge observation connector for North American aerodromes via METAR."""
+
+    source = "metar-north-america"

@@ -7,7 +7,7 @@ from typing import Any
 from .base import Connector, is_valid_day_convention, load_yaml
 from .ghcn import GhcnDaily
 from .indices import NoaaOni, NoaaSam
-from .metar import MetarSouthAmerica
+from .metar import MetarNorthAmerica, MetarSouthAmerica
 from .openmeteo import OpenMeteoEnsemble, OpenMeteoEra5
 from .smn import SmnObservations
 
@@ -19,6 +19,7 @@ CONNECTORS: dict[str, type[Connector]] = {
     "indices.NoaaSam": NoaaSam,
     "smn.SmnObservations": SmnObservations,
     "metar.MetarSouthAmerica": MetarSouthAmerica,
+    "metar.MetarNorthAmerica": MetarNorthAmerica,
 }
 
 
