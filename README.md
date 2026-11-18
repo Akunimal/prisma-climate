@@ -6,6 +6,8 @@
 
 ![PRISMA station map](docs/images/app-map.png)
 
+![PRISMA forecast curves and quantile bands](docs/images/app-forecast.png)
+
 Live app: https://akunimal.github.io/prisma-climate/ · Dataset: https://huggingface.co/datasets/Akunimal/prisma-climate
 
 PRISMA is an open, cross-platform project that cross-references real-time weather and climate data, verifies forecasts against observations, and will show calibrated probabilities instead of single numbers.
