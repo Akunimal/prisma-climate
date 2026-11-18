@@ -80,7 +80,7 @@ jobs:
         continue-on-error: true
         run: >
           uv run --project backend python -m prisma.ingest
-          --region argentina
+          --region all
           --sources openmeteo-ensemble
           --out data/raw
 

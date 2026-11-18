@@ -14,6 +14,12 @@
       "country": "AR",
       "source": "geonames",
       "place_count": 14888
+    },
+    "the_americas": {
+      "file": "ar.json",
+      "country": "AR",
+      "source": "geonames",
+      "place_count": 14888
     }
   }
 }

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import argparse
 
-from .base import find_repo_root, load_region
+from .base import find_repo_root, load_all_regions, load_region
 from .registry import load_registry
 from .runner import run_sources
 
@@ -30,7 +30,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"tier {entry.get('tier')}  {entry.get('status'):<8} {entry['id']}")
         return 0
 
-    region = load_region(root / "configs" / "regions" / f"{args.region}.yaml")
+    if args.region in ("all", "americas", "the_americas"):
+        region = load_all_regions(root)
+    else:
+        region = load_region(root / "configs" / "regions" / f"{args.region}.yaml")
     ids = [item.strip() for item in args.sources.split(",")] if args.sources else None
 
     manifest = run_sources(region, registry, root / args.out, tier=args.tier, ids=ids)

@@ -96,6 +96,34 @@ def load_region(path: Path) -> dict[str, Any]:
     return region
 
 
+def load_all_regions(root: Path) -> dict[str, Any]:
+    regions_dir = Path(root) / "configs" / "regions"
+    region_files = sorted(regions_dir.glob("*.yaml"))
+    if not region_files:
+        raise FileNotFoundError(f"no region yaml files found in {regions_dir}")
+    if len(region_files) == 1:
+        return load_region(region_files[0])
+    stations: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    files_ordered = sorted(
+        region_files,
+        key=lambda p: (0 if p.stem == "argentina" else (1 if "south" in p.stem else 2), p.name),
+    )
+    for path in files_ordered:
+        reg = load_region(path)
+        for st in reg.get("stations", []):
+            st_id = str(st["id"])
+            if st_id not in seen_ids:
+                seen_ids.add(st_id)
+                stations.append(st)
+    return {
+        "id": "the_americas",
+        "name": "The Americas (América)",
+        "timezone": "UTC",
+        "stations": stations,
+    }
+
+
 def normalize(
     frame: pd.DataFrame,
     source: str,

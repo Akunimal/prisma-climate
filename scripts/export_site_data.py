@@ -46,7 +46,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from prisma.calibrate.skill_doc import build_skill_document
-from prisma.ingest.base import find_repo_root, load_region
+from prisma.ingest.base import find_repo_root, load_all_regions
 from prisma.verify.run import MEMBER_FRACTION, _parse_payload_zip, load_member_counts
 
 SCHEMA_VERSION = "1.0"
@@ -83,8 +83,18 @@ ABOUT_SOURCES = [
     },
     {
         "id": "metar-south-america",
-        "name": "NOAA Aviation Weather / MADIS METAR",
-        "role": "aerodrome observations across the Americas (South & North America)",
+        "name": "NOAA Aviation Weather / MADIS METAR (South America)",
+        "role": "aerodrome observations across South America",
+        "licence": "Public Domain",
+        "licence_url": "https://aviationweather.gov/data/metar/",
+        "attribution": "NOAA / Aviation Weather Center",
+        "attribution_url": "https://aviationweather.gov/",
+        "note": "near-real-time observations via ICAO airport network",
+    },
+    {
+        "id": "metar-north-america",
+        "name": "NOAA Aviation Weather / MADIS METAR (North America)",
+        "role": "aerodrome observations across North America (US, Canada, Mexico)",
         "licence": "Public Domain",
         "licence_url": "https://aviationweather.gov/data/metar/",
         "attribution": "NOAA / Aviation Weather Center",
@@ -343,7 +353,7 @@ def export_site_data(
                 "configs/sources.yaml options.member_counts"
             )
 
-    region = load_region(root / REGION_REL)
+    region = load_all_regions(root)
     resolution = load_resolution(root)
     regtemp_frame = _parse_payload_zip(Path(fetch_file(repo, regtemp_path)), "regtemp")
 
@@ -366,8 +376,6 @@ def export_site_data(
         if subset.empty:
             print(f"warning: no forecast rows for station {station_id} ({name})")
         payload_name = resolution.get(name)
-        if payload_name is None:
-            print(f"warning: no resolved regtemp name for station {station_id}")
         station_documents.append(
             (
                 station_id,
