@@ -89,3 +89,20 @@ Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue d
 - Android build.
 - Climatological normal range on the forecast chart.
 - Dark theme.
+
+## Regional expansion (South America)
+
+- **Strategy:**
+  - **Immediate forecast coverage:** Open-Meteo Ensemble (GFS + ECMWF IFS) operates globally, providing immediate forecast coverage across South America using `configs/regions/south_america.yaml`.
+  - **Observational bridge:** METAR airport network (ICAO aerodrome codes) acts as the initial unified, near-real-time observational backbone across South American stations.
+  - **Progressive national connectors:** National meteorological services will be added progressively country-by-country as open-data endpoints, licensing terms, and payload formats are verified:
+    - Chile (DMC)
+    - Uruguay (INUMET)
+    - Brazil (INMET)
+    - Peru / Bolivia (SENAMHI)
+    - Colombia (IDEAM)
+
+- [x] Regional definition for South America (`configs/regions/south_america.yaml` with 17 representative stations across major climate zones, ICAO codes, and timezones).
+- [x] METAR registered under Tier 2 (`configs/sources.yaml`).
+- [ ] METAR observation connector (`backend/src/prisma/ingest/metar.py`) to parse and archive aerodrome observations.
+- [ ] National meteorological service connectors (progressively added per country).
