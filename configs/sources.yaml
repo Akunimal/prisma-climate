@@ -179,6 +179,27 @@ sources:
   # ---------------------------------------------------------------------------
   # Tier 2
   # ---------------------------------------------------------------------------
+  - id: metar-south-america
+    name: "NOAA Aviation Weather / MADIS METAR (South America)"
+    day_convention: utc
+    connector: "metar.MetarSouthAmerica"
+    tier: 2
+    status: planned
+    variables: [t2m_max, t2m_min, precip]
+    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
+    endpoint: "https://aviationweather.gov/api/data/metar"
+    coverage: "South America airport station network (ICAO aerodromes)"
+    latency: "hours (hourly to sub-hourly reports)"
+    update_frequency: "hourly"
+    license: "US Government / NOAA open data (Public Domain)"
+    redistributable: yes
+    verified_on: null
+    notes: >-
+      Bridge observation network providing near-real-time observations across South American
+      airports with ICAO codes. Acts as a unified observation backbone while country-specific
+      national connectors (DMC Chile, INMET Brazil, INUMET Uruguay, SENAMHI Peru) are
+      progressively evaluated and added.
+
   - id: inta
     name: "INTA (Argentina) agrometeorology"
     day_convention: unknown

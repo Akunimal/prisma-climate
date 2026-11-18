@@ -1,0 +1,209 @@
+# Deployment region: South America.
+#
+# Regional expansion covering key representative climate zones across South America.
+# Station identifiers carry ICAO airport codes for unified METAR observation bridge
+# support and NOAA GHCN-Daily IDs where mapped.
+#
+# Coordinate provenance:
+#   lat/lon below are official aerodrome coordinates (ICAO/WMO) and NOAA GHCN-Daily
+#   inventory stations.
+#
+# Observation strategy:
+#   - Forecasts: Open-Meteo Ensemble (GFS + ECMWF IFS) operates globally at any lat/lon.
+#   - Real-time observations: METAR network via ICAO aerodrome identifiers.
+#   - National connectors (Chile DMC, Uruguay INUMET, Brazil INMET, Peru SENAMHI,
+#     Bolivia SENAMHI, Colombia IDEAM) to be integrated progressively country by country.
+
+id: south_america
+name: "South America"
+description: "Regional expansion covering major climate zones across South America."
+timezone: America/Sao_Paulo
+history_start: "1996-01-01"
+
+stations:
+  - id: santiago_pudahuel
+    name: "Santiago Pudahuel"
+    country: "Chile"
+    zone: "Mediterranean / Central Chile"
+    lat: -33.393
+    lon: -70.786
+    elevation_m: 474
+    icao: SCEL
+    ghcn_id: CI000085574
+    timezone: America/Santiago
+
+  - id: punta_arenas
+    name: "Punta Arenas Carlos Ibáñez"
+    country: "Chile"
+    zone: "Subpolar Oceanic / Patagonia"
+    lat: -53.003
+    lon: -70.855
+    elevation_m: 42
+    icao: SCCI
+    ghcn_id: CI000085934
+    timezone: America/Punta_Arenas
+
+  - id: montevideo_carrasco
+    name: "Montevideo Carrasco"
+    country: "Uruguay"
+    zone: "Humid Subtropical / Rio de la Plata"
+    lat: -34.838
+    lon: -56.031
+    elevation_m: 32
+    icao: SUMU
+    ghcn_id: UYM00086580
+    timezone: America/Montevideo
+
+  - id: asuncion_pettirossi
+    name: "Asunción Silvio Pettirossi"
+    country: "Paraguay"
+    zone: "Gran Chaco / Subtropical"
+    lat: -25.240
+    lon: -57.519
+    elevation_m: 89
+    icao: SGAS
+    ghcn_id: PAM00086218
+    timezone: America/Asuncion
+
+  - id: sao_paulo_congonhas
+    name: "São Paulo Congonhas"
+    country: "Brazil"
+    zone: "Highland Tropical / Southeast Brazil"
+    lat: -23.626
+    lon: -46.656
+    elevation_m: 802
+    icao: SBSP
+    ghcn_id: BR00E3-0510
+    timezone: America/Sao_Paulo
+
+  - id: rio_janeiro_galeao
+    name: "Rio de Janeiro Galeão"
+    country: "Brazil"
+    zone: "Tropical Atlantic / Southeast Brazil"
+    lat: -22.809
+    lon: -43.251
+    elevation_m: 9
+    icao: SBGL
+    ghcn_id: BR000300400
+    timezone: America/Sao_Paulo
+
+  - id: brasilia_aeroporto
+    name: "Brasília Pres. Juscelino Kubitschek"
+    country: "Brazil"
+    zone: "Cerrado / Central Brazil"
+    lat: -15.869
+    lon: -47.921
+    elevation_m: 1060
+    icao: SBBR
+    ghcn_id: BR000360140
+    timezone: America/Sao_Paulo
+
+  - id: manaus_eduardo_gomes
+    name: "Manaus Eduardo Gomes"
+    country: "Brazil"
+    zone: "Equatorial Rainforest / Amazonia"
+    lat: -3.036
+    lon: -60.050
+    elevation_m: 84
+    icao: SBEG
+    ghcn_id: BR00E3-0008
+    timezone: America/Manaus
+
+  - id: lima_jorge_chavez
+    name: "Lima Jorge Chávez"
+    country: "Peru"
+    zone: "Arid Subtropical / Humboldt Coast"
+    lat: -12.022
+    lon: -77.114
+    elevation_m: 34
+    icao: SPJC
+    ghcn_id: PEM00084628
+    timezone: America/Lima
+
+  - id: cusco_velasco_astete
+    name: "Cusco Alejandro Velasco Astete"
+    country: "Peru"
+    zone: "Subtropical Highland / Andes"
+    lat: -13.536
+    lon: -71.939
+    elevation_m: 3310
+    icao: SPZO
+    ghcn_id: PEM00084686
+    timezone: America/Lima
+
+  - id: bogota_el_dorado
+    name: "Bogotá El Dorado"
+    country: "Colombia"
+    zone: "Equatorial Highland / Andes"
+    lat: 4.702
+    lon: -74.147
+    elevation_m: 2548
+    icao: SKBO
+    ghcn_id: COM00080222
+    timezone: America/Bogota
+
+  - id: quito_mariscal_sucre
+    name: "Quito Mariscal Sucre"
+    country: "Ecuador"
+    zone: "Equatorial Highland / Andes"
+    lat: -0.125
+    lon: -78.358
+    elevation_m: 2400
+    icao: SEQM
+    ghcn_id: ECM00084071
+    timezone: America/Guayaquil
+
+  - id: la_paz_el_alto
+    name: "La Paz El Alto"
+    country: "Bolivia"
+    zone: "Altiplano / High Andes"
+    lat: -16.513
+    lon: -68.192
+    elevation_m: 4058
+    icao: SLLP
+    ghcn_id: BL000085201
+    timezone: America/La_Paz
+
+  - id: santa_cruz_viru_viru
+    name: "Santa Cruz Viru Viru"
+    country: "Bolivia"
+    zone: "Tropical Savanna / Oriente"
+    lat: -17.645
+    lon: -63.135
+    elevation_m: 373
+    icao: SLVR
+    ghcn_id: BL000085242
+    timezone: America/La_Paz
+
+  - id: buenos_aires_aeroparque
+    name: "Buenos Aires Aeroparque"
+    country: "Argentina"
+    zone: "Pampa / Rio de la Plata"
+    lat: -34.559
+    lon: -58.416
+    elevation_m: 6
+    icao: SABE
+    ghcn_id: AR000087582
+    timezone: America/Argentina/Buenos_Aires
+
+  - id: cordoba_aeropuerto
+    name: "Córdoba Aeropuerto"
+    country: "Argentina"
+    zone: "Central Sierras / Pampa"
+    lat: -31.317
+    lon: -64.217
+    elevation_m: 474
+    icao: SACO
+    ghcn_id: AR000087344
+    timezone: America/Argentina/Cordoba
+
+  - id: bariloche_aeropuerto
+    name: "Bariloche Aeropuerto"
+    country: "Argentina"
+    zone: "Northern Patagonia / Andes"
+    lat: -41.151
+    lon: -71.158
+    elevation_m: 846
+    icao: SAZS
+    ghcn_id: AR000087765
+    timezone: America/Argentina/Cordoba
