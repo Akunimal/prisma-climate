@@ -24,4 +24,14 @@ void main() {
     expect(b.southWest.latitude, lessThanOrEqualTo(-10));
     expect(b.northEast.latitude, greaterThanOrEqualTo(5));
   });
+
+  test('global span exceeding 180 degrees frames full world', () {
+    final stations = <StationSummary>[
+      make('honolulu', 21.319, -157.922, 'Pacific'),
+      make('fiji', -17.755, 177.443, 'Melanesia'),
+    ];
+    final b = computeStationBounds(stations)!;
+    expect(b.southWest.longitude, equals(-180.0));
+    expect(b.northEast.longitude, equals(180.0));
+  });
 }

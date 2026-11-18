@@ -29,11 +29,12 @@ from .base import Connector
 AWC_BASE_URL = "https://aviationweather.gov/api/data/metar"
 IEM_BASE_URL = "https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py"
 
-USER_AGENT = "PRISMA-Climate/0.1.1 (+https://github.com/Akunimal/prisma-climate)"
+USER_AGENT = "PRISMA-Climate/0.2.0 (+https://github.com/Akunimal/prisma-climate)"
 AWC_MAX_BATCH = 5
 DEFAULT_TIMEOUT = 30
 
 _RMK_T_RE = re.compile(r"\bT([01])(\d{3})(?:[01]\d{3})?\b")
+_BODY_TEMP_RE = re.compile(r"\b(M?\d{2})/(?:M?\d{2}|//)\b")
 _PRECIP_WX_RE = re.compile(r"\b(?:\+|-)?(?:RA|DZ|SN|SG|IC|PL|GR|GS|UP|TSRA|SHRA|VCSH|FZRA)\b")
 
 
@@ -55,6 +56,15 @@ def parse_metar_temperature(raw_ob: str | None, numeric_temp: float | None) -> f
                 return round(val, 1)
         except (ValueError, TypeError):
             pass
+
+    if raw_ob:
+        match_body = _BODY_TEMP_RE.search(raw_ob)
+        if match_body:
+            val_str = match_body.group(1)
+            temp = -float(val_str[1:]) if val_str.startswith("M") else float(val_str)
+            if -40.0 <= temp <= 55.0:
+                return round(temp, 1)
+
     return None
 
 
@@ -330,3 +340,39 @@ class MetarNorthAmerica(MetarConnector):
     """Bridge observation connector for North American aerodromes via METAR."""
 
     source = "metar-north-america"
+
+
+class MetarEurope(MetarConnector):
+    """Bridge observation connector for European aerodromes via METAR."""
+
+    source = "metar-europe"
+
+
+class MetarAsia(MetarConnector):
+    """Bridge observation connector for Asian aerodromes via METAR."""
+
+    source = "metar-asia"
+
+
+class MetarAfrica(MetarConnector):
+    """Bridge observation connector for African aerodromes via METAR."""
+
+    source = "metar-africa"
+
+
+class MetarOceania(MetarConnector):
+    """Bridge observation connector for Oceania & Pacific aerodromes via METAR."""
+
+    source = "metar-oceania"
+
+
+class MetarMiddleEast(MetarConnector):
+    """Bridge observation connector for Middle Eastern aerodromes via METAR."""
+
+    source = "metar-middle-east"
+
+
+class MetarGlobal(MetarConnector):
+    """Global bridge observation connector for all worldwide aerodromes via METAR."""
+
+    source = "metar-global"

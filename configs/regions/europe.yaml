@@ -1,0 +1,192 @@
+# Deployment region: Europe.
+#
+# Regional expansion covering major Köppen-Geiger climate zones across Europe:
+# Cfb (Oceanic/Maritime), Csa/Csb (Mediterranean), Dfb/Dfc (Continental/Subarctic), ET (Tundra/Polar).
+# Station identifiers carry official ICAO codes and IANA timezones.
+
+id: europe
+name: "Europe"
+description: "Regional configuration covering key climate zones across Europe."
+timezone: Europe/Paris
+history_start: "1996-01-01"
+
+stations:
+  - id: london_heathrow
+    name: "London Heathrow"
+    country: "United Kingdom"
+    zone: "Temperate Oceanic (Cfb)"
+    lat: 51.470
+    lon: -0.454
+    elevation_m: 25
+    icao: EGLL
+    timezone: Europe/London
+
+  - id: paris_cdg
+    name: "Paris Charles de Gaulle"
+    country: "France"
+    zone: "Temperate Oceanic (Cfb)"
+    lat: 49.009
+    lon: 2.547
+    elevation_m: 119
+    icao: LFPG
+    timezone: Europe/Paris
+
+  - id: frankfurt_am_main
+    name: "Frankfurt am Main"
+    country: "Germany"
+    zone: "Temperate Oceanic (Cfb)"
+    lat: 50.037
+    lon: 8.562
+    elevation_m: 111
+    icao: EDDF
+    timezone: Europe/Berlin
+
+  - id: amsterdam_schiphol
+    name: "Amsterdam Schiphol"
+    country: "Netherlands"
+    zone: "Temperate Oceanic (Cfb)"
+    lat: 52.310
+    lon: 4.768
+    elevation_m: -3
+    icao: EHAM
+    timezone: Europe/Amsterdam
+
+  - id: madrid_barajas
+    name: "Madrid Barajas"
+    country: "Spain"
+    zone: "Hot-summer Mediterranean / Semi-arid (Csa/BSk)"
+    lat: 40.483
+    lon: -3.567
+    elevation_m: 609
+    icao: LEMD
+    timezone: Europe/Madrid
+
+  - id: rome_fiumicino
+    name: "Rome Leonardo da Vinci"
+    country: "Italy"
+    zone: "Hot-summer Mediterranean (Csa)"
+    lat: 41.800
+    lon: 12.238
+    elevation_m: 4
+    icao: LIRF
+    timezone: Europe/Rome
+
+  - id: athens_venizelos
+    name: "Athens Eleftherios Venizelos"
+    country: "Greece"
+    zone: "Hot-summer Mediterranean / Semi-arid (Csa/BSh)"
+    lat: 37.936
+    lon: 23.948
+    elevation_m: 94
+    icao: LGAV
+    timezone: Europe/Athens
+
+  - id: lisbon_humberto_delgado
+    name: "Lisbon Humberto Delgado"
+    country: "Portugal"
+    zone: "Warm-summer Mediterranean (Csb)"
+    lat: 38.775
+    lon: -9.135
+    elevation_m: 114
+    icao: LPPT
+    timezone: Europe/Lisbon
+
+  - id: vienna_schwechat
+    name: "Vienna International"
+    country: "Austria"
+    zone: "Temperate Oceanic / Humid Continental (Cfb/Dfb)"
+    lat: 48.110
+    lon: 16.569
+    elevation_m: 183
+    icao: LOWW
+    timezone: Europe/Vienna
+
+  - id: zurich_flughafen
+    name: "Zurich Airport"
+    country: "Switzerland"
+    zone: "Temperate Oceanic / Pre-Alpine (Cfb)"
+    lat: 47.458
+    lon: 8.548
+    elevation_m: 432
+    icao: LSZH
+    timezone: Europe/Zurich
+
+  - id: stockholm_arlanda
+    name: "Stockholm Arlanda"
+    country: "Sweden"
+    zone: "Warm-summer Humid Continental (Dfb)"
+    lat: 59.649
+    lon: 17.918
+    elevation_m: 42
+    icao: ESSA
+    timezone: Europe/Stockholm
+
+  - id: helsinki_vantaa
+    name: "Helsinki-Vantaa"
+    country: "Finland"
+    zone: "Warm-summer Humid Continental (Dfb)"
+    lat: 60.317
+    lon: 24.963
+    elevation_m: 55
+    icao: EFHK
+    timezone: Europe/Helsinki
+
+  - id: oslo_gardermoen
+    name: "Oslo Gardermoen"
+    country: "Norway"
+    zone: "Warm-summer Humid Continental (Dfb)"
+    lat: 60.197
+    lon: 11.100
+    elevation_m: 208
+    icao: ENGM
+    timezone: Europe/Oslo
+
+  - id: warsaw_chopin
+    name: "Warsaw Chopin"
+    country: "Poland"
+    zone: "Warm-summer Humid Continental (Dfb)"
+    lat: 52.167
+    lon: 20.967
+    elevation_m: 110
+    icao: EPWA
+    timezone: Europe/Warsaw
+
+  - id: prague_vaclav_havel
+    name: "Prague Václav Havel"
+    country: "Czechia"
+    zone: "Warm-summer Humid Continental (Dfb)"
+    lat: 50.100
+    lon: 14.260
+    elevation_m: 380
+    icao: LKPR
+    timezone: Europe/Prague
+
+  - id: bucharest_otopeni
+    name: "Bucharest Henri Coandă"
+    country: "Romania"
+    zone: "Hot-summer Humid Continental (Dfa)"
+    lat: 44.571
+    lon: 26.085
+    elevation_m: 96
+    icao: LROP
+    timezone: Europe/Bucharest
+
+  - id: reykjavik_keflavik
+    name: "Keflavík International"
+    country: "Iceland"
+    zone: "Subpolar Oceanic (Cfc)"
+    lat: 63.985
+    lon: -22.605
+    elevation_m: 52
+    icao: BIKF
+    timezone: Atlantic/Reykjavik
+
+  - id: tromso_langnes
+    name: "Tromsø Langnes"
+    country: "Norway"
+    zone: "Subarctic / Polar Maritime (Dfc)"
+    lat: 69.683
+    lon: 18.918
+    elevation_m: 10
+    icao: ENTC
+    timezone: Europe/Oslo

@@ -1,0 +1,175 @@
+# Deployment region: Oceania & Pacific.
+#
+# Regional expansion covering major Köppen-Geiger climate zones across Australia,
+# New Zealand, Melanesia, and Polynesia:
+# Cfb (Temperate Oceanic SE Australia / New Zealand), Csa (Mediterranean SW/South Australia),
+# BWh/BSh (Arid Central Outback), Aw/Am (Monsoon / Tropical Savanna Northern Australia & PNG),
+# Af (Tropical Rainforest Pacific Islands).
+# Station identifiers carry official ICAO codes and IANA timezones.
+
+id: oceania
+name: "Oceania & Pacific"
+description: "Regional configuration covering key climate zones across Australia, New Zealand, and Pacific Islands."
+timezone: Australia/Sydney
+history_start: "1996-01-01"
+
+stations:
+  - id: sydney_kingsford_smith
+    name: "Sydney Kingsford Smith"
+    country: "Australia"
+    zone: "Humid Subtropical / Oceanic (Cfa/Cfb)"
+    lat: -33.946
+    lon: 151.177
+    elevation_m: 6
+    icao: YSSY
+    timezone: Australia/Sydney
+
+  - id: melbourne_tullamarine
+    name: "Melbourne Tullamarine"
+    country: "Australia"
+    zone: "Temperate Oceanic (Cfb)"
+    lat: -37.673
+    lon: 144.843
+    elevation_m: 132
+    icao: YMML
+    timezone: Australia/Melbourne
+
+  - id: brisbane_airport
+    name: "Brisbane Airport"
+    country: "Australia"
+    zone: "Humid Subtropical (Cfa)"
+    lat: -27.384
+    lon: 153.118
+    elevation_m: 4
+    icao: YBBN
+    timezone: Australia/Brisbane
+
+  - id: perth_airport
+    name: "Perth Airport"
+    country: "Australia"
+    zone: "Hot-summer Mediterranean (Csa)"
+    lat: -31.940
+    lon: 115.967
+    elevation_m: 20
+    icao: YPPH
+    timezone: Australia/Perth
+
+  - id: adelaide_airport
+    name: "Adelaide Airport"
+    country: "Australia"
+    zone: "Hot-summer Mediterranean / Semi-arid (Csa/BSk)"
+    lat: -34.945
+    lon: 138.531
+    elevation_m: 6
+    icao: YPAD
+    timezone: Australia/Adelaide
+
+  - id: darwin_intl
+    name: "Darwin International"
+    country: "Australia"
+    zone: "Tropical Savanna / Wet and Dry (Aw)"
+    lat: -12.415
+    lon: 130.877
+    elevation_m: 31
+    icao: YPDN
+    timezone: Australia/Darwin
+
+  - id: alice_springs
+    name: "Alice Springs Airport"
+    country: "Australia"
+    zone: "Hot Desert / Central Outback (BWh)"
+    lat: -23.807
+    lon: 133.902
+    elevation_m: 545
+    icao: YBAS
+    timezone: Australia/Darwin
+
+  - id: hobart_airport
+    name: "Hobart Airport"
+    country: "Australia"
+    zone: "Temperate Oceanic / Southern Tasmania (Cfb)"
+    lat: -42.836
+    lon: 147.510
+    elevation_m: 4
+    icao: YMHB
+    timezone: Australia/Hobart
+
+  - id: cairns_airport
+    name: "Cairns Airport"
+    country: "Australia"
+    zone: "Tropical Monsoon (Am)"
+    lat: -16.886
+    lon: 145.755
+    elevation_m: 3
+    icao: YBCS
+    timezone: Australia/Brisbane
+
+  - id: auckland_airport
+    name: "Auckland Airport"
+    country: "New Zealand"
+    zone: "Temperate Oceanic (Cfb)"
+    lat: -37.008
+    lon: 174.792
+    elevation_m: 7
+    icao: NZAA
+    timezone: Pacific/Auckland
+
+  - id: christchurch_intl
+    name: "Christchurch International"
+    country: "New Zealand"
+    zone: "Temperate Oceanic (Cfb)"
+    lat: -43.489
+    lon: 172.532
+    elevation_m: 37
+    icao: NZCH
+    timezone: Pacific/Auckland
+
+  - id: wellington_intl
+    name: "Wellington International"
+    country: "New Zealand"
+    zone: "Temperate Oceanic (Cfb)"
+    lat: -41.327
+    lon: 174.805
+    elevation_m: 13
+    icao: NZWN
+    timezone: Pacific/Auckland
+
+  - id: nadi_intl
+    name: "Nadi International"
+    country: "Fiji"
+    zone: "Tropical Rainforest / Monsoon (Af/Am)"
+    lat: -17.755
+    lon: 177.443
+    elevation_m: 18
+    icao: NFFN
+    timezone: Pacific/Fiji
+
+  - id: port_moresby_jacksons
+    name: "Port Moresby Jacksons International"
+    country: "Papua New Guinea"
+    zone: "Tropical Savanna (Aw)"
+    lat: -9.444
+    lon: 147.220
+    elevation_m: 38
+    icao: AYPY
+    timezone: Pacific/Port_Moresby
+
+  - id: honolulu_daniel_k_inouye
+    name: "Honolulu Daniel K. Inouye International"
+    country: "United States"
+    zone: "Tropical Savanna / Semi-arid (As/BSh)"
+    lat: 21.319
+    lon: -157.922
+    elevation_m: 4
+    icao: PHNL
+    timezone: Pacific/Honolulu
+
+  - id: papeete_faa_a
+    name: "Tahiti Faa'a International"
+    country: "French Polynesia"
+    zone: "Tropical Rainforest (Af)"
+    lat: -17.554
+    lon: -149.607
+    elevation_m: 2
+    icao: NTAA
+    timezone: Pacific/Tahiti

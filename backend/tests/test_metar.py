@@ -6,7 +6,13 @@ from unittest.mock import MagicMock
 
 from prisma.ingest.base import COLUMNS
 from prisma.ingest.metar import (
+    MetarAfrica,
+    MetarAsia,
+    MetarEurope,
+    MetarGlobal,
+    MetarMiddleEast,
     MetarNorthAmerica,
+    MetarOceania,
     MetarSouthAmerica,
     aggregate_daily_records,
     fetch_awc_batch,
@@ -28,6 +34,14 @@ def test_parse_metar_temperature_precision() -> None:
     # Fallback to integer when no T group in RMK
     raw_aeroparque = "SABE 170400Z 09008KT 9999 CLR 18/12 Q1018"
     assert parse_metar_temperature(raw_aeroparque, 18.0) == 18.0
+
+    # International body regex fallback when numeric_temp is None
+    raw_london = "EGLL 181200Z 24012KT 9999 FEW025 09/04 Q1013"
+    assert parse_metar_temperature(raw_london, None) == 9.0
+
+    # Subzero international body fallback
+    raw_moscow = "UUEE 181200Z 30010KT 5000 -SN OVC020 M08/M12 Q1020"
+    assert parse_metar_temperature(raw_moscow, None) == -8.0
 
     # Physical bounds filtering (-40 to 55)
     assert parse_metar_temperature(None, 60.0) is None
@@ -242,3 +256,14 @@ def test_metar_north_america_fetch_normalized() -> None:
     assert frame["source"].iloc[0] == "metar-north-america"
     assert frame["location"].iloc[0] == "New York JFK International"
     assert set(frame["variable"].unique()) == {"t2m_max", "t2m_min", "precip"}
+
+
+def test_metar_regional_subclasses_sources() -> None:
+    assert MetarEurope.source == "metar-europe"
+    assert MetarAsia.source == "metar-asia"
+    assert MetarAfrica.source == "metar-africa"
+    assert MetarOceania.source == "metar-oceania"
+    assert MetarMiddleEast.source == "metar-middle-east"
+    assert MetarGlobal.source == "metar-global"
+    assert MetarSouthAmerica.source == "metar-south-america"
+    assert MetarNorthAmerica.source == "metar-north-america"

@@ -107,7 +107,7 @@ def load_all_regions(root: Path) -> dict[str, Any]:
     seen_ids: set[str] = set()
     files_ordered = sorted(
         region_files,
-        key=lambda p: (0 if p.stem == "argentina" else (1 if "south" in p.stem else 2), p.name),
+        key=lambda p: (0 if p.stem == "argentina" else 1, p.name),
     )
     for path in files_ordered:
         reg = load_region(path)
@@ -115,10 +115,12 @@ def load_all_regions(root: Path) -> dict[str, Any]:
             st_id = str(st["id"])
             if st_id not in seen_ids:
                 seen_ids.add(st_id)
-                stations.append(st)
+                st_copy = dict(st)
+                st_copy.setdefault("region", reg.get("id"))
+                stations.append(st_copy)
     return {
-        "id": "the_americas",
-        "name": "The Americas (América)",
+        "id": "global",
+        "name": "Global (Planetary)",
         "timezone": "UTC",
         "stations": stations,
     }

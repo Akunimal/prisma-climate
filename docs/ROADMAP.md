@@ -117,3 +117,26 @@ Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue d
 - [x] Regional definition for North America (`configs/regions/north_america.yaml` with 18 representative stations across US, Canada, and Mexico).
 - [x] METAR North America connector (`metar-north-america`) active in `configs/sources.yaml`.
 - [ ] National station network connectors (NOAA, ECCC, SMN Mexico).
+
+## Global planetary expansion (v0.2.0)
+
+- **Strategy:**
+  - **Immediate forecast coverage:** Open-Meteo Ensemble (GFS + ECMWF IFS) operates globally, fetching ensemble forecasts for all ~140 stations worldwide with local IANA timezones.
+  - **Observational bridge:** Worldwide METAR airport network (NOAA Aviation Weather Center + IEM ASOS fallback) in `backend/src/prisma/ingest/metar.py` handling global ICAO prefixes (`E*`, `L*`, `U*`, `Z*`, `R*`, `V*`, `W*`, `F*`, `D*`, `G*`, `H*`, `O*`, `Y*`, `N*`, `A*`, `P*`) with $\le 5$ station request batching, decimal RMK and integer fallback decoding, and extreme timezone handling (UTC-12 to UTC+14).
+  - **Progressive national service connectors roadmap by continent:**
+    - **Europe:** Deutscher Wetterdienst (DWD Germany / Open Data MOSMIX), UK Met Office (DataHub), Météo-France (Public API), AEMET (Spain OpenData), SMHI (Sweden).
+    - **Asia:** Japan Meteorological Agency (JMA / JMA-Net), Korea Meteorological Administration (KMA), China Meteorological Administration (CMA), India Meteorological Department (IMD).
+    - **Africa:** South African Weather Service (SAWS), WMO Regional Specialized Meteorological Centres (RSMC / WIS2.0 nodes), EUMETSAT African ground stations.
+    - **Oceania & Pacific:** Australian Bureau of Meteorology (BOM API / Open Data), MetService New Zealand, Fiji Meteorological Service.
+    - **Middle East:** UAE National Center of Meteorology (NCM), Israel Meteorological Service (IMS), Saudi National Center for Meteorology (NCM).
+
+- [x] Regional definitions for all continents:
+  - `configs/regions/europe.yaml` (18 stations across Cfb, Csa, Dfb, ET).
+  - `configs/regions/asia.yaml` (19 stations across Dwa, Cfa, Aw, Af, BWk).
+  - `configs/regions/africa.yaml` (17 stations across BWh, BSh, Aw, Cwb, Af).
+  - `configs/regions/oceania.yaml` (16 stations across Cfb, Csa, BWh, Af).
+  - `configs/regions/middle_east.yaml` (16 stations across BWh, Csa, BSk).
+- [x] Global multi-region loader (`load_all_regions` in `backend/src/prisma/ingest/base.py`) unifying 140 stations globally.
+- [x] METAR global connector suite (`backend/src/prisma/ingest/metar.py`) and sources registry (`configs/sources.yaml`).
+- [x] Interactive map support for planetary bounds and antimeridian crossing in `app/lib/src/station_bounds.dart`.
+- [ ] National meteorological service connectors (progressively added per continent).

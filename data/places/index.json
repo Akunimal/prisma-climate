@@ -20,6 +20,12 @@
       "country": "AR",
       "source": "geonames",
       "place_count": 14888
+    },
+    "global": {
+      "file": "ar.json",
+      "country": "AR",
+      "source": "geonames",
+      "place_count": 14888
     }
   }
 }

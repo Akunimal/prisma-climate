@@ -1,0 +1,203 @@
+# Deployment region: Asia.
+#
+# Regional expansion covering major Köppen-Geiger climate zones across Asia:
+# Dwa/Dwb (Monsoon Continental), Dfc/Dfd (Subarctic Siberian), Cfa (Humid Subtropical East Asia),
+# Aw/Am (Tropical Wet and Dry / Monsoon South & SE Asia), Af (Tropical Rainforest), BWh/BWk (Central Asian Arid).
+# Station identifiers carry official ICAO codes and IANA timezones.
+
+id: asia
+name: "Asia"
+description: "Regional configuration covering key climate zones across Asia."
+timezone: Asia/Tokyo
+history_start: "1996-01-01"
+
+stations:
+  - id: beijing_capital
+    name: "Beijing Capital International"
+    country: "China"
+    zone: "Monsoon-influenced Humid Continental (Dwa)"
+    lat: 40.080
+    lon: 116.584
+    elevation_m: 35
+    icao: ZBAA
+    timezone: Asia/Shanghai
+
+  - id: shanghai_pudong
+    name: "Shanghai Pudong International"
+    country: "China"
+    zone: "Humid Subtropical (Cfa)"
+    lat: 31.144
+    lon: 121.808
+    elevation_m: 4
+    icao: ZSPD
+    timezone: Asia/Shanghai
+
+  - id: tokyo_haneda
+    name: "Tokyo Haneda"
+    country: "Japan"
+    zone: "Humid Subtropical (Cfa)"
+    lat: 35.552
+    lon: 139.780
+    elevation_m: 6
+    icao: RJTT
+    timezone: Asia/Tokyo
+
+  - id: seoul_incheon
+    name: "Seoul Incheon International"
+    country: "South Korea"
+    zone: "Monsoon-influenced Humid Continental (Dwa)"
+    lat: 37.469
+    lon: 126.451
+    elevation_m: 7
+    icao: RKSI
+    timezone: Asia/Seoul
+
+  - id: moscow_sheremetyevo
+    name: "Moscow Sheremetyevo"
+    country: "Russia"
+    zone: "Warm-summer Humid Continental (Dfb)"
+    lat: 55.973
+    lon: 37.415
+    elevation_m: 190
+    icao: UUEE
+    timezone: Europe/Moscow
+
+  - id: novosibirsk_tolmachevo
+    name: "Novosibirsk Tolmachevo"
+    country: "Russia"
+    zone: "Humid Continental / Western Siberia (Dfb)"
+    lat: 55.013
+    lon: 82.651
+    elevation_m: 111
+    icao: UNNT
+    timezone: Asia/Novosibirsk
+
+  - id: yakutsk_airport
+    name: "Yakutsk Airport"
+    country: "Russia"
+    zone: "Extremely Cold Subarctic / Eastern Siberia (Dfd)"
+    lat: 62.093
+    lon: 129.771
+    elevation_m: 101
+    icao: UEEE
+    timezone: Asia/Yakutsk
+
+  - id: delhi_indira_gandhi
+    name: "Delhi Indira Gandhi International"
+    country: "India"
+    zone: "Monsoon-influenced Humid Subtropical / Semi-arid (Cwa/BSh)"
+    lat: 28.566
+    lon: 77.103
+    elevation_m: 237
+    icao: VIDP
+    timezone: Asia/Kolkata
+
+  - id: mumbai_chhatrapati
+    name: "Mumbai Chhatrapati Shivaji Maharaj"
+    country: "India"
+    zone: "Tropical Wet and Dry / Savanna (Aw)"
+    lat: 19.088
+    lon: 72.868
+    elevation_m: 14
+    icao: VABB
+    timezone: Asia/Kolkata
+
+  - id: bangkok_suvarnabhumi
+    name: "Bangkok Suvarnabhumi"
+    country: "Thailand"
+    zone: "Tropical Savanna (Aw)"
+    lat: 13.681
+    lon: 100.747
+    elevation_m: 2
+    icao: VTBS
+    timezone: Asia/Bangkok
+
+  - id: ho_chi_minh_tan_son_nhat
+    name: "Ho Chi Minh City Tan Son Nhat"
+    country: "Vietnam"
+    zone: "Tropical Savanna (Aw)"
+    lat: 10.819
+    lon: 106.652
+    elevation_m: 10
+    icao: VVTS
+    timezone: Asia/Ho_Chi_Minh
+
+  - id: singapore_changi
+    name: "Singapore Changi"
+    country: "Singapore"
+    zone: "Tropical Rainforest (Af)"
+    lat: 1.350
+    lon: 103.994
+    elevation_m: 7
+    icao: WSSS
+    timezone: Asia/Singapore
+
+  - id: kuala_lumpur_intl
+    name: "Kuala Lumpur International"
+    country: "Malaysia"
+    zone: "Tropical Rainforest (Af)"
+    lat: 2.743
+    lon: 101.698
+    elevation_m: 21
+    icao: WMKK
+    timezone: Asia/Kuala_Lumpur
+
+  - id: jakarta_soekarno_hatta
+    name: "Jakarta Soekarno-Hatta International"
+    country: "Indonesia"
+    zone: "Tropical Monsoon (Am)"
+    lat: -6.126
+    lon: 106.656
+    elevation_m: 10
+    icao: WIII
+    timezone: Asia/Jakarta
+
+  - id: manila_ninoy_aquino
+    name: "Manila Ninoy Aquino International"
+    country: "Philippines"
+    zone: "Tropical Savanna / Monsoon (Aw/Am)"
+    lat: 14.509
+    lon: 121.020
+    elevation_m: 23
+    icao: RPLL
+    timezone: Asia/Manila
+
+  - id: taipei_taoyuan
+    name: "Taipei Taoyuan International"
+    country: "Taiwan"
+    zone: "Humid Subtropical (Cfa)"
+    lat: 25.078
+    lon: 121.233
+    elevation_m: 32
+    icao: RCTP
+    timezone: Asia/Taipei
+
+  - id: almaty_intl
+    name: "Almaty International"
+    country: "Kazakhstan"
+    zone: "Hot-summer Humid Continental / Semi-arid (Dfa/BSk)"
+    lat: 43.352
+    lon: 77.041
+    elevation_m: 681
+    icao: UAAA
+    timezone: Asia/Almaty
+
+  - id: tashkent_islam_karimov
+    name: "Tashkent International"
+    country: "Uzbekistan"
+    zone: "Mediterranean Continental / Semi-arid (Csa/BSk)"
+    lat: 41.258
+    lon: 69.281
+    elevation_m: 432
+    icao: UTTT
+    timezone: Asia/Tashkent
+
+  - id: karachi_jinnah
+    name: "Karachi Jinnah International"
+    country: "Pakistan"
+    zone: "Hot Desert (BWh)"
+    lat: 24.907
+    lon: 67.161
+    elevation_m: 30
+    icao: OPKC
+    timezone: Asia/Karachi

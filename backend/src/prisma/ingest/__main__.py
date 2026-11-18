@@ -30,7 +30,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"tier {entry.get('tier')}  {entry.get('status'):<8} {entry['id']}")
         return 0
 
-    if args.region in ("all", "americas", "the_americas"):
+    if args.region in ("all", "global", "americas", "the_americas"):
         region = load_all_regions(root)
     else:
         region = load_region(root / "configs" / "regions" / f"{args.region}.yaml")

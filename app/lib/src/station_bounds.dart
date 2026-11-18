@@ -23,5 +23,11 @@ LatLngBounds? computeStationBounds(List<StationSummary> stations) {
     minLon -= 0.5;
     maxLon += 0.5;
   }
+  if (minLat < -85.0) minLat = -85.0;
+  if (maxLat > 85.0) maxLat = 85.0;
+  if (maxLon - minLon > 180.0) {
+    minLon = -180.0;
+    maxLon = 180.0;
+  }
   return LatLngBounds(LatLng(minLat, minLon), LatLng(maxLat, maxLon));
 }

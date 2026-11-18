@@ -7,7 +7,16 @@ from typing import Any
 from .base import Connector, is_valid_day_convention, load_yaml
 from .ghcn import GhcnDaily
 from .indices import NoaaOni, NoaaSam
-from .metar import MetarNorthAmerica, MetarSouthAmerica
+from .metar import (
+    MetarAfrica,
+    MetarAsia,
+    MetarEurope,
+    MetarGlobal,
+    MetarMiddleEast,
+    MetarNorthAmerica,
+    MetarOceania,
+    MetarSouthAmerica,
+)
 from .openmeteo import OpenMeteoEnsemble, OpenMeteoEra5
 from .smn import SmnObservations
 
@@ -20,6 +29,12 @@ CONNECTORS: dict[str, type[Connector]] = {
     "smn.SmnObservations": SmnObservations,
     "metar.MetarSouthAmerica": MetarSouthAmerica,
     "metar.MetarNorthAmerica": MetarNorthAmerica,
+    "metar.MetarEurope": MetarEurope,
+    "metar.MetarAsia": MetarAsia,
+    "metar.MetarAfrica": MetarAfrica,
+    "metar.MetarOceania": MetarOceania,
+    "metar.MetarMiddleEast": MetarMiddleEast,
+    "metar.MetarGlobal": MetarGlobal,
 }
 
 

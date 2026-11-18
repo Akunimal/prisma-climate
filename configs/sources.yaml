@@ -219,6 +219,120 @@ sources:
       Bridge observation network providing near-real-time observations across North American
       airports with ICAO codes (FAA ASOS/AWOS, Nav Canada, SENEAM Mexico).
 
+  - id: metar-europe
+    name: "NOAA Aviation Weather / MADIS METAR (Europe)"
+    day_convention: local_calendar
+    connector: "metar.MetarEurope"
+    tier: 2
+    status: active
+    variables: [t2m_max, t2m_min, precip]
+    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
+    endpoint: "https://aviationweather.gov/api/data/metar"
+    coverage: "Europe airport station network (ICAO aerodromes)"
+    latency: "hours (hourly to sub-hourly reports)"
+    update_frequency: "hourly"
+    license: "US Government / NOAA open data (Public Domain)"
+    redistributable: yes
+    verified_on: "2026-11-18"
+    notes: >-
+      Bridge observation network providing near-real-time observations across European
+      airports with ICAO codes.
+
+  - id: metar-asia
+    name: "NOAA Aviation Weather / MADIS METAR (Asia)"
+    day_convention: local_calendar
+    connector: "metar.MetarAsia"
+    tier: 2
+    status: active
+    variables: [t2m_max, t2m_min, precip]
+    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
+    endpoint: "https://aviationweather.gov/api/data/metar"
+    coverage: "Asia airport station network (ICAO aerodromes)"
+    latency: "hours (hourly to sub-hourly reports)"
+    update_frequency: "hourly"
+    license: "US Government / NOAA open data (Public Domain)"
+    redistributable: yes
+    verified_on: "2026-11-18"
+    notes: >-
+      Bridge observation network providing near-real-time observations across Asian
+      airports with ICAO codes.
+
+  - id: metar-africa
+    name: "NOAA Aviation Weather / MADIS METAR (Africa)"
+    day_convention: local_calendar
+    connector: "metar.MetarAfrica"
+    tier: 2
+    status: active
+    variables: [t2m_max, t2m_min, precip]
+    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
+    endpoint: "https://aviationweather.gov/api/data/metar"
+    coverage: "Africa airport station network (ICAO aerodromes)"
+    latency: "hours (hourly to sub-hourly reports)"
+    update_frequency: "hourly"
+    license: "US Government / NOAA open data (Public Domain)"
+    redistributable: yes
+    verified_on: "2026-11-18"
+    notes: >-
+      Bridge observation network providing near-real-time observations across African
+      airports with ICAO codes.
+
+  - id: metar-oceania
+    name: "NOAA Aviation Weather / MADIS METAR (Oceania & Pacific)"
+    day_convention: local_calendar
+    connector: "metar.MetarOceania"
+    tier: 2
+    status: active
+    variables: [t2m_max, t2m_min, precip]
+    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
+    endpoint: "https://aviationweather.gov/api/data/metar"
+    coverage: "Oceania and Pacific airport station network (ICAO aerodromes)"
+    latency: "hours (hourly to sub-hourly reports)"
+    update_frequency: "hourly"
+    license: "US Government / NOAA open data (Public Domain)"
+    redistributable: yes
+    verified_on: "2026-11-18"
+    notes: >-
+      Bridge observation network providing near-real-time observations across Oceania
+      and Pacific Island airports with ICAO codes.
+
+  - id: metar-middle-east
+    name: "NOAA Aviation Weather / MADIS METAR (Middle East)"
+    day_convention: local_calendar
+    connector: "metar.MetarMiddleEast"
+    tier: 2
+    status: active
+    variables: [t2m_max, t2m_min, precip]
+    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
+    endpoint: "https://aviationweather.gov/api/data/metar"
+    coverage: "Middle East airport station network (ICAO aerodromes)"
+    latency: "hours (hourly to sub-hourly reports)"
+    update_frequency: "hourly"
+    license: "US Government / NOAA open data (Public Domain)"
+    redistributable: yes
+    verified_on: "2026-11-18"
+    notes: >-
+      Bridge observation network providing near-real-time observations across Middle Eastern
+      airports with ICAO codes.
+
+  - id: metar-global
+    name: "NOAA Aviation Weather / MADIS METAR (Global)"
+    day_convention: local_calendar
+    connector: "metar.MetarGlobal"
+    tier: 2
+    status: active
+    variables: [t2m_max, t2m_min, precip]
+    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
+    endpoint: "https://aviationweather.gov/api/data/metar"
+    coverage: "Global airport station network (ICAO aerodromes worldwide)"
+    latency: "hours (hourly to sub-hourly reports)"
+    update_frequency: "hourly"
+    license: "US Government / NOAA open data (Public Domain)"
+    redistributable: yes
+    verified_on: "2026-11-18"
+    notes: >-
+      Worldwide bridge observation network providing near-real-time observations across all
+      global aerodromes with ICAO codes.
+
   - id: inta
     name: "INTA (Argentina) agrometeorology"
     day_convention: unknown

@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from zoneinfo import ZoneInfo
 
-from prisma.ingest.base import find_repo_root, is_valid_day_convention, load_region
+from prisma.ingest.base import (
+    find_repo_root,
+    is_valid_day_convention,
+    load_all_regions,
+    load_region,
+)
 from prisma.ingest.openmeteo import parse_daily
 from prisma.ingest.registry import load_registry
 
@@ -58,12 +63,49 @@ def test_openmeteo_parses_south_america_station() -> None:
 
 def test_metar_source_registered_under_tier2() -> None:
     registry = load_registry(ROOT / "configs" / "sources.yaml")
-    for source_id in ("metar-south-america", "metar-north-america"):
+    expected = (
+        "metar-south-america",
+        "metar-north-america",
+        "metar-europe",
+        "metar-asia",
+        "metar-africa",
+        "metar-oceania",
+        "metar-middle-east",
+        "metar-global",
+    )
+    for source_id in expected:
         metar = next((s for s in registry if s["id"] == source_id), None)
         assert metar is not None
         assert metar["tier"] == 2
         assert metar["status"] == "active"
         assert is_valid_day_convention(metar["day_convention"])
+
+
+def test_global_regions_validate() -> None:
+    region_stems = ("europe", "asia", "africa", "oceania", "middle_east")
+    for stem in region_stems:
+        path = ROOT / "configs" / "regions" / f"{stem}.yaml"
+        region = load_region(path)
+        assert region["id"] == stem
+        assert len(region["stations"]) >= 15
+        station_ids = [s["id"] for s in region["stations"]]
+        assert len(station_ids) == len(set(station_ids)), f"{stem}: ids must be unique"
+        icaos = [s["icao"] for s in region["stations"] if "icao" in s]
+        assert len(icaos) == len(region["stations"]), f"{stem}: icaos required"
+        assert len(icaos) == len(set(icaos)), f"{stem}: icaos must be unique"
+        for station in region["stations"]:
+            assert -90.0 <= station["lat"] <= 90.0
+            assert -180.0 <= station["lon"] <= 180.0
+            tz_name = station.get("timezone", region["timezone"])
+            assert ZoneInfo(tz_name) is not None
+
+
+def test_load_all_regions_returns_all_global_stations() -> None:
+    global_region = load_all_regions(ROOT)
+    assert global_region["id"] == "global"
+    assert len(global_region["stations"]) == 140
+    ids = [s["id"] for s in global_region["stations"]]
+    assert len(ids) == len(set(ids))
 
 
 def test_north_america_region_validates() -> None:

@@ -101,6 +101,16 @@ ABOUT_SOURCES = [
         "attribution_url": "https://aviationweather.gov/",
         "note": "near-real-time observations via ICAO airport network",
     },
+    {
+        "id": "metar-global",
+        "name": "NOAA Aviation Weather / MADIS METAR (Global)",
+        "role": "aerodrome observations across global ICAO network (Americas, Europe, Asia, Africa, Oceania, Middle East)",
+        "licence": "Public Domain",
+        "licence_url": "https://aviationweather.gov/data/metar/",
+        "attribution": "NOAA / Aviation Weather Center",
+        "attribution_url": "https://aviationweather.gov/",
+        "note": "near-real-time observations via worldwide ICAO airport network",
+    },
 ]
 
 
