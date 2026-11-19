@@ -311,6 +311,12 @@ Machine-verifiable source verification for the global aerodrome METAR observatio
 - **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/oceania/audit.json`). Latency: p50 585.72 ms, p95 685.47 ms, max 685.47 ms; all batch queries returned HTTP 200 (`OBSERVED`).
 - **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. Australian Bureau of Meteorology, MetService New Zealand, and Pacific Island services are distributed via GTS under WMO Resolution 40 Annex 1 for non-commercial research; commercial re-export restricted, registered `derived_only` (`OBSERVED`).
 - **Coverage & Telemetry:** 16 configured stations across Australia, New Zealand, Fiji, Papua New Guinea, Solomon Islands, French Polynesia. 16 of 16 (100.0%) confirmed by independent dual-catalog cross-check (NOAA AWC + NOAA ISD) and 16 of 16 (100.0%) active with live 72h telemetry (`OBSERVED`).
+- **Observation Reference Evaluation:**
+  - **Measurement Convention:** Bureau of Meteorology / MetService automated aerodrome weather stations at standard ~1.5–2.0 m shelter height per ICAO Annex 3 / WMO Region V.
+  - **Cadence & Reporting:** Half-hourly or hourly routine reporting; integer °C with 0.1 °C resolution in RMK `T` group where enabled.
+  - **Timestamp Integrity:** Strictly UTC observation timestamp (`obsTime` / `valid_time`). Zero wall-clock dependency.
+  - **Archival Partition:** `observations/metar/oceania/<year>/<station_id>.parquet`.
+  - **Phase 3 Obs Gate:** **PASS** (16/16 active telemetry, 0.0% gap rate in sliding window).
 - **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
 
 ### NOAA Aviation Weather / MADIS METAR (Middle East) — `metar-middle-east` (BLOCKED)
