@@ -4,8 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PRISMA · Forecast by station</title>
+<script>
+  (function() {
+    try {
+      const theme = localStorage.getItem("prisma_basic_theme");
+      if (theme === "dark" || theme === "light") {
+        document.documentElement.setAttribute("data-theme", theme);
+      }
+    } catch (_) {}
+  })();
+</script>
 <style>
   :root {
+    color-scheme: light dark;
     --bg: #f6f7f4;
     --panel: #ffffff;
     --ink: #16221c;
@@ -14,7 +25,41 @@
     --accent: #0b6b45;
     --accent-soft: #dcefe5;
     --warm: #b4531f;
+    --bar-bg: #ecefea;
+    --error-bg: #fdf0e8;
+    --error-border: #efd3c2;
+    --error-ink: #7a3b17;
     --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111513;
+      --panel: #1b201d;
+      --ink: #e0e4df;
+      --muted: #95a39b;
+      --line: #2b332e;
+      --accent: #6cd9a3;
+      --accent-soft: #173827;
+      --warm: #fb923c;
+      --bar-bg: #28302b;
+      --error-bg: #351a14;
+      --error-border: #56271c;
+      --error-ink: #f8c2b5;
+    }
+  }
+  [data-theme="dark"] {
+    --bg: #111513;
+    --panel: #1b201d;
+    --ink: #e0e4df;
+    --muted: #95a39b;
+    --line: #2b332e;
+    --accent: #6cd9a3;
+    --accent-soft: #173827;
+    --warm: #fb923c;
+    --bar-bg: #28302b;
+    --error-bg: #351a14;
+    --error-border: #56271c;
+    --error-ink: #f8c2b5;
   }
   * { box-sizing: border-box; }
   body {
@@ -28,8 +73,30 @@
     background: var(--panel);
     padding: 20px 24px 16px;
   }
-  header h1 { margin: 0 0 4px; font-size: 20px; letter-spacing: -.01em; }
-  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  header h1 { margin: 0; font-size: 20px; letter-spacing: -.01em; }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--ink);
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .theme-toggle:hover { background: var(--bg); border-color: var(--muted); }
   .meta { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); }
   .meta strong { color: var(--ink); font-weight: 600; }
   main { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 20px; padding: 20px 24px; max-width: 1180px; }
@@ -43,8 +110,18 @@
     font: inherit; font-size: 14px; cursor: pointer;
   }
   #stations button:hover { background: var(--bg); }
-  #stations button[aria-current="true"] { background: var(--accent-soft); border-color: #b7dbc9; font-weight: 600; }
+  #stations button[aria-current="true"] { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
   #stations small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
+  .pill-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: 6px;
+  }
   section { padding: 16px; min-width: 0; }
   .skip { color: var(--muted); }
   .table-wrap { overflow-x: auto; }
@@ -56,7 +133,7 @@
   td.lead { color: var(--muted); font-size: 12px; white-space: nowrap; }
   .range { display: flex; align-items: center; gap: 8px; min-width: 190px; }
   .range b { font-weight: 600; white-space: nowrap; }
-  .bar { position: relative; flex: 1; height: 6px; min-width: 64px; background: #ecefea; border-radius: 3px; }
+  .bar { position: relative; flex: 1; height: 6px; min-width: 64px; background: var(--bar-bg); border-radius: 3px; }
   .bar .fill { position: absolute; top: 0; bottom: 0; background: var(--accent); opacity: .35; border-radius: 3px; }
   .bar .dot { position: absolute; top: -2px; width: 3px; height: 10px; background: var(--accent); border-radius: 1px; }
   .med { color: var(--muted); font-size: 12px; white-space: nowrap; }
@@ -68,7 +145,7 @@
   .status { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; font-size: 13px; }
   .status p { margin: 0 0 6px; }
   .status p:last-child { margin: 0; }
-  .error { background: #fdf0e8; border-color: #efd3c2; color: #7a3b17; }
+  .error { background: var(--error-bg); border-color: var(--error-border); color: var(--error-ink); }
   @media (max-width: 760px) {
     main { grid-template-columns: 1fr; padding: 14px; }
     #stations { max-height: none; display: flex; flex-wrap: wrap; gap: 4px; }
@@ -79,8 +156,13 @@
 </head>
 <body>
 <header>
-  <h1>PRISMA · Forecast by station</h1>
-  <p>Raw Open-Meteo ensemble (GFS and ECMWF IFS) for 19 stations in Argentina.</p>
+  <div class="header-top">
+    <h1>PRISMA · Forecast by station</h1>
+    <button id="theme-toggle" type="button" class="theme-toggle" aria-label="Toggle dark theme" title="Toggle dark theme">
+      <span id="theme-icon" aria-hidden="true">🌙</span>
+    </button>
+  </div>
+  <p id="header-desc">Raw Open-Meteo ensemble (GFS and ECMWF IFS) for stations worldwide across all continents.</p>
   <div class="meta">
     <span>Issue: <strong id="issue">—</strong></span>
     <span>Exported: <strong id="exported">—</strong></span>
@@ -177,20 +259,64 @@ function renderAttribution() {
   );
 }
 
+function initTheme() {
+  const toggle = document.getElementById("theme-toggle");
+  const icon = document.getElementById("theme-icon");
+  if (!toggle) return;
+
+  function currentTheme() {
+    const explicit = document.documentElement.getAttribute("data-theme");
+    if (explicit) return explicit;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  function updateUI(theme) {
+    const isDark = theme === "dark";
+    if (icon) icon.textContent = isDark ? "☀️" : "🌙";
+    toggle.setAttribute("aria-label", isDark ? "Switch to light theme" : "Switch to dark theme");
+    toggle.title = isDark ? "Switch to light theme" : "Switch to dark theme";
+    toggle.setAttribute("aria-pressed", isDark ? "true" : "false");
+  }
+
+  updateUI(currentTheme());
+
+  toggle.addEventListener("click", () => {
+    const next = currentTheme() === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("prisma_basic_theme", next); } catch (_) {}
+    updateUI(next);
+  });
+
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+      try {
+        if (!localStorage.getItem("prisma_basic_theme")) {
+          updateUI(e.matches ? "dark" : "light");
+        }
+      } catch (_) {
+        updateUI(e.matches ? "dark" : "light");
+      }
+    });
+  }
+}
+
 function renderStationList() {
   const list = document.getElementById("stations");
   list.replaceChildren(
-    ...state.latest.stations.map((station) =>
-      el("li", {}, [
+    ...state.latest.stations.map((station) => {
+      const buttonChildren = [document.createTextNode(station.name)];
+      if (station.t2m_max !== undefined && station.t2m_max !== null) {
+        buttonChildren.push(el("span", { class: "pill-badge", text: Math.round(station.t2m_max) + "°" }));
+      }
+      return el("li", {}, [
         el("button", {
           type: "button",
           "data-id": station.id,
-          "aria-current": station.id === state.current ? "true" : "false",
-          text: station.name
-        }),
+          "aria-current": station.id === state.current ? "true" : "false"
+        }, buttonChildren),
         el("small", { text: station.climate_zone })
-      ])
-    )
+      ]);
+    })
   );
   list.querySelectorAll("button").forEach((button) =>
     button.addEventListener("click", () => selectStation(button.dataset.id))
@@ -270,9 +396,12 @@ function renderForecast(stationDoc) {
   );
 
   const count = leads.length;
-  document.getElementById("note").textContent =
-    count + " forecast days · bars: 10–90 % range and median per model · " +
-    "the models are never pooled.";
+  let noteText = count + " forecast days · bars: 10–90 % range and median per model · the models are never pooled.";
+  const clim = stationDoc.climatology && stationDoc.climatology.t2m_max;
+  if (clim && clim.low !== undefined && clim.high !== undefined) {
+    noteText += " · Normal historical range: " + fmt(clim.low) + "–" + fmt(clim.high) + " °C";
+  }
+  document.getElementById("note").textContent = noteText;
 }
 
 async function selectStation(id) {
@@ -293,6 +422,7 @@ async function selectStation(id) {
 }
 
 async function boot() {
+  initTheme();
   const statusBox = document.getElementById("status");
   try {
     const [latest, about] = await Promise.all([
@@ -307,6 +437,12 @@ async function boot() {
     document.getElementById("exported").textContent = latest.generated_at;
     document.getElementById("smn").textContent =
       (about && about.status && about.status.smn_snapshot_date) || "—";
+
+    const stationCount = latest.stations ? latest.stations.length : 0;
+    const desc = document.getElementById("header-desc");
+    if (desc && stationCount > 0) {
+      desc.textContent = "Raw Open-Meteo ensemble (GFS and ECMWF IFS) for " + stationCount + "+ stations worldwide across all continents.";
+    }
 
     renderStatus();
     renderAttribution();
