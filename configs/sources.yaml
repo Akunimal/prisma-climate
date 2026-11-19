@@ -250,19 +250,22 @@ sources:
     day_convention: local_calendar
     connector: "metar.MetarAsia"
     tier: 2
-    status: active
+    status: verification_in_progress
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
     coverage: "Asia airport station network (ICAO aerodromes)"
     latency: "hours (hourly to sub-hourly reports)"
     update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain)"
-    redistributable: yes
-    verified_on: "2026-11-18"
+    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
+    redistributable: derived_only
+    verified_on: null
     notes: >-
       Bridge observation network providing near-real-time observations across Asian
-      airports with ICAO codes.
+      airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
+      (results/stations/_evidence/asia/audit.json). 18 of 19 stations verified with
+      active telemetry (94.7%) and dual-catalog confirmation (UTTT dead and removed in vetting).
+      Status: verification_in_progress pending full multi-phase vetting review.
 
   - id: metar-africa
     name: "NOAA Aviation Weather / MADIS METAR (Africa)"

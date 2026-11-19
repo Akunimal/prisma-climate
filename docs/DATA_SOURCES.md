@@ -259,3 +259,11 @@ Machine-verifiable source verification for the global aerodrome METAR observatio
 - **Coverage & Telemetry:** 18 configured stations across 12 countries. 18 of 18 (100.0%) confirmed by independent dual-catalog cross-check (NOAA AWC + NOAA ISD) and 18 of 18 (100.0%) active with live 72h telemetry (`OBSERVED`).
 - **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
 
+### NOAA Aviation Weather / MADIS METAR (Asia) — `metar-asia`
+
+- **Endpoint:** `https://aviationweather.gov/api/data/metar` (unauthenticated HTTPS GET, `format=json`, batching $\le 3$ ICAOs per request).
+- **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/asia/audit.json`). Latency: p50 542.55 ms, p95 795.78 ms, max 795.78 ms; all batch queries returned HTTP 200 (`OBSERVED`).
+- **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. Asian national meteorological aerodromes (JMA, KMA, CMA, IMD, etc.) are distributed via GTS under WMO Resolution 40 Annex 1 for non-commercial research; commercial re-export restricted, registered `derived_only` (`OBSERVED`).
+- **Coverage & Telemetry:** 19 configured stations across 11 countries. 18 of 19 (94.7%) confirmed by independent dual-catalog cross-check (NOAA AWC + NOAA ISD) and 18 of 19 (94.7%) active with live 72h telemetry; 1 station (`tashkent_islam_karimov` UTTT) is dead with 0 observations in 72h and unconfirmed in AWC (`OBSERVED`).
+- **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
+
