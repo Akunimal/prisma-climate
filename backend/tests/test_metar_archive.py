@@ -9,7 +9,6 @@ import pandas as pd
 import pytest
 
 from prisma.ingest.metar_archive import (
-    archive_metar_region,
     parse_raw_reports_to_frame,
     validate_retention_hours,
     validate_target_path,
@@ -77,7 +76,9 @@ def test_timestamp_keying_from_metar_obstime() -> None:
         },
     ]
 
-    df = parse_raw_reports_to_frame(raw_reports, station_lookup, retrieved_at_utc="2026-11-19T08:00:00Z")
+    df = parse_raw_reports_to_frame(
+        raw_reports, station_lookup, retrieved_at_utc="2026-11-19T08:00:00Z"
+    )
     assert len(df) == 2
 
     scel_row = df[df["icao"] == "SCEL"].iloc[0]
@@ -108,14 +109,16 @@ def test_missing_values_not_imputed() -> None:
         }
     ]
 
-    df = parse_raw_reports_to_frame(raw_reports, station_lookup, retrieved_at_utc="2026-11-19T08:00:00Z")
+    df = parse_raw_reports_to_frame(
+        raw_reports, station_lookup, retrieved_at_utc="2026-11-19T08:00:00Z"
+    )
     assert len(df) == 1
     assert pd.isna(df.iloc[0]["temperature_c"])
     assert pd.isna(df.iloc[0]["precip_mm"])
 
 
 def test_partitioned_write_and_deduplication() -> None:
-    """Test file writing into observations/metar/<region>/<year>/<station_id>.parquet and deduplication."""
+    """Test file writing into observations/metar partitions and deduplication."""
     with tempfile.TemporaryDirectory() as tmpdir:
         base_dir = Path(tmpdir)
         station_lookup = {
@@ -136,7 +139,14 @@ def test_partitioned_write_and_deduplication() -> None:
         written_1 = write_partitioned_observations(df_1, base_dir)
 
         assert len(written_1) == 1
-        expected_path = base_dir / "observations" / "metar" / "south_america" / "2024" / "santiago_pudahuel.parquet"
+        expected_path = (
+            base_dir
+            / "observations"
+            / "metar"
+            / "south_america"
+            / "2024"
+            / "santiago_pudahuel.parquet"
+        )
         assert written_1[0] == expected_path
         assert expected_path.exists()
 
@@ -185,6 +195,7 @@ def test_upload_and_sync_helpers(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     """Test sync_existing_from_hf and upload_metar_to_hf helper behavior with mocked HfApi."""
     import sys
     from unittest.mock import MagicMock
+
     from prisma.ingest.metar_archive import sync_existing_from_hf, upload_metar_to_hf
 
     mock_api = MagicMock()
@@ -215,4 +226,3 @@ def test_upload_and_sync_helpers(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 
     assert upload_metar_to_hf(tmp_path, "repo/test", "mock_token")
     mock_api.upload_folder.assert_called_once()
-

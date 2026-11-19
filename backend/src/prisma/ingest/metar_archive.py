@@ -1,6 +1,6 @@
 """Isolated METAR observation reference archiver for PRISMA Climate.
 
-Partitions and stores raw METAR observations under ``observations/metar/<region>/<year>/<station_id>.parquet``.
+Partitions raw METAR records under observations/metar/<region>/<year>/<station_id>.parquet.
 
 Key Safeguards & Invariants:
 1. Timestamp Keying: Observation timestamps and year partition paths are derived
@@ -20,8 +20,6 @@ import argparse
 import logging
 import os
 import sys
-from collections import defaultdict
-from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -30,10 +28,8 @@ import pandas as pd
 import requests
 import yaml
 
-from prisma.ingest.base import find_repo_root, load_all_regions, load_region
+from prisma.ingest.base import find_repo_root, load_region
 from prisma.ingest.metar import (
-    DEFAULT_TIMEOUT,
-    USER_AGENT,
     create_resilient_session,
     fetch_awc_batch,
     parse_metar_precip,
@@ -53,7 +49,8 @@ def validate_target_path(path: Path) -> None:
     for forbidden in FORBIDDEN_STORES:
         if forbidden in norm:
             raise ValueError(
-                f"Violation of isolation invariant: target path '{path}' touches forbidden store '{forbidden}'"
+                f"Violation of isolation invariant: target path '{path}' touches "
+                f"forbidden store '{forbidden}'"
             )
     if "observations/metar" not in norm:
         raise ValueError(f"Target path '{path}' must be rooted under 'observations/metar/'")
@@ -63,8 +60,9 @@ def validate_retention_hours(hours: int) -> int:
     """Verify hours window stays within the physical NOAA AWC sliding retention window."""
     if not (MIN_RETENTION_HOURS <= hours <= MAX_RETENTION_HOURS):
         raise ValueError(
-            f"Hours lookback must be within sliding METAR retention window [{MIN_RETENTION_HOURS}, {MAX_RETENTION_HOURS}], "
-            f"got {hours}. Historical backfill beyond 72h is not supported by the AWC reference API."
+            f"Hours lookback must be within sliding METAR retention window "
+            f"[{MIN_RETENTION_HOURS}, {MAX_RETENTION_HOURS}], got {hours}. "
+            "Historical backfill beyond 72h is not supported by the AWC reference API."
         )
     return hours
 
@@ -75,7 +73,7 @@ def parse_raw_reports_to_frame(
     retrieved_at_utc: str,
 ) -> pd.DataFrame:
     """Normalize raw AWC JSON reports into tabular records.
-    
+
     Timestamps are derived STRICTLY from obsTime (never wall clock).
     Missing temperatures remain None (no imputation).
     """
@@ -106,26 +104,38 @@ def parse_raw_reports_to_frame(
         num_precip = rep.get("precip")
         precip_mm, _ = parse_metar_precip(raw_ob, num_precip)
 
-        rows.append({
-            "station_id": st_meta["id"],
-            "icao": icao,
-            "region": st_meta.get("region", "unknown"),
-            "obs_time_utc": obs_time_iso,
-            "obs_epoch": obs_epoch_int,
-            "partition_year": partition_year,
-            "temperature_c": temp_c,
-            "precip_mm": precip_mm,
-            "raw_metar": raw_ob or "",
-            "source": "noaa_awc_metar",
-            "retrieved_at_utc": retrieved_at_utc,
-        })
+        rows.append(
+            {
+                "station_id": st_meta["id"],
+                "icao": icao,
+                "region": st_meta.get("region", "unknown"),
+                "obs_time_utc": obs_time_iso,
+                "obs_epoch": obs_epoch_int,
+                "partition_year": partition_year,
+                "temperature_c": temp_c,
+                "precip_mm": precip_mm,
+                "raw_metar": raw_ob or "",
+                "source": "noaa_awc_metar",
+                "retrieved_at_utc": retrieved_at_utc,
+            }
+        )
 
     if not rows:
-        return pd.DataFrame(columns=[
-            "station_id", "icao", "region", "obs_time_utc", "obs_epoch",
-            "partition_year", "temperature_c", "precip_mm", "raw_metar",
-            "source", "retrieved_at_utc"
-        ])
+        return pd.DataFrame(
+            columns=[
+                "station_id",
+                "icao",
+                "region",
+                "obs_time_utc",
+                "obs_epoch",
+                "partition_year",
+                "temperature_c",
+                "precip_mm",
+                "raw_metar",
+                "source",
+                "retrieved_at_utc",
+            ]
+        )
 
     return pd.DataFrame(rows)
 
@@ -135,7 +145,7 @@ def write_partitioned_observations(
     base_dir: Path,
 ) -> list[Path]:
     """Write observations partitioned by region/year/station_id.parquet.
-    
+
     Merges with existing file if present, deduplicating strictly by (station_id, obs_epoch).
     """
     if df.empty:
@@ -153,8 +163,16 @@ def write_partitioned_observations(
         validate_target_path(target_file)
 
         cols_to_write = [
-            "station_id", "icao", "region", "obs_time_utc", "obs_epoch",
-            "temperature_c", "precip_mm", "raw_metar", "source", "retrieved_at_utc"
+            "station_id",
+            "icao",
+            "region",
+            "obs_time_utc",
+            "obs_epoch",
+            "temperature_c",
+            "precip_mm",
+            "raw_metar",
+            "source",
+            "retrieved_at_utc",
         ]
         new_records = group_df[cols_to_write].copy()
 
@@ -264,7 +282,7 @@ def sync_existing_from_hf(
     repo_id: str,
     token: str,
 ) -> list[str]:
-    """Download existing METAR observation files from HF dataset to allow local merge & deduplication."""
+    """Download existing METAR parquets from HF dataset for local merge."""
     from huggingface_hub import HfApi, hf_hub_download
 
     api = HfApi(token=token)
@@ -364,7 +382,11 @@ def main(argv: list[str] | None = None) -> int:
             hours=args.hours,
             out_dir=base_out,
         )
-        print(f"METAR archiving completed for {args.region}: {res['total_records_normalized']} records across {len(res['partitioned_files_written'])} files.")
+        print(
+            f"METAR archiving completed for {args.region}: "
+            f"{res['total_records_normalized']} records across "
+            f"{len(res['partitioned_files_written'])} files."
+        )
     except Exception as exc:
         logger.error("METAR archive failed: %s", exc)
         print(f"error: {exc}", file=sys.stderr)

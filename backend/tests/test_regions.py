@@ -77,7 +77,12 @@ def test_metar_source_registered_under_tier2() -> None:
         metar = next((s for s in registry if s["id"] == source_id), None)
         assert metar is not None
         assert metar["tier"] == 2
-        assert metar["status"] in ("verification_in_progress", "ready_for_review", "blocked", "active")
+        assert metar["status"] in (
+            "verification_in_progress",
+            "ready_for_review",
+            "blocked",
+            "active",
+        )
         assert is_valid_day_convention(metar["day_convention"])
 
 
@@ -109,7 +114,7 @@ def test_load_all_regions_returns_all_global_stations() -> None:
 
 
 def test_station_vetting_invariants_hold_against_raw_evidence() -> None:
-    """Decision C invariants: <=5.0 km AWC distance, dual-source confirmation, zero duplicates within 10 km."""
+    """Decision C invariants: <=5.0 km AWC dist, dual-source, 0 dups within 10 km."""
     import json
     import math
 
@@ -136,7 +141,9 @@ def test_station_vetting_invariants_hold_against_raw_evidence() -> None:
             icao = st["icao"]
             assert icao in st_by_icao, f"{slug}: station {icao} missing in evidence"
             aud = st_by_icao[icao]
-            assert aud["second_source_confirmed"], f"{slug} {icao}: dual-catalog confirmation missing"
+            assert aud["second_source_confirmed"], (
+                f"{slug} {icao}: dual-catalog confirmation missing"
+            )
             assert aud["haversine_awc_km"] is not None and aud["haversine_awc_km"] <= 5.0, (
                 f"{slug} {icao}: AWC distance {aud['haversine_awc_km']} km exceeds 5.0 km threshold"
             )
@@ -150,9 +157,10 @@ def test_station_vetting_invariants_hold_against_raw_evidence() -> None:
                     retained[j]["lat"],
                     retained[j]["lon"],
                 )
-                assert (
-                    dist >= 10.0
-                ), f"{slug}: duplicate stations within 10 km: {retained[i]['id']} vs {retained[j]['id']}"
+                assert dist >= 10.0, (
+                    f"{slug}: duplicate stations within 10 km: "
+                    f"{retained[i]['id']} vs {retained[j]['id']}"
+                )
 
 
 def test_north_america_region_validates() -> None:
