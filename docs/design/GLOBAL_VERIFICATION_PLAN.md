@@ -1,0 +1,63 @@
+# Global Verification Plan (Task T-global1)
+
+## 1. Owner Decision (2026-11-19)
+
+> `2026-11-19 — Owner decision: global expansion to full verification. Scope: bring all 8 regions (Argentina, South America, North America, Europe, Asia, Africa, Oceania & Pacific, Middle East) to the same station-vetting and source-verification standard as Argentina, before any region's status may read 'active' or 'verified' in public-facing docs. Hindcast calibration stays Argentina-only until each region accumulates enough archived history to run it honestly.`
+
+---
+
+## 2. Quantitative Verification Gates & Methodology
+
+### Phase 1 — Source Verification (§3.8)
+- Real endpoint probing, HTTP status codes, p50/p95/max latency (ms).
+- Licensing & WMO Resolution 40 Annex 1 redistribution evaluation (US NOAA public domain vs international aerodrome METARs for non-commercial research use).
+- Open-Meteo API volume & rate-limit envelope audit across all 8 regions (`<= 4,000 req/day`, `<= 300 req/min`).
+
+### Phase 2 — Station Vetting
+- Offline bulk cross-check against NOAA AWC station catalog and NOAA ISD/GHCN inventory.
+- Distance & elevation tolerances:
+  - Haversine distance: $\le 5.0\text{ km}$ = `PASS`.
+  - Elevation difference: $\le 50\text{ m}$ = `PASS` ($50\text{ m} < \Delta \le 150\text{ m}$ = `WARN`; $> 150\text{ m}$ = `FLAG`).
+- Resolution:
+  - $5.0\text{ km} < \Delta \le 15.0\text{ km}$ with verified ICAO aerodrome match: auto-resolve to primary aerodrome coordinates.
+  - $\Delta > 15.0\text{ km}$, unconfirmed in catalogs, duplicate, or dead station (0 METAR in 72h): remove station.
+- Pass threshold: $\ge 80\%$ retained stations confirmed by independent second source with active telemetry, $\ge 5$ stations remaining.
+
+### Phase 3 — Observation Reference & Day-Boundary Convention
+- Usability gate: $\ge 80\%$ of vetted stations report $\ge 12\text{ obs/day}$ (mean interval $\le 2\text{ h}$) with valid air temperature and $< 15\%$ gap rate.
+- Day-boundary alignment: Local calendar day matching forecast verification window to eliminate day-shift bias.
+- Discrete sampling caveats (instantaneous METAR vs extreme thermometers) documented.
+- Isolated archive module with timestamp-derived keys (`obsTime`), zero wall-clock dependency, and zero backfill claims.
+
+### Phase 4 — Daily Archive Audit & Staged Workflow
+- Daily forecast archive audit (`openmeteo-ensemble`).
+- Daily combined request budget: Forecast archive $\le 4,000\text{ req/day}$, METAR obs archive $\le 500\text{ req/day}$.
+- Isolated, staged workflow drafts with per-region failure boundaries.
+
+### Phase 5A — Anti-Drift Integrity Tests & Deterministic Promotion Gate
+- Executable anti-drift tests re-computing all metrics from committed evidence JSONs.
+- Deterministic promotion CLI (`backend/scripts/promote_verified_regions.py`).
+- Strict prohibition against writing `status: active` or claiming non-Argentina hindcast calibration during autonomous runs.
+
+---
+
+## 3. Per-Region Verification Status Table
+
+| Region Slug | Region Name | Phase 1 (Source §3.8) | Phase 2 (Vetting) | Phase 3 (Obs Ref) | Phase 4 (Daily Arch) | Current Status | Vetted / Total Stns |
+|---|---|---|---|---|---|---|---|
+| `argentina` | Argentina | Complete (`OBSERVED`) | Complete (`OBSERVED`) | Complete (SMN, `OBSERVED`) | Complete (`OBSERVED`) | `active` | 19 / 19 |
+| `south_america` | South America | Not started | Not started | Not started | Not started | `not started` | 0 / 17 |
+| `north_america` | North America | Not started | Not started | Not started | Not started | `not started` | 0 / 18 |
+| `europe` | Europe | Not started | Not started | Not started | Not started | `not started` | 0 / 18 |
+| `asia` | Asia | Not started | Not started | Not started | Not started | `not started` | 0 / 19 |
+| `africa` | Africa | Not started | Not started | Not started | Not started | `not started` | 0 / 17 |
+| `oceania` | Oceania & Pacific | Not started | Not started | Not started | Not started | `not started` | 0 / 16 |
+| `middle_east` | Middle East | Not started | Not started | Not started | Not started | `not started` | 0 / 16 |
+
+---
+
+## 4. Evidence Commit Rules
+
+- Machine-verifiable evidence files written directly by audit scripts to `results/stations/_evidence/<region>/audit.json`.
+- Catalog downloads stored out-of-git in temporary storage, recording URL, timestamp, size, and SHA-256 hash.
+- Markdown vetting reports in `results/stations/<region>_vetting.md` generated from committed evidence JSON.
