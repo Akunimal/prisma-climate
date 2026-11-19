@@ -316,38 +316,42 @@ sources:
     day_convention: local_calendar
     connector: "metar.MetarMiddleEast"
     tier: 2
-    status: active
+    status: blocked
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
     coverage: "Middle East airport station network (ICAO aerodromes)"
     latency: "hours (hourly to sub-hourly reports)"
     update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain)"
-    redistributable: yes
-    verified_on: "2026-11-18"
+    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
+    redistributable: derived_only
+    verified_on: null
     notes: >-
-      Bridge observation network providing near-real-time observations across Middle Eastern
-      airports with ICAO codes.
+      Bridge observation network for Middle Eastern aerodromes. Blocked on 2026-11-19:
+      Section 3.8 audit (results/stations/_evidence/middle_east/audit.json) found 4 of 16
+      stations returned HTTP 204 No Content with 0 observations in 72h on NOAA AWC
+      (OKBK, OLBA, OIIE, OISS), resulting in 75.0% active telemetry, which fails the
+      mandatory 80.0% active telemetry threshold. Marked status: blocked pending stable feeds.
 
   - id: metar-global
     name: "NOAA Aviation Weather / MADIS METAR (Global)"
     day_convention: local_calendar
     connector: "metar.MetarGlobal"
     tier: 2
-    status: active
+    status: verification_in_progress
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
     coverage: "Global airport station network (ICAO aerodromes worldwide)"
     latency: "hours (hourly to sub-hourly reports)"
     update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain)"
-    redistributable: yes
-    verified_on: "2026-11-18"
+    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
+    redistributable: derived_only
+    verified_on: null
     notes: >-
       Worldwide bridge observation network providing near-real-time observations across all
-      global aerodromes with ICAO codes.
+      global aerodromes with ICAO codes. Status: verification_in_progress while individual
+      regional vetting reviews are completed.
 
   - id: inta
     name: "INTA (Argentina) agrometeorology"
