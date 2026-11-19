@@ -98,6 +98,7 @@ Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue d
    - [x] **Static skill export to Pages:** Publish validated hindcast results (`skill.json`) so the Skill screen displays active CRPSS scores while operational verification remains protected under the 15-issue-date gate.
    - [x] **Forecast values on map:** Display compact temperature badges ($T_{max}$/$T_{min}$) directly on station markers with toggle button.
    - [x] **Climatological normal range:** Render normal historical reference range/band on the forecast chart (`band_chart.dart`) with adaptive M3 contrast and localized legends.
+   - [x] **NASA GIBS NRT satellite layer:** Real-time global satellite imagery layer (VIIRS SNPP TrueColor) with automated deterministic UTC logic, 30-hour safety offset, floating map toggle, and dynamic attribution.
 
 2. **Stage 2 · Operational Verification Gate (Upon reaching $\ge 15$ issue dates)**
    - Accumulate remaining issue dates in the automated archive (currently 8/15).

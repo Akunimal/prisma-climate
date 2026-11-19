@@ -50,6 +50,9 @@ class _StationsScreenState extends State<StationsScreen> {
   bool _legendExpanded = false;
   bool _showTemperatures = true;
   String _selectedRegion = 'all';
+  bool _showSatellite = false;
+  int _satelliteFallbackDays = 0;
+  bool _satelliteTilesFailed = false;
 
   PlaceDocument? _places;
   Future<void>? _placesLoading;
@@ -67,16 +70,39 @@ class _StationsScreenState extends State<StationsScreen> {
   }
 
   Future<void> _loadView() async {
-    final prefs = await SharedPreferences.getInstance();
-    final stored = prefs.getString('prisma_stations_view');
-    if (!mounted) return;
-    setState(() => _mapView = stored == 'map');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final stored = prefs.getString('prisma_stations_view');
+      final satStored = prefs.getBool('prisma_map_satellite_enabled');
+      if (!mounted) return;
+      setState(() {
+        _mapView = stored == 'map';
+        if (satStored != null) {
+          _showSatellite = satStored;
+        }
+      });
+    } catch (_) {}
   }
 
   Future<void> _setView(bool map) async {
     setState(() => _mapView = map);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('prisma_stations_view', map ? 'map' : 'list');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('prisma_stations_view', map ? 'map' : 'list');
+    } catch (_) {}
+  }
+
+  Future<void> _toggleSatellite() async {
+    final next = !_showSatellite;
+    setState(() {
+      _showSatellite = next;
+      _satelliteFallbackDays = 0;
+      _satelliteTilesFailed = false;
+    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('prisma_map_satellite_enabled', next);
+    } catch (_) {}
   }
 
   @override
@@ -646,16 +672,38 @@ class _StationsScreenState extends State<StationsScreen> {
             maxZoom: 10,
           ),
           children: [
-            TileLayer(
-              urlTemplate: kPrismaTileUrlTemplate,
-              tileProvider: widget.tileProvider ?? NetworkTileProvider(),
-              userAgentPackageName: kPrismaTileUserAgent,
-              errorTileCallback: (tile, error, stackTrace) {
-                if (!_tilesFailed && mounted) {
-                  setState(() => _tilesFailed = true);
-                }
-              },
-            ),
+            if (_showSatellite && !_satelliteTilesFailed)
+              TileLayer(
+                key: ValueKey(
+                  'gibs_tile_layer_${resolveGibsDate(null, _satelliteFallbackDays)}',
+                ),
+                urlTemplate: buildGibsTileUrlTemplate(
+                  extraDaysBack: _satelliteFallbackDays,
+                ),
+                tileProvider: widget.tileProvider ?? NetworkTileProvider(),
+                userAgentPackageName: kPrismaTileUserAgent,
+                maxNativeZoom: kPrismaGibsMaxNativeZoom,
+                maxZoom: 10,
+                errorTileCallback: (tile, error, stackTrace) {
+                  if (!mounted) return;
+                  if (_satelliteFallbackDays < kPrismaGibsMaxFallbackDays) {
+                    setState(() => _satelliteFallbackDays++);
+                  } else if (!_satelliteTilesFailed) {
+                    setState(() => _satelliteTilesFailed = true);
+                  }
+                },
+              )
+            else
+              TileLayer(
+                urlTemplate: kPrismaTileUrlTemplate,
+                tileProvider: widget.tileProvider ?? NetworkTileProvider(),
+                userAgentPackageName: kPrismaTileUserAgent,
+                errorTileCallback: (tile, error, stackTrace) {
+                  if (!_tilesFailed && mounted) {
+                    setState(() => _tilesFailed = true);
+                  }
+                },
+              ),
             if (point != null && nearest != null)
               PolylineLayer(
                 polylines: [
@@ -793,18 +841,27 @@ class _StationsScreenState extends State<StationsScreen> {
               ),
             RichAttributionWidget(
               attributions: [
-                TextSourceAttribution(
-                  kPrismaTileAttribution,
-                  onTap: () => launchUrl(
-                    Uri.parse('https://www.openstreetmap.org/copyright'),
+                if (_showSatellite && !_satelliteTilesFailed)
+                  TextSourceAttribution(
+                    kPrismaGibsAttribution,
+                    onTap: () => launchUrl(
+                      Uri.parse(kPrismaGibsAttributionUrl),
+                    ),
+                  )
+                else ...[
+                  TextSourceAttribution(
+                    kPrismaTileAttribution,
+                    onTap: () => launchUrl(
+                      Uri.parse('https://www.openstreetmap.org/copyright'),
+                    ),
                   ),
-                ),
-                TextSourceAttribution(
-                  l10n.mapReportProblem,
-                  onTap: () => launchUrl(
-                    Uri.parse('https://www.openstreetmap.org/fixthemap'),
+                  TextSourceAttribution(
+                    l10n.mapReportProblem,
+                    onTap: () => launchUrl(
+                      Uri.parse('https://www.openstreetmap.org/fixthemap'),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ],
@@ -922,48 +979,94 @@ class _StationsScreenState extends State<StationsScreen> {
                   ),
                 ),
         ),
-        if (mapStations.any((s) => s.t2mMax != null))
-          Positioned(
-            top: 8,
-            right: 8,
-            child: Card(
-              elevation: 2,
-              child: InkWell(
-                key: const ValueKey('map_temp_toggle'),
-                borderRadius: BorderRadius.circular(8),
-                onTap: () =>
-                    setState(() => _showTemperatures = !_showTemperatures),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _showTemperatures
-                            ? Icons.thermostat
-                            : Icons.thermostat_outlined,
-                        size: 16,
-                        color: _showTemperatures
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '°C',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: _showTemperatures
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Card(
+                elevation: 2,
+                child: InkWell(
+                  key: const ValueKey('map_satellite_toggle'),
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: _toggleSatellite,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.satellite_alt,
+                          size: 16,
+                          color: _showSatellite
                               ? theme.colorScheme.primary
                               : theme.colorScheme.onSurfaceVariant,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Text(
+                          'SAT',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: _showSatellite
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
+              if (mapStations.any((s) => s.t2mMax != null)) ...[
+                const SizedBox(width: 6),
+                Card(
+                  elevation: 2,
+                  child: InkWell(
+                    key: const ValueKey('map_temp_toggle'),
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => setState(
+                      () => _showTemperatures = !_showTemperatures,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            _showTemperatures
+                                ? Icons.thermostat
+                                : Icons.thermostat_outlined,
+                            size: 16,
+                            color: _showTemperatures
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '°C',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: _showTemperatures
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
+        ),
       ],
     );
   }

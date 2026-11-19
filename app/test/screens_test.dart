@@ -11,6 +11,7 @@ import 'package:prisma_app/src/app.dart';
 import 'package:prisma_app/src/data/models.dart';
 import 'package:prisma_app/src/data/repository.dart';
 import 'package:prisma_app/src/location_provider.dart';
+import 'package:prisma_app/src/map_tiles.dart';
 import 'package:prisma_app/src/nearest_station.dart';
 import 'package:prisma_app/src/widgets/band_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -257,6 +258,91 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('map_temp_toggle')));
     await tester.pumpAndSettle();
     expect(find.text('22°'), findsOneWidget);
+  });
+
+  testWidgets('the map toggles between OSM and NASA GIBS satellite layer',
+      (tester) async {
+    final files = defaultFiles();
+    final customLatest = jsonDecode(files['latest.json']!);
+    customLatest['stations'][0]['t2m_max'] = 22.4;
+    files['latest.json'] = jsonEncode(customLatest);
+
+    await pumpApp(tester, files: files, tileProvider: BlankTileProvider());
+    await tester.tap(find.text(en.stationsViewMap));
+    await tester.pumpAndSettle();
+
+    // Both toggle buttons exist
+    expect(find.byKey(const ValueKey('map_satellite_toggle')), findsOneWidget);
+    expect(find.byKey(const ValueKey('map_temp_toggle')), findsOneWidget);
+
+    // Initial state: OSM TileLayer and OSM attribution
+    final initialAttribution =
+        tester.widget<RichAttributionWidget>(find.byType(RichAttributionWidget));
+    expect(
+      initialAttribution.attributions
+          .whereType<TextSourceAttribution>()
+          .map((a) => a.text),
+      contains(kPrismaTileAttribution),
+    );
+    expect(
+      initialAttribution.attributions
+          .whereType<TextSourceAttribution>()
+          .map((a) => a.text),
+      isNot(contains(kPrismaGibsAttribution)),
+    );
+
+    final initialTileLayer = tester.widget<TileLayer>(find.byType(TileLayer));
+    expect(initialTileLayer.urlTemplate, contains('tile.openstreetmap.org'));
+
+    // Tap SAT toggle button to activate NASA GIBS satellite
+    await tester.tap(find.byKey(const ValueKey('map_satellite_toggle')));
+    await tester.pumpAndSettle();
+
+    // Switched to NASA GIBS TileLayer and attribution
+    final gibsAttribution =
+        tester.widget<RichAttributionWidget>(find.byType(RichAttributionWidget));
+    expect(
+      gibsAttribution.attributions
+          .whereType<TextSourceAttribution>()
+          .map((a) => a.text),
+      contains(kPrismaGibsAttribution),
+    );
+    expect(
+      gibsAttribution.attributions
+          .whereType<TextSourceAttribution>()
+          .map((a) => a.text),
+      isNot(contains(kPrismaTileAttribution)),
+    );
+
+    final gibsTileLayer = tester.widget<TileLayer>(find.byType(TileLayer));
+    expect(gibsTileLayer.urlTemplate, contains('gibs.earthdata.nasa.gov'));
+    expect(
+      gibsTileLayer.urlTemplate,
+      contains('VIIRS_SNPP_CorrectedReflectance_TrueColor'),
+    );
+    expect(gibsTileLayer.maxNativeZoom, 9);
+    expect(gibsTileLayer.maxZoom, 10.0);
+
+    // Tap SAT toggle button again to return to OSM
+    await tester.tap(find.byKey(const ValueKey('map_satellite_toggle')));
+    await tester.pumpAndSettle();
+
+    final revertedAttribution =
+        tester.widget<RichAttributionWidget>(find.byType(RichAttributionWidget));
+    expect(
+      revertedAttribution.attributions
+          .whereType<TextSourceAttribution>()
+          .map((a) => a.text),
+      contains(kPrismaTileAttribution),
+    );
+    expect(
+      revertedAttribution.attributions
+          .whereType<TextSourceAttribution>()
+          .map((a) => a.text),
+      isNot(contains(kPrismaGibsAttribution)),
+    );
+    final revertedTileLayer = tester.widget<TileLayer>(find.byType(TileLayer));
+    expect(revertedTileLayer.urlTemplate, contains('tile.openstreetmap.org'));
   });
 
   testWidgets('the map shows the user position and its link line',
