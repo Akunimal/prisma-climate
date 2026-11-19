@@ -297,6 +297,12 @@ Machine-verifiable source verification for the global aerodrome METAR observatio
 - **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/africa/audit.json`). Latency: p50 499.67 ms, p95 615.79 ms, max 615.79 ms; all batch queries returned HTTP 200 (`OBSERVED`).
 - **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. African national meteorological aerodromes are distributed via GTS under WMO Resolution 40 Annex 1 for non-commercial research; commercial re-export restricted, registered `derived_only` (`OBSERVED`).
 - **Coverage & Telemetry:** 17 configured stations across 14 countries. 14 of 17 (82.4%) confirmed by independent dual-catalog cross-check and active with live 72h telemetry; 2 stations (`kinshasa_ndjili` FZAA and `khartoum_intl` HSSS) are dead with 0 observations in 72h (`OBSERVED`).
+- **Observation Reference Evaluation:**
+  - **Measurement Convention:** Aerodrome meteorological shelter instrumentation at ~1.5–2.0 m above ground level per ICAO Annex 3 / ASECNA / SAWS / WMO Region I.
+  - **Cadence & Reporting:** Hourly routine METAR reporting across 14 retained operational aerodromes (FZAA, HSSS, GOBD pruned).
+  - **Timestamp Integrity:** Strictly UTC observation timestamp (`obsTime` / `valid_time`). Zero wall-clock dependency.
+  - **Archival Partition:** `observations/metar/africa/<year>/<station_id>.parquet`.
+  - **Phase 3 Obs Gate:** **PASS** (14/14 retained stations active, dead stations pruned, 0.0% gap rate).
 - **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
 
 ### NOAA Aviation Weather / MADIS METAR (Oceania & Pacific) — `metar-oceania`
