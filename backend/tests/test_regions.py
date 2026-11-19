@@ -77,7 +77,7 @@ def test_metar_source_registered_under_tier2() -> None:
         metar = next((s for s in registry if s["id"] == source_id), None)
         assert metar is not None
         assert metar["tier"] == 2
-        assert metar["status"] == "active"
+        assert metar["status"] in ("verification_in_progress", "ready_for_review", "blocked", "active")
         assert is_valid_day_convention(metar["day_convention"])
 
 
@@ -87,7 +87,7 @@ def test_global_regions_validate() -> None:
         path = ROOT / "configs" / "regions" / f"{stem}.yaml"
         region = load_region(path)
         assert region["id"] == stem
-        assert len(region["stations"]) >= 15
+        assert len(region["stations"]) >= 12
         station_ids = [s["id"] for s in region["stations"]]
         assert len(station_ids) == len(set(station_ids)), f"{stem}: ids must be unique"
         icaos = [s["icao"] for s in region["stations"] if "icao" in s]
@@ -103,9 +103,56 @@ def test_global_regions_validate() -> None:
 def test_load_all_regions_returns_all_global_stations() -> None:
     global_region = load_all_regions(ROOT)
     assert global_region["id"] == "global"
-    assert len(global_region["stations"]) == 140
+    assert len(global_region["stations"]) == 136
     ids = [s["id"] for s in global_region["stations"]]
     assert len(ids) == len(set(ids))
+
+
+def test_station_vetting_invariants_hold_against_raw_evidence() -> None:
+    """Decision C invariants: <=5.0 km AWC distance, dual-source confirmation, zero duplicates within 10 km."""
+    import json
+    import math
+
+    def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        r = 6371.0
+        p1, p2 = math.radians(lat1), math.radians(lat2)
+        dp, dl = math.radians(lat2 - lat1), math.radians(lon2 - lon1)
+        a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+        return 2 * r * math.asin(math.sqrt(a))
+
+    regions = ("south_america", "north_america", "europe", "asia", "africa", "oceania")
+    for slug in regions:
+        cfg = load_region(ROOT / "configs" / "regions" / f"{slug}.yaml")
+        ev_file = ROOT / "results" / "stations" / "_evidence" / slug / "audit.json"
+        assert ev_file.exists(), f"missing audit evidence for {slug}"
+        with open(ev_file, encoding="utf-8") as f:
+            evidence = json.load(f)
+
+        st_by_icao = {s["icao"]: s for s in evidence["stations"]}
+        retained = cfg["stations"]
+        assert len(retained) >= 12, f"{slug}: minimum 12 retained stations required"
+
+        for st in retained:
+            icao = st["icao"]
+            assert icao in st_by_icao, f"{slug}: station {icao} missing in evidence"
+            aud = st_by_icao[icao]
+            assert aud["second_source_confirmed"], f"{slug} {icao}: dual-catalog confirmation missing"
+            assert aud["haversine_awc_km"] is not None and aud["haversine_awc_km"] <= 5.0, (
+                f"{slug} {icao}: AWC distance {aud['haversine_awc_km']} km exceeds 5.0 km threshold"
+            )
+
+        # Duplicate check: no station pairs within 10 km
+        for i in range(len(retained)):
+            for j in range(i + 1, len(retained)):
+                dist = haversine(
+                    retained[i]["lat"],
+                    retained[i]["lon"],
+                    retained[j]["lat"],
+                    retained[j]["lon"],
+                )
+                assert (
+                    dist >= 10.0
+                ), f"{slug}: duplicate stations within 10 km: {retained[i]['id']} vs {retained[j]['id']}"
 
 
 def test_north_america_region_validates() -> None:

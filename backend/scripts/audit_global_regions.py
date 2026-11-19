@@ -523,7 +523,108 @@ def audit_region(
     json_path = evidence_out / "audit.json"
     json_path.write_text(json.dumps(audit_payload, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"[{region_slug}] Audit written to {json_path} (retained: {retained_count}/{total_stations}, vetting: {summary['phase2_vetting_status']}, obs: {summary['phase3_obs_status']})")
+
+    write_vetting_markdown(region_slug, audit_payload)
     return audit_payload
+
+
+def write_vetting_markdown(region_slug: str, audit_payload: dict[str, Any]) -> Path:
+    """Generate Markdown vetting report matching results/stations/ghcn_vs_smn.md structure."""
+    summary = audit_payload["summary"]
+    stations = audit_payload["stations"]
+
+    lines = [
+        f"# Station cross-check — {summary['region_name']} config vs NOAA AWC / ISD catalogues",
+        "",
+        f"Generated from committed raw evidence `results/stations/_evidence/{region_slug}/audit.json` on {summary['audit_utc']}.",
+        "",
+        f"- Configured stations: {summary['total_stations']}; Retained: {summary['retained_count']}; Removed: {summary['removed_count']}; Auto-resolved: {summary['auto_resolved_count']}",
+        f"- Dual-source confirmation: {summary['confirmed_second_source_count']}/{summary['total_stations']} ({summary['confirmed_second_source_pct']}%)",
+        f"- Active 72h telemetry: {summary['active_telemetry_count']}/{summary['total_stations']} ({summary['active_telemetry_pct']}%)",
+        "- Flag thresholds: Haversine distance > 5.0 km, |Δelev| > 50 m (Decision C)",
+        f"- Phase 2 Vetting Gate: **{summary['phase2_vetting_status']}**; Phase 3 Obs Ref Gate: **{summary['phase3_obs_status']}**",
+        "",
+        "## Results",
+        "",
+        "| location | icao | ghcn_id | awc_site | isd_name | config_lat | config_lon | awc_lat | awc_lon | delta_dist_km | config_elev_m | awc_elev_m | delta_elev_m | obs_72h | obs/day | gap% | status | action |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    ]
+
+    for st in stations:
+        d_km = f"{st['haversine_awc_km']:.3f}" if st["haversine_awc_km"] is not None else "n/a"
+        awc_e = f"{st['awc_elevation_m']:.1f}" if st["awc_elevation_m"] is not None else "n/a"
+        d_e = f"{st['delta_elev_awc_m']:.1f}" if st["delta_elev_awc_m"] is not None else "n/a"
+        awc_lat = f"{st['awc_lat']:.3f}" if st["awc_lat"] is not None else "n/a"
+        awc_lon = f"{st['awc_lon']:.3f}" if st["awc_lon"] is not None else "n/a"
+        awc_site = st.get("awc_site") or "n/a"
+        isd_name = st.get("isd_station_name") or "n/a"
+        ghcn = st.get("ghcn_id") or "n/a"
+
+        row = (
+            f"| {st['name']} | `{st['icao']}` | `{ghcn}` | {awc_site} | {isd_name} | "
+            f"{st['config_lat']} | {st['config_lon']} | {awc_lat} | {awc_lon} | {d_km} | "
+            f"{st['config_elevation_m']} | {awc_e} | {d_e} | {st['obs_72h_count']} | "
+            f"{st['obs_per_day']} | {st['gap_rate_pct']}% | {st['vetting_status']} | `{st['vetting_action']}` |"
+        )
+        lines.append(row)
+
+    lines.extend([
+        "",
+        "## Flags and Removals",
+        "",
+    ])
+
+    flagged = [st for st in stations if st["vetting_status"] != "PASS"]
+    if not flagged:
+        lines.append("No stations exceeded the 5.0 km / 50 m thresholds or failed telemetry.")
+    else:
+        for st in flagged:
+            lines.append(
+                f"- **`{st['icao']}` ({st['name']})**: status `{st['vetting_status']}`, action `{st['vetting_action']}`. "
+                f"Distance delta: {st['haversine_awc_km']} km. Elev delta: {st['delta_elev_awc_m']} m. "
+                f"72h observations: {st['obs_72h_count']}."
+            )
+
+    out_path = ROOT / "results" / "stations" / f"{region_slug}_vetting.md"
+    out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"[{region_slug}] Vetting markdown written to {out_path}")
+    return out_path
+
+
+def apply_vetting_pruning(region_slug: str, audit_payload: dict[str, Any]) -> bool:
+    """Apply Decision C pruning/auto-resolution directly to configs/regions/<region>.yaml."""
+    stations = audit_payload["stations"]
+    remove_icaos = {st["icao"] for st in stations if st["vetting_action"] == "remove"}
+    resolve_coords = {st["icao"]: st["resolved_coords"] for st in stations if st["vetting_action"] == "auto_resolved_coords"}
+
+    if not remove_icaos and not resolve_coords:
+        return False
+
+    region_path = CONFIGS_REGIONS / f"{region_slug}.yaml"
+    with open(region_path, encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
+
+    original_count = len(cfg.get("stations", []))
+    new_stations = []
+    for st in cfg.get("stations", []):
+        icao = st.get("icao")
+        if icao in remove_icaos:
+            print(f"[{region_slug}] Pruning dead/unconfirmed station: {st.get('id')} ({icao})")
+            continue
+        if icao in resolve_coords and resolve_coords[icao]:
+            coords = resolve_coords[icao]
+            print(f"[{region_slug}] Auto-resolving coords for {st.get('id')} ({icao}): {st.get('lat')},{st.get('lon')} -> {coords['lat']},{coords['lon']}")
+            st["lat"] = coords["lat"]
+            st["lon"] = coords["lon"]
+            st["elevation_m"] = coords["elevation_m"]
+        new_stations.append(st)
+
+    cfg["stations"] = new_stations
+    with open(region_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(cfg, f, sort_keys=False, allow_unicode=True)
+
+    print(f"[{region_slug}] Pruned {original_count - len(new_stations)} stations. New count: {len(new_stations)}")
+    return True
 
 
 def audit_open_meteo_quota() -> dict[str, Any]:
@@ -618,7 +719,33 @@ def main() -> int:
         default="all",
         help="Region to audit (default: all)",
     )
+    parser.add_argument(
+        "--from-evidence",
+        action="store_true",
+        help="Generate vetting reports directly from committed raw audit.json files without network queries.",
+    )
+    parser.add_argument(
+        "--prune-configs",
+        action="store_true",
+        help="Apply Decision C pruning/auto-resolution directly to configs/regions/*.yaml.",
+    )
     args = parser.parse_args()
+
+    regions_to_process = NON_ARGENTINA_REGIONS if args.region == "all" else [args.region]
+
+    if args.from_evidence:
+        print(f"Generating reports from committed evidence for: {regions_to_process}...")
+        for slug in regions_to_process:
+            json_path = ROOT / "results" / "stations" / "_evidence" / slug / "audit.json"
+            if not json_path.exists():
+                print(f"[{slug}] Missing evidence: {json_path}", file=sys.stderr)
+                continue
+            with open(json_path, encoding="utf-8") as f:
+                payload = json.load(f)
+            write_vetting_markdown(slug, payload)
+            if args.prune_configs:
+                apply_vetting_pruning(slug, payload)
+        return 0
 
     print("Phase 0/1: Ensuring external reference catalogs in temp storage...")
     catalog_meta = ensure_catalogs()
@@ -635,7 +762,7 @@ def main() -> int:
     print("\nAuditing Open-Meteo API quota...")
     audit_open_meteo_quota()
 
-    regions_to_audit = NON_ARGENTINA_REGIONS if args.region == "all" else [args.region]
+    regions_to_audit = regions_to_process
     print(f"\nAuditing regions in parallel: {regions_to_audit}...")
 
     with ThreadPoolExecutor(max_workers=3) as executor:
@@ -648,7 +775,9 @@ def main() -> int:
         for future in as_completed(futures):
             slug = futures[future]
             try:
-                future.result()
+                payload = future.result()
+                if args.prune_configs:
+                    apply_vetting_pruning(slug, payload)
             except Exception as exc:
                 print(f"[{slug}] Audit failed with error: {exc}", file=sys.stderr)
                 raise
