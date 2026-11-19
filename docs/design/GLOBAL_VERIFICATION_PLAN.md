@@ -40,9 +40,31 @@
   - Concurrency group `observations-metar-archive`, read-only permissions, isolated from SMN archive.
 
 ### Phase 5A — Anti-Drift Integrity Tests & Deterministic Promotion Gate
-- Executable anti-drift tests re-computing all metrics from committed evidence JSONs.
+- Executable anti-drift tests re-computing all metrics from committed evidence JSONs (`backend/tests/test_verification_integrity.py`).
 - Deterministic promotion CLI (`backend/scripts/promote_verified_regions.py`).
 - Strict prohibition against writing `status: active` or claiming non-Argentina hindcast calibration during autonomous runs.
+- **Dry-run Gate Output (`OBSERVED`):**
+```text
+================================================================================
+PRISMA CLIMATE — DETERMINISTIC REGIONAL PROMOTION GATE
+Timestamp: 2026-11-19 11:13:58 UTC
+Mode: DRY RUN (no changes applied)
+================================================================================
+Region           | P1     | P2     | P3     | Retained  | Telemetry  | Decision        
+--------------------------------------------------------------------------------
+south_america    | PASS   | PASS   | QUALIFIED | 17/17     | 100.0%     | READY_FOR_REVIEW
+north_america    | PASS   | PASS   | QUALIFIED | 18/18     | 100.0%     | READY_FOR_REVIEW
+europe           | PASS   | PASS   | QUALIFIED | 18/18     | 100.0%     | READY_FOR_REVIEW
+asia             | PASS   | PASS   | QUALIFIED | 18/19     | 94.7%      | READY_FOR_REVIEW
+africa           | PASS   | PASS   | QUALIFIED | 14/17     | 88.2%      | READY_FOR_REVIEW
+oceania          | PASS   | PASS   | QUALIFIED | 16/16     | 100.0%     | READY_FOR_REVIEW
+middle_east      | PASS   | BLOCKED | QUALIFIED | 12/16     | 75.0%      | BLOCKED         
+   -> Block reason: Phase 2 vetting failed (BLOCKED); Active telemetry 75.0% < 80.0%
+================================================================================
+Summary: 6 eligible for 'ready_for_review', 1 blocked.
+
+[DRY RUN] No modifications written to configs/sources.yaml.
+```
 
 ---
 

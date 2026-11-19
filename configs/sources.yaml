@@ -1,660 +1,693 @@
-# Source registry.
-#
-# Every connector lives under backend/src/prisma/ingest/ and implements the same
-# interface: fetch -> normalize to the common schema (variable, unit, lat, lon,
-# time, source, quality_flag) -> store as Parquet. Adding a source must require
-# changes only in its connector module and this file.
-#
-# status:  active   -> implemented and used by the pipeline
-#          planned  -> registered, connector not implemented yet
-#          blocked  -> access verified as unavailable from this environment
-#
-# redistributable: yes | no | derived_only | unknown
-#
-# day_convention: how the source aggregates a value into a day; recorded per
-#   source here and carried in every stored row. See docs/DATA_SOURCES.md.
-#     utc            -> timestamped and aggregated in UTC
-#     local_calendar -> aggregated over the local calendar day at the location
-#     obs_hour_XX    -> value taken at a fixed observation hour (XX, 0-23 UTC)
-#     unknown        -> not verified yet; must be resolved before status: active
-#
-# Integration order follows the project plan: Tier 1 first.
-
 version: 1
-
 sources:
-  # ---------------------------------------------------------------------------
-  # Tier 1
-  # ---------------------------------------------------------------------------
-  - id: openmeteo-ensemble
-    name: "Open-Meteo Ensemble API"
-    day_convention: local_calendar
-    connector: "openmeteo.OpenMeteoEnsemble"
-    tier: 1
-    status: active
-    variables: [t2m_max, t2m_min, precip]
-    access: "REST API, no key"
-    endpoint: "https://ensemble-api.open-meteo.com/v1/ensemble"
-    coverage: global
-    latency: "hours"
-    update_frequency: "6 hours"
-    license: "Open-Meteo CC BY 4.0; free tier is non-commercial only"
-    # CC BY 4.0 grants redistribution of the API data with attribution; the
-    # non-commercial condition belongs to the free-tier contract, not to the
-    # data licence. Reconciled 2026-11-14 against the Open-Meteo licence and
-    # terms pages (docs/DATA_SOURCES.md).
-    redistributable: yes
-    verified_on: "2026-11-11"
-    notes: "GFS ensemble has 30 members, ECMWF IFS 0.25 has 50."
-    options:
-      models: [gfs_seamless, ecmwf_ifs025]
-      forecast_days: 16
-      # Nominal delivered member counts for the verification 80% rule
-      # (EVALUATION_PROTOCOL 2026-11-14 amendment, rule 1): member ids 0-30
-      # for gfs_seamless (31 values: control + 30 perturbed) and 0-50 for
-      # ecmwf_ifs025 (51). Verified against every canonical archive parquet
-      # (2026-11-11..13) and the dataset card schema; the notes line above
-      # counts perturbed members only.
-      member_counts: {gfs_seamless: 31, ecmwf_ifs025: 51}
-
-  - id: openmeteo-era5
-    name: "Open-Meteo Historical Weather API (ERA5)"
-    day_convention: local_calendar
-    connector: "openmeteo.OpenMeteoEra5"
-    tier: 1
-    status: active
-    variables: [t2m_max, t2m_min, precip]
-    access: "REST API, no key"
-    endpoint: "https://archive-api.open-meteo.com/v1/archive"
-    coverage: global
-    latency: "about 5 days behind real time"
-    update_frequency: daily
-    license: "Open-Meteo CC BY 4.0; underlying ERA5 under the Copernicus licence"
-    redistributable: derived_only
-    verified_on: "2026-11-11"
-    notes: "Gridded reanalysis, not a station measurement. Values are the grid cell nearest each station."
-    options:
-      models: [era5]
-      pause_seconds: 7
-      incremental: true
-
-  - id: ghcn-daily
-    name: "NOAA GHCN-Daily"
-    day_convention: local_calendar
-    connector: "ghcn.GhcnDaily"
-    tier: 1
-    status: active
-    variables: [t2m_max, t2m_min, precip]
-    access: "HTTPS fixed-width files, no key"
-    endpoint: "https://www.ncei.noaa.gov/pub/data/ghcn/daily/all/{station_id}.dly"
-    coverage: global
-    latency: "days"
-    update_frequency: daily
-    license: "Public domain (NOAA/NCEI, U.S. Government)"
-    redistributable: yes
-    verified_on: "2026-11-11"
-    notes: >-
-      Primary observation source. Station IDs are declared per region in configs/regions/.
-      Observed staleness (independent of the nominal "days" latency above): the last valid
-      rows for the 19 region stations are 2025-08-24, and daily coverage falls to about 50%
-      of days since 2005; both facts re-verified 2026-11-12 and 2026-11-13 (raw .dly
-      re-read, results/qc/freshness.md and results/discrepancies/). The source stays
-      status active for its historical series; freshness is reported, never filled.
-    options:
-      min_year: 1996
-
-  - id: noaa-oni
-    name: "NOAA ONI (Oceanic Nino Index)"
-    day_convention: utc
-    connector: "indices.NoaaOni"
-    tier: 1
-    status: active
-    variables: [oni]
-    access: "HTTPS ASCII, no key"
-    endpoint: "https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt"
-    coverage: "Nino 3.4 region"
-    latency: "weeks"
-    update_frequency: monthly
-    license: "Public domain (NOAA/NWS, U.S. Government)"
-    redistributable: yes
-    verified_on: "2026-11-11"
-    notes: "3-month running means; mapped to the centre month of each season."
-
-  - id: noaa-sam
-    name: "NOAA CPC Antarctic Oscillation (SAM) index"
-    day_convention: utc
-    connector: "indices.NoaaSam"
-    tier: 1
-    status: active
-    variables: [sam]
-    access: "HTTPS ASCII table, no key"
-    endpoint: "https://www.cpc.ncep.noaa.gov/products/precip/CWlink/daily_ao_index/aao/monthly.aao.index.b79.current.ascii.table"
-    coverage: "Southern hemisphere extratropics"
-    latency: "weeks"
-    update_frequency: monthly
-    license: "Public domain (NOAA/NWS, U.S. Government)"
-    redistributable: yes
-    verified_on: "2026-11-11"
-
-  - id: smn-argentina
-    name: "Servicio Meteorologico Nacional (Argentina)"
-    day_convention: local_calendar
-    connector: "smn.SmnObservations"
-    tier: 1
-    status: active
-    variables: [t2m_max, t2m_min]
-    access: "Open data on ssl.smn.gob.ar (no auth); www.smn.gob.ar serves a Cloudflare JS challenge to plain clients"
-    endpoint: "https://ssl.smn.gob.ar/dpd/zipopendata.php?dato=observaciones"
-    coverage: Argentina
-    latency: "hours"
-    update_frequency: daily
-    license: "CC BY 2.5 AR; attribution to SMN required (PAD_legales.pdf, Infoleg disp25.pdf)"
-    redistributable: yes
-    verified_on: "2026-11-11"
-    notes: >-
-      Core source. Access re-verified 2026-11-11: ssl.smn.gob.ar/dpd/zipopendata.php?dato={estaciones,
-      observaciones, tiepre, datohorario, regtemp, radsolar, pron5d} returns 200 with no challenge.
-      Licence terms read 2026-11-11: PAD_legales.pdf (Propiedad Intelectual) licenses "todos sus
-      contenidos" under CC BY 2.5 AR; Infoleg disp25.pdf (Política de Datos del SMN) puts raw
-      observational data in category A "Datos Abiertos" under the same licence with attribution.
-      day_convention local_calendar verified from the payload: datohorario carries FECHA DDMMYYYY
-      plus HORA in [HOA] covering the local day 0-23, and observaciones is one TMAX/TMIN row per
-      local calendar day (the fecha query parameter is ignored, so only the latest completed day
-      is served). Connector ingests observaciones -> t2m_max/t2m_min and merges each new day into
-      data/raw/smn-argentina.parquet. Catalogue reconciliation: 124 physical lines = 2 blank +
-      header + units + 118 station rows + 2 name-wrap fragments (ERO, RO); 118 stations parse and
-      118 appear in observaciones. Precipitation is pending, not guessed: probed 2026-11-11,
-      datohorario carries FECHA HORA TEMP HUM PNM DD FF NOMBRE with units [HOA] [degC] [%] [hPa]
-      [gr] [km/hr] and no precip field at all, observaciones and regtemp carry only FECHA/TMAX/
-      TMIN/NOMBRE, and dato=precipitacion|precipitaciones|precip|lluvia|precipitacion_diaria|
-      precipitacion30d|precip30d|lluvias all return an empty ZIP (zero members), so there is
-      nothing to aggregate to the local calendar day. regtemp was probed and serves
-      registro_temperatura365d_smn.txt (42,953 rows, 365 local days 2025-11-11..2026-11-10, 118
-      distinct station names under fixed-column parse; a whitespace split invents ~135 tokens from
-      blank TMAX/TMIN rows): a candidate t2m_max/t2m_min backfill over the GHCN staleness gap,
-      recorded but not wired. observaciones ignores fecha and serves only the latest completed day,
-      so the live series accumulates forward with no backfill through that endpoint.
-    options: {}
-
-  # ---------------------------------------------------------------------------
-  # Tier 2
-  # ---------------------------------------------------------------------------
-  - id: metar-south-america
-    name: "NOAA Aviation Weather / MADIS METAR (South America)"
-    day_convention: local_calendar
-    connector: "metar.MetarSouthAmerica"
-    tier: 2
-    status: verification_in_progress
-    variables: [t2m_max, t2m_min, precip]
-    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
-    endpoint: "https://aviationweather.gov/api/data/metar"
-    coverage: "South America airport station network (ICAO aerodromes)"
-    latency: "hours (hourly to sub-hourly reports)"
-    update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
-    redistributable: derived_only
-    verified_on: null
-    notes: >-
-      Bridge observation network providing near-real-time observations across South American
-      airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
-      (results/stations/_evidence/south_america/audit.json). All 17 stations verified with
-      active telemetry (100%) and dual-catalog confirmation. Status: verification_in_progress
-      pending full multi-phase vetting review.
-
-  - id: metar-north-america
-    name: "NOAA Aviation Weather / MADIS METAR (North America)"
-    day_convention: local_calendar
-    connector: "metar.MetarNorthAmerica"
-    tier: 2
-    status: verification_in_progress
-    variables: [t2m_max, t2m_min, precip]
-    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
-    endpoint: "https://aviationweather.gov/api/data/metar"
-    coverage: "North America airport station network (ICAO aerodromes: US, Canada, Mexico)"
-    latency: "hours (hourly to sub-hourly reports)"
-    update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
-    redistributable: derived_only
-    verified_on: null
-    notes: >-
-      Bridge observation network providing near-real-time observations across North American
-      airports with ICAO codes (FAA ASOS/AWOS, Nav Canada, SENEAM Mexico). Section 3.8 source
-      verification completed 2026-11-19 (results/stations/_evidence/north_america/audit.json).
-      All 18 stations verified with active telemetry (100%) and dual-catalog confirmation.
-      Status: verification_in_progress pending full multi-phase vetting review.
-
-  - id: metar-europe
-    name: "NOAA Aviation Weather / MADIS METAR (Europe)"
-    day_convention: local_calendar
-    connector: "metar.MetarEurope"
-    tier: 2
-    status: verification_in_progress
-    variables: [t2m_max, t2m_min, precip]
-    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
-    endpoint: "https://aviationweather.gov/api/data/metar"
-    coverage: "Europe airport station network (ICAO aerodromes)"
-    latency: "hours (hourly to sub-hourly reports)"
-    update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
-    redistributable: derived_only
-    verified_on: null
-    notes: >-
-      Bridge observation network providing near-real-time observations across European
-      airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
-      (results/stations/_evidence/europe/audit.json). All 18 stations verified with
-      active telemetry (100%) and dual-catalog confirmation. Status: verification_in_progress
-      pending full multi-phase vetting review.
-
-  - id: metar-asia
-    name: "NOAA Aviation Weather / MADIS METAR (Asia)"
-    day_convention: local_calendar
-    connector: "metar.MetarAsia"
-    tier: 2
-    status: verification_in_progress
-    variables: [t2m_max, t2m_min, precip]
-    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
-    endpoint: "https://aviationweather.gov/api/data/metar"
-    coverage: "Asia airport station network (ICAO aerodromes)"
-    latency: "hours (hourly to sub-hourly reports)"
-    update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
-    redistributable: derived_only
-    verified_on: null
-    notes: >-
-      Bridge observation network providing near-real-time observations across Asian
-      airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
-      (results/stations/_evidence/asia/audit.json). 18 of 19 stations verified with
-      active telemetry (94.7%) and dual-catalog confirmation (UTTT dead and removed in vetting).
-      Status: verification_in_progress pending full multi-phase vetting review.
-
-  - id: metar-africa
-    name: "NOAA Aviation Weather / MADIS METAR (Africa)"
-    day_convention: local_calendar
-    connector: "metar.MetarAfrica"
-    tier: 2
-    status: verification_in_progress
-    variables: [t2m_max, t2m_min, precip]
-    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
-    endpoint: "https://aviationweather.gov/api/data/metar"
-    coverage: "Africa airport station network (ICAO aerodromes)"
-    latency: "hours (hourly to sub-hourly reports)"
-    update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
-    redistributable: derived_only
-    verified_on: null
-    notes: >-
-      Bridge observation network providing near-real-time observations across African
-      airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
-      (results/stations/_evidence/africa/audit.json). 14 of 17 stations verified with
-      active telemetry (82.4%) and dual-catalog confirmation (FZAA and HSSS dead and removed in vetting).
-      Status: verification_in_progress pending full multi-phase vetting review.
-
-  - id: metar-oceania
-    name: "NOAA Aviation Weather / MADIS METAR (Oceania & Pacific)"
-    day_convention: local_calendar
-    connector: "metar.MetarOceania"
-    tier: 2
-    status: verification_in_progress
-    variables: [t2m_max, t2m_min, precip]
-    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
-    endpoint: "https://aviationweather.gov/api/data/metar"
-    coverage: "Oceania and Pacific airport station network (ICAO aerodromes)"
-    latency: "hours (hourly to sub-hourly reports)"
-    update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
-    redistributable: derived_only
-    verified_on: null
-    notes: >-
-      Bridge observation network providing near-real-time observations across Oceania
-      and Pacific Island airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
-      (results/stations/_evidence/oceania/audit.json). All 16 stations verified with
-      active telemetry (100%) and dual-catalog confirmation. Status: verification_in_progress
-      pending full multi-phase vetting review.
-
-  - id: metar-middle-east
-    name: "NOAA Aviation Weather / MADIS METAR (Middle East)"
-    day_convention: local_calendar
-    connector: "metar.MetarMiddleEast"
-    tier: 2
-    status: blocked
-    variables: [t2m_max, t2m_min, precip]
-    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
-    endpoint: "https://aviationweather.gov/api/data/metar"
-    coverage: "Middle East airport station network (ICAO aerodromes)"
-    latency: "hours (hourly to sub-hourly reports)"
-    update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
-    redistributable: derived_only
-    verified_on: null
-    notes: >-
-      Bridge observation network for Middle Eastern aerodromes. Blocked on 2026-11-19:
-      Section 3.8 audit (results/stations/_evidence/middle_east/audit.json) found 4 of 16
-      stations returned HTTP 204 No Content with 0 observations in 72h on NOAA AWC
-      (OKBK, OLBA, OIIE, OISS), resulting in 75.0% active telemetry, which fails the
-      mandatory 80.0% active telemetry threshold. Marked status: blocked pending stable feeds.
-
-  - id: metar-global
-    name: "NOAA Aviation Weather / MADIS METAR (Global)"
-    day_convention: local_calendar
-    connector: "metar.MetarGlobal"
-    tier: 2
-    status: verification_in_progress
-    variables: [t2m_max, t2m_min, precip]
-    access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
-    endpoint: "https://aviationweather.gov/api/data/metar"
-    coverage: "Global airport station network (ICAO aerodromes worldwide)"
-    latency: "hours (hourly to sub-hourly reports)"
-    update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
-    redistributable: derived_only
-    verified_on: null
-    notes: >-
-      Worldwide bridge observation network providing near-real-time observations across all
-      global aerodromes with ICAO codes. Status: verification_in_progress while individual
-      regional vetting reviews are completed.
-
-  - id: inta
-    name: "INTA (Argentina) agrometeorology"
-    day_convention: unknown
-    connector: "inta.IntaStations"
-    tier: 2
-    status: planned
-    variables: [t2m_max, t2m_min, precip, soil_moisture]
-    access: "to verify"
-    endpoint: null
-    coverage: Argentina
-    latency: unknown
-    update_frequency: unknown
-    license: "to verify"
-    redistributable: unknown
-    verified_on: null
-
-  - id: imerg
-    name: "NASA IMERG Late Run (GPM precipitation, L3 daily)"
-    day_convention: utc
-    connector: "imerg.Imerg"
-    tier: 2
-    status: planned
-    variables: [precip]
-    access: "CMR metadata open over HTTPS; data files require Earthdata Login (free registration); PPS NRT requires email registration"
-    endpoint: "https://data.gesdisc.earthdata.nasa.gov/data/GPM_L3/GPM_3IMERGDL.07/{yyyy}/{mm}/{granule}.nc4"
-    coverage: "global, 0.1 degree (all latitudes except boxes very near the poles, per V07)"
-    latency: "observed 1 day: daily granule for obs day T ingested ~14:30 UTC on T+1 (Late)"
-    update_frequency: "daily"
-    license: "NASA GPM data usage policy: data freely available at all processed levels; citation requested (https://gpm.nasa.gov/data/policy)"
-    redistributable: yes
-    verified_on: "2026-11-12"
-    notes: >-
-      Tier 2 verification 2026-11-12, see docs/DATA_SOURCES.md section "Tier 2 verification — 2026-11-12".
-      Product pinned: IMERG Late Run L3 daily 0.1 degree, collection GPM_3IMERGDL version 07 (granule
-      algorithm id V07C observed). Family probed: Early (GPM_3IMERGDE.07, obs day 2026-11-11 ingested
-      2026-11-12T04:31:43Z) and Final (GPM_3IMERGDF.07, latest obs day 2025-09-30, ~13.5 months behind
-      at run time). Empirical latency evidence: open CMR granule metadata (short_name+version query,
-      HTTP 200) shows the latest Late granule covering obs day 2026-11-11 with updated
-      2026-11-12T14:32:02Z. Data-file GET without credentials returns HTTP 302 to
-      urs.earthdata.nasa.gov oauth (access requires Earthdata Login; GES DISC banner quote recorded in
-      the doc section); PPS NRT returns HTTP 401 and the GPM directory documents email registration.
-      GES DISC also notes its HTTPS servers migrate to Earthdata Cloud, access ending no earlier than
-      2026-09-30. day_convention utc from the granule CMR time_start/time_end
-      2026-11-11T00:00:00.000Z-23:59:59.999Z and the -S000000-E235959 filename span. Verification
-      only, no connector written; candidate SECONDARY / spatial-proxy reference pending a future dated
-      protocol amendment.
-
-  - id: chirps
-    name: "CHIRPS v2.0 daily (UCSB Climate Hazards Center)"
-    day_convention: utc
-    connector: "chirps.Chirps"
-    tier: 2
-    status: planned
-    variables: [precip]
-    access: "HTTPS directory listings, no auth; HTTP 429 rate-limiting observed under probing, future connector must pace requests"
-    endpoint: "https://data.chc.ucsb.edu/products/CHIRPS/v2.0/global_daily/"
-    coverage: "50S-50N, 0.05 degree"
-    latency: "observed: preliminary daily through obs day 2026-11-10 (2 days behind run date); final daily through 2026-09-30 as of 2026-11-12"
-    update_frequency: "daily (preliminary)"
-    license: "Public domain: Pete Peterson waived copyright; CHIRPS data is in the public domain as registered with Creative Commons (https://www.chc.ucsb.edu/data/chirps)"
-    redistributable: yes
-    verified_on: "2026-11-12"
-    notes: >-
-      Tier 2 verification 2026-11-12, see docs/DATA_SOURCES.md section "Tier 2 verification — 2026-11-12".
-      Endpoints: final under global_daily/ (tifs/p05/{yyyy}/, netcdf/p05/chirps-v2.0.{yyyy}.days_p05.nc),
-      preliminary under prelim/global_daily/; the old /products/CHIRPS-2.0/ path returns HTTP 404 (moved).
-      Empirical latency: preliminary latest file chirps-v2.0.2026.11.10.tif.gz (obs day 2026-11-10,
-      HTTP 200, 2026-11-12T16:40Z); final latest per-day tif obs day 2026-09-30 (HTTP 200,
-      2026-11-12T16:51Z); final yearly NetCDF Last-Modified 2026-10-15. Access is open but the front
-      end rate-limits (HTTP 429 observed); the CHC FAQ wiki timed out from this environment (finding,
-      not routed around). day_convention utc from README-CHIRPS2-Daily.txt: the date is "a consistent
-      UTC calendar-day label ... approximately 00:00 UTC on D to 00:00 UTC on D+1". That README also
-      states daily CHIRPS is a CFSv2 temporal disaggregation of pentad totals, not an independent daily
-      station product. CHIRPS v2 retires after December 2026; v3 daily is already served under
-      /products/CHIRPS/v3.0/daily/ so any connector must plan the v2 to v3 transition. Verification
-      only, no connector written; candidate SECONDARY / spatial-proxy reference pending a future dated
-      protocol amendment.
-
-  - id: noaa-oisst
-    name: "NOAA OISST v2.1 sea surface temperature"
-    day_convention: unknown
-    connector: "oisst.Oisst"
-    tier: 2
-    status: planned
-    variables: [sst]
-    access: "HTTPS NetCDF"
-    endpoint: "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/"
-    coverage: global ocean
-    latency: "days"
-    update_frequency: daily
-    license: "Public domain (NOAA/NCEI)"
-    redistributable: yes
-    verified_on: null
-
-  - id: gefs-open
-    name: "NOAA GEFS operational ensemble"
-    day_convention: unknown
-    connector: "gefs.Gefs"
-    tier: 2
-    status: planned
-    variables: [t2m, precip, wind]
-    access: "NOMADS / AWS Open Data"
-    endpoint: "https://nomads.ncep.noaa.gov/"
-    coverage: global
-    latency: "hours"
-    update_frequency: "6 hours"
-    license: "Public domain (NOAA/NCEP)"
-    redistributable: yes
-    verified_on: null
-
-  - id: ecmwf-open
-    name: "ECMWF open data (IFS)"
-    day_convention: unknown
-    connector: "ecmwf_open.EcmwfOpen"
-    tier: 2
-    status: planned
-    variables: [t2m, precip, wind]
-    access: "ECMWF open data server, no key"
-    endpoint: "https://data.ecmwf.int/forecasts/"
-    coverage: global
-    latency: "hours"
-    update_frequency: "6 to 12 hours"
-    license: "CC BY 4.0"
-    redistributable: yes
-    verified_on: null
-
-  - id: isd
-    name: "NOAA Integrated Surface Database"
-    day_convention: utc
-    connector: "isd.Isd"
-    tier: 2
-    status: planned
-    variables: [t2m, wind, humidity, pressure]
-    access: "Anonymous HTTPS/S3: hourly CSV s3://noaa-global-hourly-pds/{year}/{usaf}{wban}.csv; original .gz s3://noaa-isd-pds/data/{year}/{usaf}-{wban}-{year}.gz; inventory https://www.ncei.noaa.gov/pub/data/noaa/isd-history.csv (all HTTP 200, no key)"
-    endpoint: "https://www.ncei.noaa.gov/pub/data/noaa/"
-    coverage: global
-    latency: "product page says stations update daily; observed 2026-11-13: no data after 2025-08-24 (see notes)"
-    update_frequency: daily
-    license: "NODD: NOAA data open to the public with attribution (registry.opendata.aws/noaa-isd, read 2026-11-13); WMO Resolution 40 note for non-U.S. data (GSOD doc readme)"
-    redistributable: derived_only
-    verified_on: "2026-11-13"
-    notes: >-
-      Tier 2 verification 2026-11-13, see docs/DATA_SOURCES.md section "Tier 2 verification — 2026-11-13
-      (NOAA ISD / GSOD)". Station ids are USAF+WBAN (e.g. Buenos Aires Observatorio 87585099999).
-      Routes probed plain HTTPS, no auth, no registration wall: AWS Open Data buckets noaa-global-hourly-pds
-      (CSV) and noaa-isd-pds (original .gz under /data/{year}/); both listed in registry.opendata.aws/noaa-isd
-      with update frequency "Daily" and the NODD licence quoted there. The WAF trees /data/global-hourly/
-      and /pub/data/noaa/isd-lite/ return an S3-explorer HTML shell for every probed path (soft-404) and are
-      not usable as plain file routes from this environment. Observed lag 2026-11-13: for all 19 region
-      stations the hourly CSV exists for 2024 and 2025 but both years end on 2025-08-24 (294 of 304
-      window-1 days carry TMP; 2024 file Last-Modified 2025-03-01, 2025 file 2025-10-04); every 2026 key
-      returns 404 / zero keys in all three buckets; isd-history.csv downloaded the same day shows global
-      max END 2025-08-28 and zero stations ending on or after 2026-01-01 — i.e. ~447 days stale vs the
-      nominal "updated daily". NCEI's product page banner (read 2026-11-13) reports a cloud migration with
-      "Current Impact: data archiving delays". day_convention utc: ISD rows are hourly instants with DATE
-      like 2025-01-01T00:00:00, and the GSOD readme states the original synoptic/hourly data are based on
-      GMT (0000Z-2359Z); ISD itself performs no day aggregation. Licence nuance drives redistributable
-      derived_only: the NODD statement allows use as desired with attribution, but the GSOD readme (same
-      WMO Resolution 40 exchange) restricts non-U.S. data to research/education/non-commercial use and
-      forbids commercial re-export, so bulk republication of raw files is out of scope until the owner
-      confirms. Verification only, no connector written.
-
-  - id: gsod
-    name: "NOAA Global Summary of the Day (GSOD)"
-    day_convention: utc
-    connector: "gsod.Gsod"
-    tier: 2
-    status: planned
-    variables: [t2m, t2m_max, t2m_min, precip, wind, humidity]
-    access: "HTTPS CSV per station-year, no key: https://www.ncei.noaa.gov/data/global-summary-of-the-day/access/{year}/{usaf}{wban}.csv; mirror s3://noaa-gsod-pds/{year}/{usaf}{wban}.csv (both HTTP 200, no auth)"
-    endpoint: "https://www.ncei.noaa.gov/data/global-summary-of-the-day/"
-    coverage: "global, ~9000 stations (product readme)"
-    latency: "readme: normally a few days after the observations; observed 2026-11-13: last obs day 2025-08-24 (see notes)"
-    update_frequency: daily
-    license: "GSOD doc readme: WMO Resolution 40 — non-U.S. data intended for free and unrestricted use in research, education and other non-commercial activities; not for re-export of commercial services"
-    redistributable: derived_only
-    verified_on: "2026-11-13"
-    notes: >-
-      Tier 2 verification 2026-11-13, see docs/DATA_SOURCES.md section "Tier 2 verification — 2026-11-13
-      (NOAA ISD / GSOD)". Daily summaries derived from ISD; readme at
-      https://www.ncei.noaa.gov/data/global-summary-of-the-day/doc/readme.txt (HTTP 200, read 2026-11-13).
-      Daily precip IS derivable and comes with quality: PRCP in inches (missing 99.99,
-      "0" = none/trace) plus PRCP_ATTRIBUTES codes A-I observed in real files (A/B/C/D/G/H/I present per
-      station), with the readme noting a total may include part of the previous day. Day convention utc:
-      "reported and summarized based on Greenwich Mean Time (GMT, 0000Z - 2359Z)". Observed lag 2026-11-13:
-      access/{year}/{station}.csv exists for 2024 (through 2024-12-31) and 2025 (through 2025-08-24) for
-      all 19 region stations, access/2026/ returns HTTP 404; the noaa-gsod-pds mirror has no 2026 keys at
-      all (last object writes 2025-09-12) — last obs day 447 days behind the probe date vs the readme's
-      nominal "a few days". Non-US (Argentine) station data carry the WMO Resolution 40 non-commercial
-      restriction quoted above, so redistributable derived_only. Verification only, no connector written.
-
-  # ---------------------------------------------------------------------------
-  # Tier 3
-  # ---------------------------------------------------------------------------
-  - id: ina
-    name: "INA (Instituto Nacional del Agua, Argentina)"
-    day_convention: unknown
-    connector: "ina.Ina"
-    tier: 3
-    status: planned
-    variables: [river_level, river_discharge]
-    access: "to verify"
-    endpoint: null
-    coverage: Argentina
-    latency: unknown
-    update_frequency: unknown
-    license: "to verify"
-    redistributable: unknown
-    verified_on: null
-
-  - id: hidrografia-naval
-    name: "Servicio de Hidrografia Naval (Argentina)"
-    day_convention: unknown
-    connector: "hidrografia_naval.HidrografiaNaval"
-    tier: 3
-    status: planned
-    variables: [sea_level, tide]
-    access: "to verify"
-    endpoint: null
-    coverage: "Argentine coast"
-    latency: unknown
-    update_frequency: unknown
-    license: "to verify"
-    redistributable: unknown
-    verified_on: null
-
-  - id: firms
-    name: "NASA FIRMS active fire detections"
-    day_convention: unknown
-    connector: "firms.Firms"
-    tier: 3
-    status: planned
-    variables: [fire_radiative_power]
-    access: "NASA Earthdata / API key (free)"
-    endpoint: "https://firms.modaps.eosdis.nasa.gov/"
-    coverage: global
-    latency: "hours"
-    update_frequency: "3 hours"
-    license: "NASA open data policy, attribution requested"
-    redistributable: yes
-    verified_on: null
-
-  - id: smap
-    name: "NASA SMAP soil moisture"
-    day_convention: unknown
-    connector: "smap.Smap"
-    tier: 3
-    status: planned
-    variables: [soil_moisture]
-    access: "NASA Earthdata login"
-    endpoint: "https://smap.jpl.nasa.gov/data/"
-    coverage: global
-    latency: "days"
-    update_frequency: daily
-    license: "NASA open data policy"
-    redistributable: yes
-    verified_on: null
-
-  - id: goes-19
-    name: "GOES-19 ABI"
-    day_convention: unknown
-    connector: "goes.Goes"
-    tier: 3
-    status: planned
-    variables: [brightness_temperature, cloud_cover]
-    access: "NOAA Open Data on AWS (S3, no key for public bucket)"
-    endpoint: "https://registry.opendata.aws/noaa-goes/"
-    coverage: "Americas"
-    latency: "minutes"
-    update_frequency: "10 to 15 minutes"
-    license: "Public domain (NOAA)"
-    redistributable: yes
-    verified_on: null
-
-  - id: cammesa
-    name: "CAMMESA electricity demand (Argentina)"
-    day_convention: unknown
-    connector: "cammesa.Cammesa"
-    tier: 3
-    status: planned
-    variables: [electricity_demand]
-    access: "to verify"
-    endpoint: null
-    coverage: Argentina
-    latency: unknown
-    update_frequency: unknown
-    license: "to verify"
-    redistributable: unknown
-    verified_on: null
-
-  - id: openaq-cams
-    name: "OpenAQ and CAMS air quality"
-    day_convention: unknown
-    connector: "airquality.AirQuality"
-    tier: 3
-    status: planned
-    variables: [pm25, no2, ozone]
-    access: "OpenAQ API key (free); CAMS via Copernicus ADS"
-    endpoint: "https://openaq.org/"
-    coverage: global
-    latency: "hours"
-    update_frequency: hourly
-    license: "OpenAQ CC BY 4.0; CAMS under the Copernicus licence"
-    redistributable: derived_only
-    verified_on: null
+- id: openmeteo-ensemble
+  name: Open-Meteo Ensemble API
+  day_convention: local_calendar
+  connector: openmeteo.OpenMeteoEnsemble
+  tier: 1
+  status: active
+  variables:
+  - t2m_max
+  - t2m_min
+  - precip
+  access: REST API, no key
+  endpoint: https://ensemble-api.open-meteo.com/v1/ensemble
+  coverage: global
+  latency: hours
+  update_frequency: 6 hours
+  license: Open-Meteo CC BY 4.0; free tier is non-commercial only
+  redistributable: true
+  verified_on: '2026-11-11'
+  notes: GFS ensemble has 30 members, ECMWF IFS 0.25 has 50.
+  options:
+    models:
+    - gfs_seamless
+    - ecmwf_ifs025
+    forecast_days: 16
+    member_counts:
+      gfs_seamless: 31
+      ecmwf_ifs025: 51
+- id: openmeteo-era5
+  name: Open-Meteo Historical Weather API (ERA5)
+  day_convention: local_calendar
+  connector: openmeteo.OpenMeteoEra5
+  tier: 1
+  status: active
+  variables:
+  - t2m_max
+  - t2m_min
+  - precip
+  access: REST API, no key
+  endpoint: https://archive-api.open-meteo.com/v1/archive
+  coverage: global
+  latency: about 5 days behind real time
+  update_frequency: daily
+  license: Open-Meteo CC BY 4.0; underlying ERA5 under the Copernicus licence
+  redistributable: derived_only
+  verified_on: '2026-11-11'
+  notes: Gridded reanalysis, not a station measurement. Values are the grid cell nearest
+    each station.
+  options:
+    models:
+    - era5
+    pause_seconds: 7
+    incremental: true
+- id: ghcn-daily
+  name: NOAA GHCN-Daily
+  day_convention: local_calendar
+  connector: ghcn.GhcnDaily
+  tier: 1
+  status: active
+  variables:
+  - t2m_max
+  - t2m_min
+  - precip
+  access: HTTPS fixed-width files, no key
+  endpoint: https://www.ncei.noaa.gov/pub/data/ghcn/daily/all/{station_id}.dly
+  coverage: global
+  latency: days
+  update_frequency: daily
+  license: Public domain (NOAA/NCEI, U.S. Government)
+  redistributable: true
+  verified_on: '2026-11-11'
+  notes: 'Primary observation source. Station IDs are declared per region in configs/regions/.
+    Observed staleness (independent of the nominal "days" latency above): the last
+    valid rows for the 19 region stations are 2025-08-24, and daily coverage falls
+    to about 50% of days since 2005; both facts re-verified 2026-11-12 and 2026-11-13
+    (raw .dly re-read, results/qc/freshness.md and results/discrepancies/). The source
+    stays status active for its historical series; freshness is reported, never filled.'
+  options:
+    min_year: 1996
+- id: noaa-oni
+  name: NOAA ONI (Oceanic Nino Index)
+  day_convention: utc
+  connector: indices.NoaaOni
+  tier: 1
+  status: active
+  variables:
+  - oni
+  access: HTTPS ASCII, no key
+  endpoint: https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt
+  coverage: Nino 3.4 region
+  latency: weeks
+  update_frequency: monthly
+  license: Public domain (NOAA/NWS, U.S. Government)
+  redistributable: true
+  verified_on: '2026-11-11'
+  notes: 3-month running means; mapped to the centre month of each season.
+- id: noaa-sam
+  name: NOAA CPC Antarctic Oscillation (SAM) index
+  day_convention: utc
+  connector: indices.NoaaSam
+  tier: 1
+  status: active
+  variables:
+  - sam
+  access: HTTPS ASCII table, no key
+  endpoint: https://www.cpc.ncep.noaa.gov/products/precip/CWlink/daily_ao_index/aao/monthly.aao.index.b79.current.ascii.table
+  coverage: Southern hemisphere extratropics
+  latency: weeks
+  update_frequency: monthly
+  license: Public domain (NOAA/NWS, U.S. Government)
+  redistributable: true
+  verified_on: '2026-11-11'
+- id: smn-argentina
+  name: Servicio Meteorologico Nacional (Argentina)
+  day_convention: local_calendar
+  connector: smn.SmnObservations
+  tier: 1
+  status: active
+  variables:
+  - t2m_max
+  - t2m_min
+  access: Open data on ssl.smn.gob.ar (no auth); www.smn.gob.ar serves a Cloudflare
+    JS challenge to plain clients
+  endpoint: https://ssl.smn.gob.ar/dpd/zipopendata.php?dato=observaciones
+  coverage: Argentina
+  latency: hours
+  update_frequency: daily
+  license: CC BY 2.5 AR; attribution to SMN required (PAD_legales.pdf, Infoleg disp25.pdf)
+  redistributable: true
+  verified_on: '2026-11-11'
+  notes: 'Core source. Access re-verified 2026-11-11: ssl.smn.gob.ar/dpd/zipopendata.php?dato={estaciones,
+    observaciones, tiepre, datohorario, regtemp, radsolar, pron5d} returns 200 with
+    no challenge. Licence terms read 2026-11-11: PAD_legales.pdf (Propiedad Intelectual)
+    licenses "todos sus contenidos" under CC BY 2.5 AR; Infoleg disp25.pdf (Política
+    de Datos del SMN) puts raw observational data in category A "Datos Abiertos" under
+    the same licence with attribution. day_convention local_calendar verified from
+    the payload: datohorario carries FECHA DDMMYYYY plus HORA in [HOA] covering the
+    local day 0-23, and observaciones is one TMAX/TMIN row per local calendar day
+    (the fecha query parameter is ignored, so only the latest completed day is served).
+    Connector ingests observaciones -> t2m_max/t2m_min and merges each new day into
+    data/raw/smn-argentina.parquet. Catalogue reconciliation: 124 physical lines =
+    2 blank + header + units + 118 station rows + 2 name-wrap fragments (ERO, RO);
+    118 stations parse and 118 appear in observaciones. Precipitation is pending,
+    not guessed: probed 2026-11-11, datohorario carries FECHA HORA TEMP HUM PNM DD
+    FF NOMBRE with units [HOA] [degC] [%] [hPa] [gr] [km/hr] and no precip field at
+    all, observaciones and regtemp carry only FECHA/TMAX/ TMIN/NOMBRE, and dato=precipitacion|precipitaciones|precip|lluvia|precipitacion_diaria|
+    precipitacion30d|precip30d|lluvias all return an empty ZIP (zero members), so
+    there is nothing to aggregate to the local calendar day. regtemp was probed and
+    serves registro_temperatura365d_smn.txt (42,953 rows, 365 local days 2025-11-11..2026-11-10,
+    118 distinct station names under fixed-column parse; a whitespace split invents
+    ~135 tokens from blank TMAX/TMIN rows): a candidate t2m_max/t2m_min backfill over
+    the GHCN staleness gap, recorded but not wired. observaciones ignores fecha and
+    serves only the latest completed day, so the live series accumulates forward with
+    no backfill through that endpoint.'
+  options: {}
+- id: metar-south-america
+  name: NOAA Aviation Weather / MADIS METAR (South America)
+  day_convention: local_calendar
+  connector: metar.MetarSouthAmerica
+  tier: 2
+  status: ready_for_review
+  variables:
+  - t2m_max
+  - t2m_min
+  - precip
+  access: Open HTTPS, no key (aviationweather.gov / NOAA MADIS)
+  endpoint: https://aviationweather.gov/api/data/metar
+  coverage: South America airport station network (ICAO aerodromes)
+  latency: hours (hourly to sub-hourly reports)
+  update_frequency: hourly
+  license: US Government / NOAA open data (Public Domain); non-US data subject to
+    WMO Resolution 40 non-commercial research use
+  redistributable: derived_only
+  verified_on: null
+  notes: 'Bridge observation network providing near-real-time observations across
+    South American airports with ICAO codes. Section 3.8 source verification completed
+    2026-11-19 (results/stations/_evidence/south_america/audit.json). All 17 stations
+    verified with active telemetry (100%) and dual-catalog confirmation. Status: verification_in_progress
+    pending full multi-phase vetting review.'
+- id: metar-north-america
+  name: NOAA Aviation Weather / MADIS METAR (North America)
+  day_convention: local_calendar
+  connector: metar.MetarNorthAmerica
+  tier: 2
+  status: ready_for_review
+  variables:
+  - t2m_max
+  - t2m_min
+  - precip
+  access: Open HTTPS, no key (aviationweather.gov / NOAA MADIS)
+  endpoint: https://aviationweather.gov/api/data/metar
+  coverage: 'North America airport station network (ICAO aerodromes: US, Canada, Mexico)'
+  latency: hours (hourly to sub-hourly reports)
+  update_frequency: hourly
+  license: US Government / NOAA open data (Public Domain); non-US data subject to
+    WMO Resolution 40 non-commercial research use
+  redistributable: derived_only
+  verified_on: null
+  notes: 'Bridge observation network providing near-real-time observations across
+    North American airports with ICAO codes (FAA ASOS/AWOS, Nav Canada, SENEAM Mexico).
+    Section 3.8 source verification completed 2026-11-19 (results/stations/_evidence/north_america/audit.json).
+    All 18 stations verified with active telemetry (100%) and dual-catalog confirmation.
+    Status: verification_in_progress pending full multi-phase vetting review.'
+- id: metar-europe
+  name: NOAA Aviation Weather / MADIS METAR (Europe)
+  day_convention: local_calendar
+  connector: metar.MetarEurope
+  tier: 2
+  status: ready_for_review
+  variables:
+  - t2m_max
+  - t2m_min
+  - precip
+  access: Open HTTPS, no key (aviationweather.gov / NOAA MADIS)
+  endpoint: https://aviationweather.gov/api/data/metar
+  coverage: Europe airport station network (ICAO aerodromes)
+  latency: hours (hourly to sub-hourly reports)
+  update_frequency: hourly
+  license: US Government / NOAA open data (Public Domain); non-US data subject to
+    WMO Resolution 40 non-commercial research use
+  redistributable: derived_only
+  verified_on: null
+  notes: 'Bridge observation network providing near-real-time observations across
+    European airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
+    (results/stations/_evidence/europe/audit.json). All 18 stations verified with
+    active telemetry (100%) and dual-catalog confirmation. Status: verification_in_progress
+    pending full multi-phase vetting review.'
+- id: metar-asia
+  name: NOAA Aviation Weather / MADIS METAR (Asia)
+  day_convention: local_calendar
+  connector: metar.MetarAsia
+  tier: 2
+  status: ready_for_review
+  variables:
+  - t2m_max
+  - t2m_min
+  - precip
+  access: Open HTTPS, no key (aviationweather.gov / NOAA MADIS)
+  endpoint: https://aviationweather.gov/api/data/metar
+  coverage: Asia airport station network (ICAO aerodromes)
+  latency: hours (hourly to sub-hourly reports)
+  update_frequency: hourly
+  license: US Government / NOAA open data (Public Domain); non-US data subject to
+    WMO Resolution 40 non-commercial research use
+  redistributable: derived_only
+  verified_on: null
+  notes: 'Bridge observation network providing near-real-time observations across
+    Asian airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
+    (results/stations/_evidence/asia/audit.json). 18 of 19 stations verified with
+    active telemetry (94.7%) and dual-catalog confirmation (UTTT dead and removed
+    in vetting). Status: verification_in_progress pending full multi-phase vetting
+    review.'
+- id: metar-africa
+  name: NOAA Aviation Weather / MADIS METAR (Africa)
+  day_convention: local_calendar
+  connector: metar.MetarAfrica
+  tier: 2
+  status: ready_for_review
+  variables:
+  - t2m_max
+  - t2m_min
+  - precip
+  access: Open HTTPS, no key (aviationweather.gov / NOAA MADIS)
+  endpoint: https://aviationweather.gov/api/data/metar
+  coverage: Africa airport station network (ICAO aerodromes)
+  latency: hours (hourly to sub-hourly reports)
+  update_frequency: hourly
+  license: US Government / NOAA open data (Public Domain); non-US data subject to
+    WMO Resolution 40 non-commercial research use
+  redistributable: derived_only
+  verified_on: null
+  notes: 'Bridge observation network providing near-real-time observations across
+    African airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
+    (results/stations/_evidence/africa/audit.json). 14 of 17 stations verified with
+    active telemetry (82.4%) and dual-catalog confirmation (FZAA and HSSS dead and
+    removed in vetting). Status: verification_in_progress pending full multi-phase
+    vetting review.'
+- id: metar-oceania
+  name: NOAA Aviation Weather / MADIS METAR (Oceania & Pacific)
+  day_convention: local_calendar
+  connector: metar.MetarOceania
+  tier: 2
+  status: ready_for_review
+  variables:
+  - t2m_max
+  - t2m_min
+  - precip
+  access: Open HTTPS, no key (aviationweather.gov / NOAA MADIS)
+  endpoint: https://aviationweather.gov/api/data/metar
+  coverage: Oceania and Pacific airport station network (ICAO aerodromes)
+  latency: hours (hourly to sub-hourly reports)
+  update_frequency: hourly
+  license: US Government / NOAA open data (Public Domain); non-US data subject to
+    WMO Resolution 40 non-commercial research use
+  redistributable: derived_only
+  verified_on: null
+  notes: 'Bridge observation network providing near-real-time observations across
+    Oceania and Pacific Island airports with ICAO codes. Section 3.8 source verification
+    completed 2026-11-19 (results/stations/_evidence/oceania/audit.json). All 16 stations
+    verified with active telemetry (100%) and dual-catalog confirmation. Status: verification_in_progress
+    pending full multi-phase vetting review.'
+- id: metar-middle-east
+  name: NOAA Aviation Weather / MADIS METAR (Middle East)
+  day_convention: local_calendar
+  connector: metar.MetarMiddleEast
+  tier: 2
+  status: blocked
+  variables:
+  - t2m_max
+  - t2m_min
+  - precip
+  access: Open HTTPS, no key (aviationweather.gov / NOAA MADIS)
+  endpoint: https://aviationweather.gov/api/data/metar
+  coverage: Middle East airport station network (ICAO aerodromes)
+  latency: hours (hourly to sub-hourly reports)
+  update_frequency: hourly
+  license: US Government / NOAA open data (Public Domain); non-US data subject to
+    WMO Resolution 40 non-commercial research use
+  redistributable: derived_only
+  verified_on: null
+  notes: 'Bridge observation network for Middle Eastern aerodromes. Blocked on 2026-11-19:
+    Section 3.8 audit (results/stations/_evidence/middle_east/audit.json) found 4
+    of 16 stations returned HTTP 204 No Content with 0 observations in 72h on NOAA
+    AWC (OKBK, OLBA, OIIE, OISS), resulting in 75.0% active telemetry, which fails
+    the mandatory 80.0% active telemetry threshold. Marked status: blocked pending
+    stable feeds.'
+- id: metar-global
+  name: NOAA Aviation Weather / MADIS METAR (Global)
+  day_convention: local_calendar
+  connector: metar.MetarGlobal
+  tier: 2
+  status: ready_for_review
+  variables:
+  - t2m_max
+  - t2m_min
+  - precip
+  access: Open HTTPS, no key (aviationweather.gov / NOAA MADIS)
+  endpoint: https://aviationweather.gov/api/data/metar
+  coverage: Global airport station network (ICAO aerodromes worldwide)
+  latency: hours (hourly to sub-hourly reports)
+  update_frequency: hourly
+  license: US Government / NOAA open data (Public Domain); non-US data subject to
+    WMO Resolution 40 non-commercial research use
+  redistributable: derived_only
+  verified_on: null
+  notes: 'Worldwide bridge observation network providing near-real-time observations
+    across all global aerodromes with ICAO codes. Status: verification_in_progress
+    while individual regional vetting reviews are completed.'
+- id: inta
+  name: INTA (Argentina) agrometeorology
+  day_convention: unknown
+  connector: inta.IntaStations
+  tier: 2
+  status: planned
+  variables:
+  - t2m_max
+  - t2m_min
+  - precip
+  - soil_moisture
+  access: to verify
+  endpoint: null
+  coverage: Argentina
+  latency: unknown
+  update_frequency: unknown
+  license: to verify
+  redistributable: unknown
+  verified_on: null
+- id: imerg
+  name: NASA IMERG Late Run (GPM precipitation, L3 daily)
+  day_convention: utc
+  connector: imerg.Imerg
+  tier: 2
+  status: planned
+  variables:
+  - precip
+  access: CMR metadata open over HTTPS; data files require Earthdata Login (free registration);
+    PPS NRT requires email registration
+  endpoint: https://data.gesdisc.earthdata.nasa.gov/data/GPM_L3/GPM_3IMERGDL.07/{yyyy}/{mm}/{granule}.nc4
+  coverage: global, 0.1 degree (all latitudes except boxes very near the poles, per
+    V07)
+  latency: 'observed 1 day: daily granule for obs day T ingested ~14:30 UTC on T+1
+    (Late)'
+  update_frequency: daily
+  license: 'NASA GPM data usage policy: data freely available at all processed levels;
+    citation requested (https://gpm.nasa.gov/data/policy)'
+  redistributable: true
+  verified_on: '2026-11-12'
+  notes: 'Tier 2 verification 2026-11-12, see docs/DATA_SOURCES.md section "Tier 2
+    verification — 2026-11-12". Product pinned: IMERG Late Run L3 daily 0.1 degree,
+    collection GPM_3IMERGDL version 07 (granule algorithm id V07C observed). Family
+    probed: Early (GPM_3IMERGDE.07, obs day 2026-11-11 ingested 2026-11-12T04:31:43Z)
+    and Final (GPM_3IMERGDF.07, latest obs day 2025-09-30, ~13.5 months behind at
+    run time). Empirical latency evidence: open CMR granule metadata (short_name+version
+    query, HTTP 200) shows the latest Late granule covering obs day 2026-11-11 with
+    updated 2026-11-12T14:32:02Z. Data-file GET without credentials returns HTTP 302
+    to urs.earthdata.nasa.gov oauth (access requires Earthdata Login; GES DISC banner
+    quote recorded in the doc section); PPS NRT returns HTTP 401 and the GPM directory
+    documents email registration. GES DISC also notes its HTTPS servers migrate to
+    Earthdata Cloud, access ending no earlier than 2026-09-30. day_convention utc
+    from the granule CMR time_start/time_end 2026-11-11T00:00:00.000Z-23:59:59.999Z
+    and the -S000000-E235959 filename span. Verification only, no connector written;
+    candidate SECONDARY / spatial-proxy reference pending a future dated protocol
+    amendment.'
+- id: chirps
+  name: CHIRPS v2.0 daily (UCSB Climate Hazards Center)
+  day_convention: utc
+  connector: chirps.Chirps
+  tier: 2
+  status: planned
+  variables:
+  - precip
+  access: HTTPS directory listings, no auth; HTTP 429 rate-limiting observed under
+    probing, future connector must pace requests
+  endpoint: https://data.chc.ucsb.edu/products/CHIRPS/v2.0/global_daily/
+  coverage: 50S-50N, 0.05 degree
+  latency: 'observed: preliminary daily through obs day 2026-11-10 (2 days behind
+    run date); final daily through 2026-09-30 as of 2026-11-12'
+  update_frequency: daily (preliminary)
+  license: 'Public domain: Pete Peterson waived copyright; CHIRPS data is in the public
+    domain as registered with Creative Commons (https://www.chc.ucsb.edu/data/chirps)'
+  redistributable: true
+  verified_on: '2026-11-12'
+  notes: 'Tier 2 verification 2026-11-12, see docs/DATA_SOURCES.md section "Tier 2
+    verification — 2026-11-12". Endpoints: final under global_daily/ (tifs/p05/{yyyy}/,
+    netcdf/p05/chirps-v2.0.{yyyy}.days_p05.nc), preliminary under prelim/global_daily/;
+    the old /products/CHIRPS-2.0/ path returns HTTP 404 (moved). Empirical latency:
+    preliminary latest file chirps-v2.0.2026.11.10.tif.gz (obs day 2026-11-10, HTTP
+    200, 2026-11-12T16:40Z); final latest per-day tif obs day 2026-09-30 (HTTP 200,
+    2026-11-12T16:51Z); final yearly NetCDF Last-Modified 2026-10-15. Access is open
+    but the front end rate-limits (HTTP 429 observed); the CHC FAQ wiki timed out
+    from this environment (finding, not routed around). day_convention utc from README-CHIRPS2-Daily.txt:
+    the date is "a consistent UTC calendar-day label ... approximately 00:00 UTC on
+    D to 00:00 UTC on D+1". That README also states daily CHIRPS is a CFSv2 temporal
+    disaggregation of pentad totals, not an independent daily station product. CHIRPS
+    v2 retires after December 2026; v3 daily is already served under /products/CHIRPS/v3.0/daily/
+    so any connector must plan the v2 to v3 transition. Verification only, no connector
+    written; candidate SECONDARY / spatial-proxy reference pending a future dated
+    protocol amendment.'
+- id: noaa-oisst
+  name: NOAA OISST v2.1 sea surface temperature
+  day_convention: unknown
+  connector: oisst.Oisst
+  tier: 2
+  status: planned
+  variables:
+  - sst
+  access: HTTPS NetCDF
+  endpoint: https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/
+  coverage: global ocean
+  latency: days
+  update_frequency: daily
+  license: Public domain (NOAA/NCEI)
+  redistributable: true
+  verified_on: null
+- id: gefs-open
+  name: NOAA GEFS operational ensemble
+  day_convention: unknown
+  connector: gefs.Gefs
+  tier: 2
+  status: planned
+  variables:
+  - t2m
+  - precip
+  - wind
+  access: NOMADS / AWS Open Data
+  endpoint: https://nomads.ncep.noaa.gov/
+  coverage: global
+  latency: hours
+  update_frequency: 6 hours
+  license: Public domain (NOAA/NCEP)
+  redistributable: true
+  verified_on: null
+- id: ecmwf-open
+  name: ECMWF open data (IFS)
+  day_convention: unknown
+  connector: ecmwf_open.EcmwfOpen
+  tier: 2
+  status: planned
+  variables:
+  - t2m
+  - precip
+  - wind
+  access: ECMWF open data server, no key
+  endpoint: https://data.ecmwf.int/forecasts/
+  coverage: global
+  latency: hours
+  update_frequency: 6 to 12 hours
+  license: CC BY 4.0
+  redistributable: true
+  verified_on: null
+- id: isd
+  name: NOAA Integrated Surface Database
+  day_convention: utc
+  connector: isd.Isd
+  tier: 2
+  status: planned
+  variables:
+  - t2m
+  - wind
+  - humidity
+  - pressure
+  access: 'Anonymous HTTPS/S3: hourly CSV s3://noaa-global-hourly-pds/{year}/{usaf}{wban}.csv;
+    original .gz s3://noaa-isd-pds/data/{year}/{usaf}-{wban}-{year}.gz; inventory
+    https://www.ncei.noaa.gov/pub/data/noaa/isd-history.csv (all HTTP 200, no key)'
+  endpoint: https://www.ncei.noaa.gov/pub/data/noaa/
+  coverage: global
+  latency: 'product page says stations update daily; observed 2026-11-13: no data
+    after 2025-08-24 (see notes)'
+  update_frequency: daily
+  license: 'NODD: NOAA data open to the public with attribution (registry.opendata.aws/noaa-isd,
+    read 2026-11-13); WMO Resolution 40 note for non-U.S. data (GSOD doc readme)'
+  redistributable: derived_only
+  verified_on: '2026-11-13'
+  notes: 'Tier 2 verification 2026-11-13, see docs/DATA_SOURCES.md section "Tier 2
+    verification — 2026-11-13 (NOAA ISD / GSOD)". Station ids are USAF+WBAN (e.g.
+    Buenos Aires Observatorio 87585099999). Routes probed plain HTTPS, no auth, no
+    registration wall: AWS Open Data buckets noaa-global-hourly-pds (CSV) and noaa-isd-pds
+    (original .gz under /data/{year}/); both listed in registry.opendata.aws/noaa-isd
+    with update frequency "Daily" and the NODD licence quoted there. The WAF trees
+    /data/global-hourly/ and /pub/data/noaa/isd-lite/ return an S3-explorer HTML shell
+    for every probed path (soft-404) and are not usable as plain file routes from
+    this environment. Observed lag 2026-11-13: for all 19 region stations the hourly
+    CSV exists for 2024 and 2025 but both years end on 2025-08-24 (294 of 304 window-1
+    days carry TMP; 2024 file Last-Modified 2025-03-01, 2025 file 2025-10-04); every
+    2026 key returns 404 / zero keys in all three buckets; isd-history.csv downloaded
+    the same day shows global max END 2025-08-28 and zero stations ending on or after
+    2026-01-01 — i.e. ~447 days stale vs the nominal "updated daily". NCEI''s product
+    page banner (read 2026-11-13) reports a cloud migration with "Current Impact:
+    data archiving delays". day_convention utc: ISD rows are hourly instants with
+    DATE like 2025-01-01T00:00:00, and the GSOD readme states the original synoptic/hourly
+    data are based on GMT (0000Z-2359Z); ISD itself performs no day aggregation. Licence
+    nuance drives redistributable derived_only: the NODD statement allows use as desired
+    with attribution, but the GSOD readme (same WMO Resolution 40 exchange) restricts
+    non-U.S. data to research/education/non-commercial use and forbids commercial
+    re-export, so bulk republication of raw files is out of scope until the owner
+    confirms. Verification only, no connector written.'
+- id: gsod
+  name: NOAA Global Summary of the Day (GSOD)
+  day_convention: utc
+  connector: gsod.Gsod
+  tier: 2
+  status: planned
+  variables:
+  - t2m
+  - t2m_max
+  - t2m_min
+  - precip
+  - wind
+  - humidity
+  access: 'HTTPS CSV per station-year, no key: https://www.ncei.noaa.gov/data/global-summary-of-the-day/access/{year}/{usaf}{wban}.csv;
+    mirror s3://noaa-gsod-pds/{year}/{usaf}{wban}.csv (both HTTP 200, no auth)'
+  endpoint: https://www.ncei.noaa.gov/data/global-summary-of-the-day/
+  coverage: global, ~9000 stations (product readme)
+  latency: 'readme: normally a few days after the observations; observed 2026-11-13:
+    last obs day 2025-08-24 (see notes)'
+  update_frequency: daily
+  license: 'GSOD doc readme: WMO Resolution 40 — non-U.S. data intended for free and
+    unrestricted use in research, education and other non-commercial activities; not
+    for re-export of commercial services'
+  redistributable: derived_only
+  verified_on: '2026-11-13'
+  notes: 'Tier 2 verification 2026-11-13, see docs/DATA_SOURCES.md section "Tier 2
+    verification — 2026-11-13 (NOAA ISD / GSOD)". Daily summaries derived from ISD;
+    readme at https://www.ncei.noaa.gov/data/global-summary-of-the-day/doc/readme.txt
+    (HTTP 200, read 2026-11-13). Daily precip IS derivable and comes with quality:
+    PRCP in inches (missing 99.99, "0" = none/trace) plus PRCP_ATTRIBUTES codes A-I
+    observed in real files (A/B/C/D/G/H/I present per station), with the readme noting
+    a total may include part of the previous day. Day convention utc: "reported and
+    summarized based on Greenwich Mean Time (GMT, 0000Z - 2359Z)". Observed lag 2026-11-13:
+    access/{year}/{station}.csv exists for 2024 (through 2024-12-31) and 2025 (through
+    2025-08-24) for all 19 region stations, access/2026/ returns HTTP 404; the noaa-gsod-pds
+    mirror has no 2026 keys at all (last object writes 2025-09-12) — last obs day
+    447 days behind the probe date vs the readme''s nominal "a few days". Non-US (Argentine)
+    station data carry the WMO Resolution 40 non-commercial restriction quoted above,
+    so redistributable derived_only. Verification only, no connector written.'
+- id: ina
+  name: INA (Instituto Nacional del Agua, Argentina)
+  day_convention: unknown
+  connector: ina.Ina
+  tier: 3
+  status: planned
+  variables:
+  - river_level
+  - river_discharge
+  access: to verify
+  endpoint: null
+  coverage: Argentina
+  latency: unknown
+  update_frequency: unknown
+  license: to verify
+  redistributable: unknown
+  verified_on: null
+- id: hidrografia-naval
+  name: Servicio de Hidrografia Naval (Argentina)
+  day_convention: unknown
+  connector: hidrografia_naval.HidrografiaNaval
+  tier: 3
+  status: planned
+  variables:
+  - sea_level
+  - tide
+  access: to verify
+  endpoint: null
+  coverage: Argentine coast
+  latency: unknown
+  update_frequency: unknown
+  license: to verify
+  redistributable: unknown
+  verified_on: null
+- id: firms
+  name: NASA FIRMS active fire detections
+  day_convention: unknown
+  connector: firms.Firms
+  tier: 3
+  status: planned
+  variables:
+  - fire_radiative_power
+  access: NASA Earthdata / API key (free)
+  endpoint: https://firms.modaps.eosdis.nasa.gov/
+  coverage: global
+  latency: hours
+  update_frequency: 3 hours
+  license: NASA open data policy, attribution requested
+  redistributable: true
+  verified_on: null
+- id: smap
+  name: NASA SMAP soil moisture
+  day_convention: unknown
+  connector: smap.Smap
+  tier: 3
+  status: planned
+  variables:
+  - soil_moisture
+  access: NASA Earthdata login
+  endpoint: https://smap.jpl.nasa.gov/data/
+  coverage: global
+  latency: days
+  update_frequency: daily
+  license: NASA open data policy
+  redistributable: true
+  verified_on: null
+- id: goes-19
+  name: GOES-19 ABI
+  day_convention: unknown
+  connector: goes.Goes
+  tier: 3
+  status: planned
+  variables:
+  - brightness_temperature
+  - cloud_cover
+  access: NOAA Open Data on AWS (S3, no key for public bucket)
+  endpoint: https://registry.opendata.aws/noaa-goes/
+  coverage: Americas
+  latency: minutes
+  update_frequency: 10 to 15 minutes
+  license: Public domain (NOAA)
+  redistributable: true
+  verified_on: null
+- id: cammesa
+  name: CAMMESA electricity demand (Argentina)
+  day_convention: unknown
+  connector: cammesa.Cammesa
+  tier: 3
+  status: planned
+  variables:
+  - electricity_demand
+  access: to verify
+  endpoint: null
+  coverage: Argentina
+  latency: unknown
+  update_frequency: unknown
+  license: to verify
+  redistributable: unknown
+  verified_on: null
+- id: openaq-cams
+  name: OpenAQ and CAMS air quality
+  day_convention: unknown
+  connector: airquality.AirQuality
+  tier: 3
+  status: planned
+  variables:
+  - pm25
+  - no2
+  - ozone
+  access: OpenAQ API key (free); CAMS via Copernicus ADS
+  endpoint: https://openaq.org/
+  coverage: global
+  latency: hours
+  update_frequency: hourly
+  license: OpenAQ CC BY 4.0; CAMS under the Copernicus licence
+  redistributable: derived_only
+  verified_on: null
