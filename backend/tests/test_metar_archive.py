@@ -168,3 +168,51 @@ def test_partitioned_write_and_deduplication() -> None:
         saved_2 = pd.read_parquet(expected_path)
         assert len(saved_2) == 2  # Deduplicated from 3 total records
         assert list(saved_2["obs_epoch"]) == [1718452800, 1718456400]
+
+
+def test_main_upload_requires_hf_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """When --upload is passed without HF_TOKEN or HF_DATASET_REPO, main must exit with code 2."""
+    from prisma.ingest.metar_archive import main
+
+    monkeypatch.delenv("HF_TOKEN", raising=False)
+    monkeypatch.delenv("HF_DATASET_REPO", raising=False)
+
+    exit_code = main(["--upload", "--region", "south_america"])
+    assert exit_code == 2
+
+
+def test_upload_and_sync_helpers(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Test sync_existing_from_hf and upload_metar_to_hf helper behavior with mocked HfApi."""
+    import sys
+    from unittest.mock import MagicMock
+    from prisma.ingest.metar_archive import sync_existing_from_hf, upload_metar_to_hf
+
+    mock_api = MagicMock()
+    mock_api.list_repo_files.return_value = [
+        "observations/metar/south_america/2026/santiago_pudahuel.parquet",
+        "forecasts/2026-11-19/model.parquet",
+    ]
+
+    mock_download = MagicMock(return_value="/tmp/test.parquet")
+    mock_hf = MagicMock()
+    mock_hf.HfApi = MagicMock(return_value=mock_api)
+    mock_hf.hf_hub_download = mock_download
+
+    monkeypatch.setitem(sys.modules, "huggingface_hub", mock_hf)
+
+    # Test sync
+    downloaded = sync_existing_from_hf(tmp_path, "repo/test", "mock_token")
+    assert len(downloaded) == 1
+    mock_download.assert_called_once()
+
+    # Test upload with empty dir (should return False)
+    assert not upload_metar_to_hf(tmp_path, "repo/test", "mock_token")
+
+    # Create dummy observation file and test upload
+    dummy_file = tmp_path / "observations" / "metar" / "south_america" / "2026" / "st1.parquet"
+    dummy_file.parent.mkdir(parents=True, exist_ok=True)
+    dummy_file.write_text("dummy")
+
+    assert upload_metar_to_hf(tmp_path, "repo/test", "mock_token")
+    mock_api.upload_folder.assert_called_once()
+

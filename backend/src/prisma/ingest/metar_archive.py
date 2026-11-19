@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
+import sys
 from collections import defaultdict
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -257,6 +259,69 @@ def archive_metar_region(
     }
 
 
+def sync_existing_from_hf(
+    base_dir: Path,
+    repo_id: str,
+    token: str,
+) -> list[str]:
+    """Download existing METAR observation files from HF dataset to allow local merge & deduplication."""
+    from huggingface_hub import HfApi, hf_hub_download
+
+    api = HfApi(token=token)
+    try:
+        all_files = api.list_repo_files(repo_id=repo_id, repo_type="dataset")
+    except Exception as exc:
+        logger.warning("Could not list repo files from HF (%s); proceeding with local store", exc)
+        return []
+
+    metar_files = [
+        f for f in all_files if f.startswith("observations/metar/") and f.endswith(".parquet")
+    ]
+    downloaded = []
+    for rel_path in metar_files:
+        try:
+            dest = hf_hub_download(
+                repo_id=repo_id,
+                filename=rel_path,
+                repo_type="dataset",
+                token=token,
+                local_dir=str(base_dir),
+            )
+            downloaded.append(dest)
+        except Exception as exc:
+            logger.warning("Failed to download existing %s from HF: %s", rel_path, exc)
+    return downloaded
+
+
+def upload_metar_to_hf(
+    base_dir: Path,
+    repo_id: str,
+    token: str,
+) -> bool:
+    """Upload partitioned observations under base_dir/observations/metar to HF dataset."""
+    from huggingface_hub import HfApi
+
+    metar_dir = base_dir / "observations" / "metar"
+    if not metar_dir.exists():
+        logger.warning("No observations/metar directory found at %s to upload", base_dir)
+        return False
+
+    validate_target_path(metar_dir)
+    api = HfApi(token=token)
+    api.create_repo(repo_id, repo_type="dataset", exist_ok=True)
+
+    date_str = datetime.now(UTC).strftime("%Y-%m-%d")
+    api.upload_folder(
+        folder_path=str(metar_dir),
+        path_in_repo="observations/metar",
+        repo_id=repo_id,
+        repo_type="dataset",
+        commit_message=f"chore(archive): update global METAR observations ({date_str})",
+    )
+    print(f"Uploaded METAR observations from {metar_dir} -> {repo_id}:observations/metar")
+    return True
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -275,22 +340,44 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Base directory for output storage (defaults to repo root)",
     )
+    parser.add_argument(
+        "--upload",
+        action="store_true",
+        help="Upload partitioned observations to Hugging Face dataset",
+    )
     args = parser.parse_args(argv)
+
+    repo_root = find_repo_root()
+    base_out = Path(args.out_dir) if args.out_dir else repo_root
+
+    if args.upload:
+        token = os.environ.get("HF_TOKEN")
+        repo_id = os.environ.get("HF_DATASET_REPO")
+        if not token or not repo_id:
+            print("error: HF_TOKEN and HF_DATASET_REPO required for --upload", file=sys.stderr)
+            return 2
+        sync_existing_from_hf(base_out, repo_id, token)
 
     try:
         res = archive_metar_region(
             region_slug=args.region,
             hours=args.hours,
-            out_dir=Path(args.out_dir) if args.out_dir else None,
+            out_dir=base_out,
         )
         print(f"METAR archiving completed for {args.region}: {res['total_records_normalized']} records across {len(res['partitioned_files_written'])} files.")
-        return 0
     except Exception as exc:
         logger.error("METAR archive failed: %s", exc)
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
+    if args.upload:
+        token = os.environ.get("HF_TOKEN")
+        repo_id = os.environ.get("HF_DATASET_REPO")
+        if token and repo_id:
+            upload_metar_to_hf(base_out, repo_id, token)
+
+    return 0
+
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

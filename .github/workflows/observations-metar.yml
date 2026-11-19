@@ -54,6 +54,8 @@ jobs:
 
       - name: Run isolated METAR observation archiver for active regions
         run: >
-          uv run --project backend python -m prisma.ingest.metar_archive
+          uv run --project backend --with huggingface_hub
+          python -m prisma.ingest.metar_archive
           --region active
           --hours 48
+          --upload
