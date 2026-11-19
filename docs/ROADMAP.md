@@ -26,6 +26,24 @@ Done:
 - Redundant archive cron slots (**06:47, 09:47, 12:17, 14:43, 18:31 UTC** since 2026-11-13; previously 06:47, 12:17, 18:31 — redesigned after every 2026-11-12 schedule run started hours late, with the original 06:47 slot kept for spread) plus a same-day no-op test; first `event=schedule` run 2026-11-12 (run 43249798026, success — 12:17 UTC slot, delayed ~3h20m; data no-op, that day was archived by a manual `workflow_dispatch` rescue). Archive-coverage watchdog (`scripts/archive_watchdog.py`) records missing days in `results/ingest_status.json` — visibility only, no repair; it reads HF via a cache-prone listing, so a missing day can be a false positive.
 - Phase 2 calibration exit gate: Run B completed (rolling-45 window, anti-leakage rule $t+L+2 \le D$, corrected localday alignment) across all 95 station-lead cells (32,879 station-days). EMOS improved at 12 of 19 stations (63.2% $\ge$ 60% threshold under 7-day block bootstrap 1,000 resamples; cell mean CRPSS: +0.2187 EMOS, +0.0943 QM). Checkpoint verified via `scripts/checkpoint_runb.py`.
 - Release `v0.1.0 — frozen evaluation protocol` published on GitHub; Zenodo software & dataset archive registered with concept DOI `10.5281/zenodo.24309946` and version DOI `10.5281/zenodo.24309947`.
+- 2026-11-19 — Owner decision: global expansion to full verification. Scope: bring all 8 regions (Argentina, South America, North America, Europe, Asia, Africa, Oceania & Pacific, Middle East) to the same station-vetting and source-verification standard as Argentina, before any region's status may read 'active' or 'verified' in public-facing docs. Hindcast calibration stays Argentina-only until each region accumulates enough archived history to run it honestly.
+
+### Global expansion verification status (as of 2026-11-19)
+
+Per-region status in [`configs/sources.yaml`](../configs/sources.yaml) following Task T-global1 vetting and owner-authorized promotion:
+
+| Region | Stations (vetted / initial) | Source ID | Status in sources.yaml | Vetting & Telemetry Gate |
+|---|---|---|---|---|
+| Argentina | 19 / 19 | `smn` / `ghcn-daily` | `active` | Complete (`OBSERVED`); Phase 2 calibration exit gate passed |
+| South America | 17 / 17 | `metar-south-america` | `active` | PASS (100% confirmed, 100% active telemetry) |
+| North America | 18 / 18 | `metar-north-america` | `active` | PASS (100% confirmed, 100% active telemetry) |
+| Europe | 18 / 18 | `metar-europe` | `active` | PASS (100% confirmed, 100% active telemetry) |
+| Asia | 18 / 19 (1 pruned) | `metar-asia` | `active` | PASS (18 retained, UTTT dead & pruned) |
+| Africa | 14 / 17 (3 pruned) | `metar-africa` | `active` | PASS (14 retained, FZAA/HSSS/GOBD pruned) |
+| Oceania & Pacific | 16 / 16 | `metar-oceania` | `active` | PASS (100% confirmed, 100% active telemetry) |
+| Middle East | 12 / 16 active | `metar-middle-east` | `blocked` | BLOCKED (75.0% active telemetry < 80.0% threshold) |
+
+**Next milestone per region:** The next milestone per region is accumulating enough forecast and observation archive history (weeks to months) to even attempt a hindcast or calibration, not running one now. Zero days of historical METAR observation history were previously accumulated (daily archive collection is starting now) and forecast archive history covers 2 days or fewer (global multi-region ingest began 2026-11-18). No hindcast, calibration, or skill verification exists for any region outside Argentina. Details in [`docs/design/GLOBAL_VERIFICATION_PLAN.md`](design/GLOBAL_VERIFICATION_PLAN.md).
 
 Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue dates; 7 archived as of 2026-11-17). There is **no API server this phase** (owner decision 2026-11-15: static data on Pages) — the FastAPI code exists and its endpoints are tested, but it is not deployed. A read-only Flutter **web** app exists (Stations, Forecast, Skill, About / Status, station map, place search and GPS, source comparator); there is **no Android build**; see README.
 
@@ -145,13 +163,13 @@ Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue d
   - **Progressive national connectors:** Direct station network connectors (NOAA NCEI ISD/GHCN, Environment and Climate Change Canada, CONAGUA/SMN Mexico) to be evaluated and added progressively.
 
 - [x] Regional definition for North America (`configs/regions/north_america.yaml` with 18 representative stations across US, Canada, and Mexico).
-- [x] METAR North America connector (`metar-north-america`) active in `configs/sources.yaml`.
+- [x] METAR North America connector (`metar-north-america`) staged as `ready_for_review` in `configs/sources.yaml`.
 - [ ] National station network connectors (NOAA, ECCC, SMN Mexico).
 
 ## Global planetary expansion (v0.2.0)
 
 - **Strategy:**
-  - **Immediate forecast coverage:** Open-Meteo Ensemble (GFS + ECMWF IFS) operates globally, fetching ensemble forecasts for all ~140 stations worldwide with local IANA timezones.
+  - **Immediate forecast coverage:** Open-Meteo Ensemble (GFS + ECMWF IFS) operates globally, fetching ensemble forecasts for all ~136 vetted stations worldwide with local IANA timezones.
   - **Observational bridge:** Worldwide METAR airport network (NOAA Aviation Weather Center + IEM ASOS fallback) in `backend/src/prisma/ingest/metar.py` handling global ICAO prefixes (`E*`, `L*`, `U*`, `Z*`, `R*`, `V*`, `W*`, `F*`, `D*`, `G*`, `H*`, `O*`, `Y*`, `N*`, `A*`, `P*`) with $\le 5$ station request batching, decimal RMK and integer fallback decoding, and extreme timezone handling (UTC-12 to UTC+14).
   - **Progressive national service connectors roadmap by continent:**
     - **Europe:** Deutscher Wetterdienst (DWD Germany / Open Data MOSMIX), UK Met Office (DataHub), Météo-France (Public API), AEMET (Spain OpenData), SMHI (Sweden).
@@ -161,12 +179,12 @@ Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue d
     - **Middle East:** UAE National Center of Meteorology (NCM), Israel Meteorological Service (IMS), Saudi National Center for Meteorology (NCM).
 
 - [x] Regional definitions for all continents:
-  - `configs/regions/europe.yaml` (18 stations across Cfb, Csa, Dfb, ET).
-  - `configs/regions/asia.yaml` (19 stations across Dwa, Cfa, Aw, Af, BWk).
-  - `configs/regions/africa.yaml` (17 stations across BWh, BSh, Aw, Cwb, Af).
-  - `configs/regions/oceania.yaml` (16 stations across Cfb, Csa, BWh, Af).
-  - `configs/regions/middle_east.yaml` (16 stations across BWh, Csa, BSk).
-- [x] Global multi-region loader (`load_all_regions` in `backend/src/prisma/ingest/base.py`) unifying 140 stations globally.
-- [x] METAR global connector suite (`backend/src/prisma/ingest/metar.py`) and sources registry (`configs/sources.yaml`).
+  - `configs/regions/europe.yaml` (18 stations across Cfb, Csa, Dfb, ET; 18 vetted).
+  - `configs/regions/asia.yaml` (18 vetted stations; UTTT pruned).
+  - `configs/regions/africa.yaml` (14 vetted stations; FZAA, HSSS, GOBD pruned).
+  - `configs/regions/oceania.yaml` (16 stations across Cfb, Csa, BWh, Af; 16 vetted).
+  - `configs/regions/middle_east.yaml` (16 stations across BWh, Csa, BSk; 12 active in telemetry, region blocked).
+- [x] Global multi-region loader (`load_all_regions` in `backend/src/prisma/ingest/base.py`) unifying vetted stations globally.
+- [x] METAR global connector suite (`backend/src/prisma/ingest/metar.py`) and sources registry (`configs/sources.yaml`, staged as `ready_for_review`).
 - [x] Interactive map support for planetary bounds and antimeridian crossing in `app/lib/src/station_bounds.dart`.
 - [ ] National meteorological service connectors (progressively added per continent).

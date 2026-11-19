@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24309947.svg)](https://doi.org/10.5281/zenodo.24309947)
 
-**Global planetary coverage, open climate forecast verification (Cobertura planetaria global, verificación abierta).**
+**Starting with Argentina, designed to scale globally (Empezando por Argentina, diseñado para escalar globalmente).**
 
 ![PRISMA station map](docs/images/app-map.png)
 
@@ -30,9 +30,35 @@ Current gate status: 7 of 15 distinct issue dates archived; no verification numb
 - A Flutter web app in [`app/`](app/) that reads the same static export read-only: four screens (Stations, Forecast, Skill, About / Status), a List/Map toggle on the Stations screen with an OpenStreetMap tile map of 140 representative stations across all continents coloured by climate zone, place search over a committed GeoNames gazetteer (14,888 places) that shows each place's nearest station, the distance and a >100 km warning, a "Use my location" button that reads the browser position only on press and never stores or sends it, a probabilistic forecast with per-model quantile bands and a source comparator that keeps models side by side (never pooled), a Skill screen that shows only hindcast-labelled calibration scores with the operational gate closed until 15 issue dates, and a language picker for 10 locales (en, es, pt, fr, de, it, ru, zh, ja, hi) with browser auto-detection and persistence, English as the template and fallback, dates and numbers formatted per locale (Argentina time stays UTC−3), and a machine-translation notice in About and [`docs/APP_GLOSSARY.md`](docs/APP_GLOSSARY.md). `flutter analyze` and `flutter test` run in CI; pushes touching `app/**` redeploy the site.
 - FastAPI code in [`backend/src/prisma/api/`](backend/src/prisma/api/) with `/forecast`, `/skill`, `/sources` and `/enso` (9 endpoint tests; run locally with `uv run --project backend uvicorn prisma.api.app:app`; `/skill` serves the same hindcast-labelled document as `data/skill.json`). **No server is offered in Phase 2** (owner decision, 2026-11-15): the app reads the static export, not this API.
 - Calibration modules (EMOS and quantile mapping) with unit tests under [`backend/src/prisma/calibrate/`](backend/src/prisma/calibrate/). The full hindcast CRPSS evaluation (Run B, rolling-45 window, anti-leakage rule) passed the Phase 2 exit gate: 12 of 19 stations improved (63.2% $\ge$ 60% threshold, 7-day block bootstrap 95% CI > 0; EMOS cell mean CRPSS: +0.2187, QM: +0.0943), formally approved and released under [`v0.1.0`](https://github.com/Akunimal/prisma-climate/releases/tag/v0.1.0).
-- Global planetary expansion (`configs/regions/`) covering 140 representative aerodrome stations across 8 regions (Argentina, South America, North America, Europe, Asia, Africa, Oceania & Pacific, Middle East) with ICAO identifiers, local IANA timezones, and diverse Köppen-Geiger zones, providing immediate planetary forecast coverage via Open-Meteo Ensemble and an active worldwide METAR observation bridge ([`backend/src/prisma/ingest/metar.py`](backend/src/prisma/ingest/metar.py)).
+- Regional configuration files (`configs/regions/`) covering representative aerodrome stations across 8 regions with ICAO identifiers, local IANA timezones, and diverse Köppen-Geiger zones, staged under evaluation (see [Global expansion status](#global-expansion-status)).
 
 **Does not exist yet:** published operational leaderboard numbers (awaiting the $\ge 15$ issue dates gate), SMN precipitation (no field in the open-data payloads; see [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)), an API server (none is offered this phase — see above), an Android build, and a published skill document: the live Skill screen shows "not available" until hindcast results are committed to Pages and the operational gate opens. Nothing in `results/` was produced by anything other than a script in this repository.
+
+## Global expansion status
+
+PRISMA is designed to scale from Argentina to global coverage under the same verification-before-connector and station-vetting rules (§3.8 of the plan). As of 2026-11-19, the global expansion status in [`configs/sources.yaml`](configs/sources.yaml) is:
+
+| Region | Config file | Stations (vetted / initial) | Observation Source | Status |
+|---|---|---|---|---|
+| Argentina | [`configs/regions/argentina.yaml`](configs/regions/argentina.yaml) | 19 / 19 | `smn` / `ghcn-daily` | `active` |
+| South America | [`configs/regions/south_america.yaml`](configs/regions/south_america.yaml) | 17 / 17 | `metar-south-america` | `active` |
+| North America | [`configs/regions/north_america.yaml`](configs/regions/north_america.yaml) | 18 / 18 | `metar-north-america` | `active` |
+| Europe | [`configs/regions/europe.yaml`](configs/regions/europe.yaml) | 18 / 18 | `metar-europe` | `active` |
+| Asia | [`configs/regions/asia.yaml`](configs/regions/asia.yaml) | 18 / 19 (1 pruned) | `metar-asia` | `active` |
+| Africa | [`configs/regions/africa.yaml`](configs/regions/africa.yaml) | 14 / 17 (3 pruned) | `metar-africa` | `active` |
+| Oceania & Pacific | [`configs/regions/oceania.yaml`](configs/regions/oceania.yaml) | 16 / 16 | `metar-oceania` | `active` |
+| Middle East | [`configs/regions/middle_east.yaml`](configs/regions/middle_east.yaml) | 12 / 16 active | `metar-middle-east` | `blocked` |
+
+**What `active` means and does NOT mean for global regions:**
+- **6 regions** (`south_america`, `north_america`, `europe`, `asia`, `africa`, `oceania`) passed source verification (§3.8) and station vetting, and have been promoted to `status: active` in [`configs/sources.yaml`](configs/sources.yaml) on 2026-11-19 under owner authorization.
+- **`middle_east` remains blocked** because only 12 of 16 stations (75.0%) have active telemetry in NOAA AWC, failing the mandatory 80.0% telemetry threshold.
+- **Explicit boundary:** In these 6 global regions, `active` means station coordinates and elevations are catalog-vetted within 5 km against NOAA AWC and NOAA ISD, the METAR connector is verified, and automated daily observation archiving is active. It does **NOT** mean operational forecast verification or hindcast calibration. Forecast archive history for these regions covers 2 days or fewer (global multi-region forecast ingest began 2026-11-18); zero days of historical METAR observations were previously accumulated (collection is starting now); and no hindcast, calibration, or skill verification exists for any region outside Argentina.
+- **Live verification, calibration, and skill scores remain Argentina-only**, pending weeks to months of archive accumulation, the same empirical process Argentina itself went through.
+
+Full machine-verifiable evidence and methodology:
+- Global Verification Plan: [`docs/design/GLOBAL_VERIFICATION_PLAN.md`](docs/design/GLOBAL_VERIFICATION_PLAN.md)
+- Per-region station vetting reports: [`results/stations/south_america_vetting.md`](results/stations/south_america_vetting.md), [`results/stations/north_america_vetting.md`](results/stations/north_america_vetting.md), [`results/stations/europe_vetting.md`](results/stations/europe_vetting.md), [`results/stations/asia_vetting.md`](results/stations/asia_vetting.md), [`results/stations/africa_vetting.md`](results/stations/africa_vetting.md), [`results/stations/oceania_vetting.md`](results/stations/oceania_vetting.md), [`results/stations/middle_east_vetting.md`](results/stations/middle_east_vetting.md).
+- Raw committed audit JSONs: `results/stations/_evidence/<region>/audit.json`.
 
 ## Quickstart
 
@@ -72,7 +98,7 @@ Every source is registered in [`configs/sources.yaml`](configs/sources.yaml) and
 | NOAA GHCN-Daily | Public domain (NOAA/NCEI) | Yes | active, but **stale at source**: last valid rows 2025-08-24 (~50% daily coverage since 2005) |
 | NOAA ONI / SAM indices | Public domain (NOAA/NWS) | Yes | active |
 | SMN Argentina | CC BY 2.5 AR (PAD_legales.pdf, Infoleg disp25.pdf) | Yes | active — **current station reference for Argentina** |
-| NOAA Aviation Weather / MADIS METAR | Public domain (NOAA) | Yes | active — **aerodrome observation bridge for the Americas (South & North America)** |
+| NOAA Aviation Weather / MADIS METAR | Public domain (NOAA); non-US aerodromes under WMO Res 40 | Derived only | active (6 regions), blocked (Middle East) — see [Global expansion status](#global-expansion-status) |
 | Map tiles (OpenStreetMap) | © OpenStreetMap contributors | Yes | non-data dependency; loaded directly by the app from OpenStreetMap servers |
 | Place names (GeoNames) | CC BY 4.0 | Yes | committed gazetteer `data/places/ar.json`, built by `scripts/build_places.py`; loaded by the app only when a place search starts |
 

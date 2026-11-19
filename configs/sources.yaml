@@ -191,14 +191,15 @@ sources:
     coverage: "South America airport station network (ICAO aerodromes)"
     latency: "hours (hourly to sub-hourly reports)"
     update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain)"
-    redistributable: yes
-    verified_on: "2026-11-17"
+    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
+    redistributable: derived_only
+    verified_on: "2026-11-19"
     notes: >-
       Bridge observation network providing near-real-time observations across South American
-      airports with ICAO codes. Acts as a unified observation backbone while country-specific
-      national connectors (DMC Chile, INMET Brazil, INUMET Uruguay, SENAMHI Peru) are
-      progressively evaluated and added.
+      airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
+      (results/stations/_evidence/south_america/audit.json). All 17 stations verified with
+      active telemetry (100%) and dual-catalog confirmation. Status: ready_for_review
+      pending owner sign-off.
 
   - id: metar-north-america
     name: "NOAA Aviation Weather / MADIS METAR (North America)"
@@ -212,12 +213,15 @@ sources:
     coverage: "North America airport station network (ICAO aerodromes: US, Canada, Mexico)"
     latency: "hours (hourly to sub-hourly reports)"
     update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain)"
-    redistributable: yes
-    verified_on: "2026-11-18"
+    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
+    redistributable: derived_only
+    verified_on: "2026-11-19"
     notes: >-
       Bridge observation network providing near-real-time observations across North American
-      airports with ICAO codes (FAA ASOS/AWOS, Nav Canada, SENEAM Mexico).
+      airports with ICAO codes (FAA ASOS/AWOS, Nav Canada, SENEAM Mexico). Section 3.8 source
+      verification completed 2026-11-19 (results/stations/_evidence/north_america/audit.json).
+      All 18 stations verified with active telemetry (100%) and dual-catalog confirmation.
+      Status: ready_for_review pending owner sign-off.
 
   - id: metar-europe
     name: "NOAA Aviation Weather / MADIS METAR (Europe)"
@@ -231,12 +235,15 @@ sources:
     coverage: "Europe airport station network (ICAO aerodromes)"
     latency: "hours (hourly to sub-hourly reports)"
     update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain)"
-    redistributable: yes
-    verified_on: "2026-11-18"
+    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
+    redistributable: derived_only
+    verified_on: "2026-11-19"
     notes: >-
       Bridge observation network providing near-real-time observations across European
-      airports with ICAO codes.
+      airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
+      (results/stations/_evidence/europe/audit.json). All 18 stations verified with
+      active telemetry (100%) and dual-catalog confirmation. Status: ready_for_review
+      pending owner sign-off.
 
   - id: metar-asia
     name: "NOAA Aviation Weather / MADIS METAR (Asia)"
@@ -250,12 +257,15 @@ sources:
     coverage: "Asia airport station network (ICAO aerodromes)"
     latency: "hours (hourly to sub-hourly reports)"
     update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain)"
-    redistributable: yes
-    verified_on: "2026-11-18"
+    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
+    redistributable: derived_only
+    verified_on: "2026-11-19"
     notes: >-
       Bridge observation network providing near-real-time observations across Asian
-      airports with ICAO codes.
+      airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
+      (results/stations/_evidence/asia/audit.json). 18 of 19 stations verified with
+      active telemetry (94.7%) and dual-catalog confirmation (UTTT dead and pruned in vetting).
+      Status: ready_for_review pending owner sign-off.
 
   - id: metar-africa
     name: "NOAA Aviation Weather / MADIS METAR (Africa)"
@@ -269,12 +279,15 @@ sources:
     coverage: "Africa airport station network (ICAO aerodromes)"
     latency: "hours (hourly to sub-hourly reports)"
     update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain)"
-    redistributable: yes
-    verified_on: "2026-11-18"
+    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
+    redistributable: derived_only
+    verified_on: "2026-11-19"
     notes: >-
       Bridge observation network providing near-real-time observations across African
-      airports with ICAO codes.
+      airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
+      (results/stations/_evidence/africa/audit.json). 14 of 17 stations verified with
+      active telemetry (82.4%) and dual-catalog confirmation (FZAA, HSSS, GOBD dead/unconfirmed and pruned in vetting).
+      Status: ready_for_review pending owner sign-off.
 
   - id: metar-oceania
     name: "NOAA Aviation Weather / MADIS METAR (Oceania & Pacific)"
@@ -288,50 +301,56 @@ sources:
     coverage: "Oceania and Pacific airport station network (ICAO aerodromes)"
     latency: "hours (hourly to sub-hourly reports)"
     update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain)"
-    redistributable: yes
-    verified_on: "2026-11-18"
+    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
+    redistributable: derived_only
+    verified_on: "2026-11-19"
     notes: >-
       Bridge observation network providing near-real-time observations across Oceania
-      and Pacific Island airports with ICAO codes.
+      and Pacific Island airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
+      (results/stations/_evidence/oceania/audit.json). All 16 stations verified with
+      active telemetry (100%) and dual-catalog confirmation. Status: ready_for_review
+      pending owner sign-off.
 
   - id: metar-middle-east
     name: "NOAA Aviation Weather / MADIS METAR (Middle East)"
     day_convention: local_calendar
     connector: "metar.MetarMiddleEast"
     tier: 2
-    status: active
+    status: blocked
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
     coverage: "Middle East airport station network (ICAO aerodromes)"
     latency: "hours (hourly to sub-hourly reports)"
     update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain)"
-    redistributable: yes
-    verified_on: "2026-11-18"
+    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
+    redistributable: derived_only
+    verified_on: null
     notes: >-
-      Bridge observation network providing near-real-time observations across Middle Eastern
-      airports with ICAO codes.
+      Bridge observation network for Middle Eastern aerodromes. Blocked on 2026-11-19:
+      Section 3.8 audit (results/stations/_evidence/middle_east/audit.json) found 4 of 16
+      stations returned HTTP 204 No Content with 0 observations in 72h on NOAA AWC
+      (OKBK, OLBA, OIIE, OISS), resulting in 75.0% active telemetry, which fails the
+      mandatory 80.0% active telemetry threshold. Marked status: blocked pending stable feeds.
 
   - id: metar-global
     name: "NOAA Aviation Weather / MADIS METAR (Global)"
     day_convention: local_calendar
     connector: "metar.MetarGlobal"
     tier: 2
-    status: active
+    status: ready_for_review
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
     coverage: "Global airport station network (ICAO aerodromes worldwide)"
     latency: "hours (hourly to sub-hourly reports)"
     update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain)"
-    redistributable: yes
-    verified_on: "2026-11-18"
+    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
+    redistributable: derived_only
+    verified_on: null
     notes: >-
       Worldwide bridge observation network providing near-real-time observations across all
-      global aerodromes with ICAO codes.
+      global aerodromes with ICAO codes. Status: ready_for_review pending owner sign-off.
 
   - id: inta
     name: "INTA (Argentina) agrometeorology"

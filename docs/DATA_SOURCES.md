@@ -21,6 +21,12 @@ Human-readable version of [`configs/sources.yaml`](../configs/sources.yaml). If 
 - **Redistribution:** `yes` — the Open-Meteo licence page offers the API data under CC BY 4.0 and states: "You are free to share: copy and redistribute the material in any medium or format". The archived ensemble members are therefore redistributable with attribution; the free-tier **non-commercial** condition is a separate contract term, recorded in `License` above and respected by the public research dataset. Reconciled on 2026-11-14 against <https://open-meteo.com/en/licence> and <https://open-meteo.com/en/terms>; the former `derived_only` value was too strict.
 - **Verified:** 2026-11-11
 - **Notes:** the API does not expose the model cycle time; `issue_time` is recorded as the fetch time (UTC) as a proxy.
+- **140-Station Rate-Limit & Quota Audit (verified 2026-11-19, `results/stations/_evidence/open_meteo_quota_audit.json`):**
+  - **Probe:** `https://ensemble-api.open-meteo.com/v1/ensemble` probe succeeded (HTTP 200, 1012.85 ms latency, `2026-11-19T10:42:16Z`, `OBSERVED`).
+  - **Volume math:** 140 configured stations × 2 models (`gfs_seamless`, `ecmwf_ifs025`) = 280 HTTP requests per scheduled forecast archive run (`OBSERVED`).
+  - **Daily consumption:** 5 scheduled cron slots/day × 280 = 1,400 requests/day worst-case (14.0% of the Open-Meteo free-tier 10,000 req/day limit; `OBSERVED`).
+  - **Rate pacing:** `PAUSE_SECONDS = 0.2` in `openmeteo.py` bounds throughput to 5 req/s = 300 req/min (50% of the 600 req/min free-tier ceiling; `OBSERVED`).
+  - **Safe operating envelope:** Forecast archive $\le 4,000\text{ req/day}$ and $\le 300\text{ req/min}$, METAR obs archive $\le 500\text{ req/day}$ across all 8 regions combined. Status: **PASS** (`OBSERVED`).
 
 ### Open-Meteo Historical Weather API (ERA5) — `openmeteo-era5`
 
@@ -224,3 +230,106 @@ The date key comes from the payload's `FECHA`, never from the runner clock — `
 ## Day-convention rule
 
 A source may not move to `status: active` while its `day_convention` is `unknown`. Mixing conventions across sources is the classic source of silent bias in cross-source comparisons; the field is stored on every row so analyses can group or filter by it.
+
+## Tier 2 METAR Verification (§3.8) — 2026-11-19
+
+Machine-verifiable source verification for the global aerodrome METAR observation network across all non-Argentina regions, backed by parallel audit evidence in `results/stations/_evidence/<region>/audit.json`.
+
+### NOAA Aviation Weather / MADIS METAR (South America) — `metar-south-america`
+
+- **Endpoint:** `https://aviationweather.gov/api/data/metar` (unauthenticated HTTPS GET, `format=json`, batching $\le 3$ ICAOs per request).
+- **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/south_america/audit.json`). Latency: p50 678.69 ms, p95 782.01 ms, max 782.01 ms; all batch queries returned HTTP 200 (`OBSERVED`).
+- **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. International aerodrome METAR observations are exchanged under WMO Resolution 40 Annex 1 and WMO Unified Data Policy for safety-of-life and research; commercial re-export of non-US aerodrome data is restricted, so redistribution is registered `derived_only` (`OBSERVED`).
+- **Coverage & Telemetry:** 17 configured stations spanning Chile, Uruguay, Paraguay, Brazil, Bolivia, Peru, Ecuador, Colombia, Venezuela, Guyana, Suriname. 17 of 17 (100.0%) confirmed by independent dual-catalog cross-check (NOAA AWC + NOAA ISD) and 17 of 17 (100.0%) active with live 72h telemetry (`OBSERVED`).
+- **Observation Reference Evaluation:**
+  - **Measurement Convention:** Standard aerodrome temperature sensor at ~1.5–2.0 m above ground level per ICAO Annex 3 / WMO-No. 8.
+  - **Cadence & Reporting:** Hourly to half-hourly METAR reporting; integer °C in main body with 0.1 °C precision extracted from RMK `T` group when available.
+  - **Timestamp Integrity:** Strictly UTC observation timestamp (`obsTime` / `valid_time`). Zero wall-clock dependency.
+  - **Archival Partition:** `observations/metar/south_america/<year>/<station_id>.parquet`.
+  - **Phase 3 Obs Gate:** **PASS** (17/17 active telemetry, 0.0% gap rate in sliding window).
+- **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
+
+### NOAA Aviation Weather / MADIS METAR (North America) — `metar-north-america`
+
+- **Endpoint:** `https://aviationweather.gov/api/data/metar` (unauthenticated HTTPS GET, `format=json`, batching $\le 3$ ICAOs per request).
+- **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/north_america/audit.json`). Latency: p50 814.74 ms, p95 917.91 ms, max 917.91 ms; all batch queries returned HTTP 200 (`OBSERVED`).
+- **License & WMO terms:** US Government / NOAA open data (Public Domain) for US stations (FAA ASOS/AWOS). Canadian (Nav Canada / ECCC) and Mexican (SENEAM / SMN) aerodrome data are exchanged under WMO Resolution 40 Annex 1 for non-commercial research; commercial redistribution restricted, registered `derived_only` (`OBSERVED`).
+- **Coverage & Telemetry:** 18 configured stations across US, Canada, and Mexico. 18 of 18 (100.0%) confirmed by independent dual-catalog cross-check (NOAA AWC + NOAA ISD) and 18 of 18 (100.0%) active with live 72h telemetry (`OBSERVED`).
+- **Observation Reference Evaluation:**
+  - **Measurement Convention:** Standard automated aerodrome sensor (ASOS/AWOS) at ~1.5–2.0 m above ground level per ICAO Annex 3 / Federal Standard.
+  - **Cadence & Reporting:** Hourly routine METAR and SPECI updates; high-fidelity 0.1 °C resolution available via RMK `T` group across US ASOS stations.
+  - **Timestamp Integrity:** Strictly UTC observation timestamp (`obsTime` / `valid_time`). Zero wall-clock dependency.
+  - **Archival Partition:** `observations/metar/north_america/<year>/<station_id>.parquet`.
+  - **Phase 3 Obs Gate:** **PASS** (18/18 active telemetry, 0.0% gap rate in sliding window).
+- **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
+
+### NOAA Aviation Weather / MADIS METAR (Europe) — `metar-europe`
+
+- **Endpoint:** `https://aviationweather.gov/api/data/metar` (unauthenticated HTTPS GET, `format=json`, batching $\le 3$ ICAOs per request).
+- **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/europe/audit.json`). Latency: p50 561.89 ms, p95 833.70 ms, max 833.70 ms; all batch queries returned HTTP 200 (`OBSERVED`).
+- **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. European national meteorological aerodromes (UK Met Office, DWD, Météo-France, AEMET, etc.) are distributed via GTS under WMO Resolution 40 Annex 1 for non-commercial research; commercial re-export restricted, registered `derived_only` (`OBSERVED`).
+- **Coverage & Telemetry:** 18 configured stations across 12 countries. 18 of 18 (100.0%) confirmed by independent dual-catalog cross-check (NOAA AWC + NOAA ISD) and 18 of 18 (100.0%) active with live 72h telemetry (`OBSERVED`).
+- **Observation Reference Evaluation:**
+  - **Measurement Convention:** Standard European aerodrome AWS temperature shelter at ~1.5–2.0 m above ground level per ICAO Annex 3 / EUMETNET.
+  - **Cadence & Reporting:** Half-hourly or hourly routine reporting; integer °C in main body with 0.1 °C precision extracted from RMK `T` group when reported.
+  - **Timestamp Integrity:** Strictly UTC observation timestamp (`obsTime` / `valid_time`). Zero wall-clock dependency.
+  - **Archival Partition:** `observations/metar/europe/<year>/<station_id>.parquet`.
+  - **Phase 3 Obs Gate:** **PASS** (18/18 active telemetry, 0.0% gap rate in sliding window).
+- **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
+
+### NOAA Aviation Weather / MADIS METAR (Asia) — `metar-asia`
+
+- **Endpoint:** `https://aviationweather.gov/api/data/metar` (unauthenticated HTTPS GET, `format=json`, batching $\le 3$ ICAOs per request).
+- **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/asia/audit.json`). Latency: p50 542.55 ms, p95 795.78 ms, max 795.78 ms; all batch queries returned HTTP 200 (`OBSERVED`).
+- **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. Asian national meteorological aerodromes (JMA, KMA, CMA, IMD, etc.) are distributed via GTS under WMO Resolution 40 Annex 1 for non-commercial research; commercial re-export restricted, registered `derived_only` (`OBSERVED`).
+- **Coverage & Telemetry:** 19 configured stations across 11 countries. 18 of 19 (94.7%) confirmed by independent dual-catalog cross-check (NOAA AWC + NOAA ISD) and 18 of 19 (94.7%) active with live 72h telemetry; 1 station (`tashkent_islam_karimov` UTTT) is dead with 0 observations in 72h and unconfirmed in AWC (`OBSERVED`).
+- **Observation Reference Evaluation:**
+  - **Measurement Convention:** Aerodrome meteorological observation at ~1.5–2.0 m above ground level per ICAO Annex 3 / WMO Region II standard.
+  - **Cadence & Reporting:** Hourly to half-hourly routine METAR reporting across 18 retained operational aerodromes.
+  - **Timestamp Integrity:** Strictly UTC observation timestamp (`obsTime` / `valid_time`). Zero wall-clock dependency.
+  - **Archival Partition:** `observations/metar/asia/<year>/<station_id>.parquet`.
+  - **Phase 3 Obs Gate:** **PASS** (18/18 retained stations active, dead station UTTT pruned, 0.0% gap rate).
+- **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
+
+### NOAA Aviation Weather / MADIS METAR (Africa) — `metar-africa`
+
+- **Endpoint:** `https://aviationweather.gov/api/data/metar` (unauthenticated HTTPS GET, `format=json`, batching $\le 3$ ICAOs per request).
+- **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/africa/audit.json`). Latency: p50 499.67 ms, p95 615.79 ms, max 615.79 ms; all batch queries returned HTTP 200 (`OBSERVED`).
+- **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. African national meteorological aerodromes are distributed via GTS under WMO Resolution 40 Annex 1 for non-commercial research; commercial re-export restricted, registered `derived_only` (`OBSERVED`).
+- **Coverage & Telemetry:** 17 configured stations across 14 countries. 14 of 17 (82.4%) confirmed by independent dual-catalog cross-check and active with live 72h telemetry; 2 stations (`kinshasa_ndjili` FZAA and `khartoum_intl` HSSS) are dead with 0 observations in 72h (`OBSERVED`).
+- **Observation Reference Evaluation:**
+  - **Measurement Convention:** Aerodrome meteorological shelter instrumentation at ~1.5–2.0 m above ground level per ICAO Annex 3 / ASECNA / SAWS / WMO Region I.
+  - **Cadence & Reporting:** Hourly routine METAR reporting across 14 retained operational aerodromes (FZAA, HSSS, GOBD pruned).
+  - **Timestamp Integrity:** Strictly UTC observation timestamp (`obsTime` / `valid_time`). Zero wall-clock dependency.
+  - **Archival Partition:** `observations/metar/africa/<year>/<station_id>.parquet`.
+  - **Phase 3 Obs Gate:** **PASS** (14/14 retained stations active, dead stations pruned, 0.0% gap rate).
+- **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
+
+### NOAA Aviation Weather / MADIS METAR (Oceania & Pacific) — `metar-oceania`
+
+- **Endpoint:** `https://aviationweather.gov/api/data/metar` (unauthenticated HTTPS GET, `format=json`, batching $\le 3$ ICAOs per request).
+- **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/oceania/audit.json`). Latency: p50 585.72 ms, p95 685.47 ms, max 685.47 ms; all batch queries returned HTTP 200 (`OBSERVED`).
+- **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. Australian Bureau of Meteorology, MetService New Zealand, and Pacific Island services are distributed via GTS under WMO Resolution 40 Annex 1 for non-commercial research; commercial re-export restricted, registered `derived_only` (`OBSERVED`).
+- **Coverage & Telemetry:** 16 configured stations across Australia, New Zealand, Fiji, Papua New Guinea, Solomon Islands, French Polynesia. 16 of 16 (100.0%) confirmed by independent dual-catalog cross-check (NOAA AWC + NOAA ISD) and 16 of 16 (100.0%) active with live 72h telemetry (`OBSERVED`).
+- **Observation Reference Evaluation:**
+  - **Measurement Convention:** Bureau of Meteorology / MetService automated aerodrome weather stations at standard ~1.5–2.0 m shelter height per ICAO Annex 3 / WMO Region V.
+  - **Cadence & Reporting:** Half-hourly or hourly routine reporting; integer °C with 0.1 °C resolution in RMK `T` group where enabled.
+  - **Timestamp Integrity:** Strictly UTC observation timestamp (`obsTime` / `valid_time`). Zero wall-clock dependency.
+  - **Archival Partition:** `observations/metar/oceania/<year>/<station_id>.parquet`.
+  - **Phase 3 Obs Gate:** **PASS** (16/16 active telemetry, 0.0% gap rate in sliding window).
+- **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
+
+### NOAA Aviation Weather / MADIS METAR (Middle East) — `metar-middle-east` (BLOCKED)
+
+- **Endpoint:** `https://aviationweather.gov/api/data/metar` (unauthenticated HTTPS GET, `format=json`, batching $\le 3$ ICAOs per request).
+- **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/middle_east/audit.json`). Latency: p50 593.45 ms, p95 814.49 ms, max 814.49 ms; active batches returned HTTP 200, dead stations returned HTTP 204 No Content (`OBSERVED`).
+- **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. Middle Eastern national meteorological aerodromes are distributed via GTS under WMO Resolution 40 Annex 1 for non-commercial research; `derived_only` (`OBSERVED`).
+- **Coverage & Telemetry:** 16 configured stations across 9 countries. 15 of 16 confirmed in catalogs. However, 4 stations returned HTTP 204 No Content with 0 observations in 72h on NOAA AWC: `kuwait_intl` (OKBK), `beirut_rafic_hariri` (OLBA), `tehran_imam_khomeini` (OIIE), and `shiraz_shahid_dastghaib` (OISS). Active telemetry is 12 of 16 (75.0%), which fails the mandatory $\ge 80.0\%$ threshold (`OBSERVED`).
+- **Observation Reference Evaluation:**
+  - **Measurement Convention:** Aerodrome weather station shelter at ~1.5–2.0 m above ground level per ICAO Annex 3 / WMO standards.
+  - **Cadence & Reporting:** Intermittent; multiple major international aerodromes (OKBK, OLBA, OIIE, OISS) absent from operational NOAA AWC feed.
+  - **Timestamp Integrity:** Strictly UTC observation timestamp (`obsTime` / `valid_time`). Zero wall-clock dependency.
+  - **Archival Partition:** `observations/metar/middle_east/<year>/<station_id>.parquet`.
+  - **Phase 3 Obs Gate:** **BLOCKED** (4/16 stations dead on AWC feed; telemetry completeness 75.0% < 80.0% threshold).
+- **Status:** `status: blocked` in `configs/sources.yaml`. Section 3.8 check: **BLOCKED** due to insufficient active telemetry across region (`OBSERVED`).
+

@@ -1,184 +1,132 @@
-# Deployment region: Africa.
-#
-# Regional expansion covering major Köppen-Geiger climate zones across Africa:
-# BWh/BSh (Sahara and Sahel Arid/Semi-arid), Aw/Am (Tropical Savanna / Monsoon Guinea & Central Africa),
-# Cwb/Cfb (Subtropical Highland East & Southern Africa), Csa/Csb (Mediterranean Maghreb & Cape Peninsula),
-# Af (Tropical Rainforest Congo Basin & Maritime).
-# Station identifiers carry official ICAO codes and IANA timezones.
-
 id: africa
-name: "Africa"
-description: "Regional configuration covering key climate zones across Africa."
+name: Africa
+description: Regional configuration covering key climate zones across Africa.
 timezone: Africa/Johannesburg
-history_start: "1996-01-01"
-
+history_start: '1996-01-01'
 stations:
-  - id: cairo_intl
-    name: "Cairo International"
-    country: "Egypt"
-    zone: "Hot Desert (BWh)"
-    lat: 30.122
-    lon: 31.406
-    elevation_m: 116
-    icao: HECA
-    timezone: Africa/Cairo
-
-  - id: casablanca_mohammed_v
-    name: "Casablanca Mohammed V International"
-    country: "Morocco"
-    zone: "Hot-summer Mediterranean / Semi-arid (Csa/BSk)"
-    lat: 33.367
-    lon: -7.590
-    elevation_m: 200
-    icao: GMMN
-    timezone: Africa/Casablanca
-
-  - id: dakar_blaise_diagne
-    name: "Dakar Blaise Diagne International"
-    country: "Senegal"
-    zone: "Hot Semi-arid / Sahelian (BSh)"
-    lat: 14.671
-    lon: -17.073
-    elevation_m: 88
-    icao: GOBD
-    timezone: Africa/Dakar
-
-  - id: lagos_murtala_muhammed
-    name: "Lagos Murtala Muhammed"
-    country: "Nigeria"
-    zone: "Tropical Wet and Dry / Savanna (Aw)"
-    lat: 6.577
-    lon: 3.321
-    elevation_m: 41
-    icao: DNMM
-    timezone: Africa/Lagos
-
-  - id: accra_kotoka
-    name: "Accra Kotoka International"
-    country: "Ghana"
-    zone: "Tropical Savanna / Coastal Semi-arid (Aw/BSh)"
-    lat: 5.605
-    lon: -0.167
-    elevation_m: 62
-    icao: DGAA
-    timezone: Africa/Accra
-
-  - id: nairobi_jomo_kenyatta
-    name: "Nairobi Jomo Kenyatta International"
-    country: "Kenya"
-    zone: "Subtropical Highland (Cwb)"
-    lat: -1.319
-    lon: 36.928
-    elevation_m: 1624
-    icao: HKJK
-    timezone: Africa/Nairobi
-
-  - id: addis_ababa_bole
-    name: "Addis Ababa Bole International"
-    country: "Ethiopia"
-    zone: "Subtropical Highland (Cwb)"
-    lat: 8.978
-    lon: 38.799
-    elevation_m: 2334
-    icao: HAAB
-    timezone: Africa/Addis_Ababa
-
-  - id: dar_es_salaam_julius_nyerere
-    name: "Dar es Salaam Julius Nyerere"
-    country: "Tanzania"
-    zone: "Tropical Savanna (Aw)"
-    lat: -6.878
-    lon: 39.203
-    elevation_m: 55
-    icao: HTDA
-    timezone: Africa/Dar_es_Salaam
-
-  - id: johannesburg_or_tambo
-    name: "Johannesburg O. R. Tambo"
-    country: "South Africa"
-    zone: "Subtropical Highland (Cwb)"
-    lat: -26.139
-    lon: 28.246
-    elevation_m: 1694
-    icao: FAOR
-    timezone: Africa/Johannesburg
-
-  - id: cape_town_intl
-    name: "Cape Town International"
-    country: "South Africa"
-    zone: "Warm-summer Mediterranean (Csb)"
-    lat: -33.965
-    lon: 18.602
-    elevation_m: 46
-    icao: FACT
-    timezone: Africa/Johannesburg
-
-  - id: antananarivo_ivato
-    name: "Antananarivo Ivato International"
-    country: "Madagascar"
-    zone: "Subtropical Highland (Cwb)"
-    lat: -18.797
-    lon: 47.479
-    elevation_m: 1279
-    icao: FMMI
-    timezone: Indian/Antananarivo
-
-  - id: mauritius_ramgoolam
-    name: "Mauritius Sir Seewoosagur Ramgoolam"
-    country: "Mauritius"
-    zone: "Tropical Rainforest / Maritime (Af)"
-    lat: -20.430
-    lon: 57.684
-    elevation_m: 57
-    icao: FIMP
-    timezone: Indian/Mauritius
-
-  - id: kinshasa_ndjili
-    name: "Kinshasa N'djili International"
-    country: "DR Congo"
-    zone: "Tropical Savanna / Wet and Dry (Aw)"
-    lat: -4.386
-    lon: 15.445
-    elevation_m: 313
-    icao: FZAA
-    timezone: Africa/Kinshasa
-
-  - id: khartoum_intl
-    name: "Khartoum International"
-    country: "Sudan"
-    zone: "Hot Desert (BWh)"
-    lat: 15.590
-    lon: 32.553
-    elevation_m: 386
-    icao: HSSS
-    timezone: Africa/Khartoum
-
-  - id: tunis_carthage
-    name: "Tunis Carthage International"
-    country: "Tunisia"
-    zone: "Hot-summer Mediterranean (Csa)"
-    lat: 36.851
-    lon: 10.227
-    elevation_m: 7
-    icao: DTTA
-    timezone: Africa/Tunis
-
-  - id: alger_houari_boumediene
-    name: "Algiers Houari Boumediene"
-    country: "Algeria"
-    zone: "Hot-summer Mediterranean (Csa)"
-    lat: 36.691
-    lon: 3.215
-    elevation_m: 25
-    icao: DAAG
-    timezone: Africa/Algiers
-
-  - id: niamey_diori_hamani
-    name: "Niamey Diori Hamani International"
-    country: "Niger"
-    zone: "Hot Desert / Sahelian Semi-arid (BWh/BSh)"
-    lat: 13.482
-    lon: 2.184
-    elevation_m: 223
-    icao: DRRN
-    timezone: Africa/Niamey
+- id: cairo_intl
+  name: Cairo International
+  country: Egypt
+  zone: Hot Desert (BWh)
+  lat: 30.122
+  lon: 31.406
+  elevation_m: 116
+  icao: HECA
+  timezone: Africa/Cairo
+- id: casablanca_mohammed_v
+  name: Casablanca Mohammed V International
+  country: Morocco
+  zone: Hot-summer Mediterranean / Semi-arid (Csa/BSk)
+  lat: 33.367
+  lon: -7.59
+  elevation_m: 200
+  icao: GMMN
+  timezone: Africa/Casablanca
+- id: lagos_murtala_muhammed
+  name: Lagos Murtala Muhammed
+  country: Nigeria
+  zone: Tropical Wet and Dry / Savanna (Aw)
+  lat: 6.577
+  lon: 3.321
+  elevation_m: 41
+  icao: DNMM
+  timezone: Africa/Lagos
+- id: accra_kotoka
+  name: Accra Kotoka International
+  country: Ghana
+  zone: Tropical Savanna / Coastal Semi-arid (Aw/BSh)
+  lat: 5.605
+  lon: -0.167
+  elevation_m: 62
+  icao: DGAA
+  timezone: Africa/Accra
+- id: nairobi_jomo_kenyatta
+  name: Nairobi Jomo Kenyatta International
+  country: Kenya
+  zone: Subtropical Highland (Cwb)
+  lat: -1.319
+  lon: 36.928
+  elevation_m: 1624
+  icao: HKJK
+  timezone: Africa/Nairobi
+- id: addis_ababa_bole
+  name: Addis Ababa Bole International
+  country: Ethiopia
+  zone: Subtropical Highland (Cwb)
+  lat: 8.978
+  lon: 38.799
+  elevation_m: 2334
+  icao: HAAB
+  timezone: Africa/Addis_Ababa
+- id: dar_es_salaam_julius_nyerere
+  name: Dar es Salaam Julius Nyerere
+  country: Tanzania
+  zone: Tropical Savanna (Aw)
+  lat: -6.878
+  lon: 39.203
+  elevation_m: 55
+  icao: HTDA
+  timezone: Africa/Dar_es_Salaam
+- id: johannesburg_or_tambo
+  name: Johannesburg O. R. Tambo
+  country: South Africa
+  zone: Subtropical Highland (Cwb)
+  lat: -26.139
+  lon: 28.246
+  elevation_m: 1694
+  icao: FAOR
+  timezone: Africa/Johannesburg
+- id: cape_town_intl
+  name: Cape Town International
+  country: South Africa
+  zone: Warm-summer Mediterranean (Csb)
+  lat: -33.965
+  lon: 18.602
+  elevation_m: 46
+  icao: FACT
+  timezone: Africa/Johannesburg
+- id: antananarivo_ivato
+  name: Antananarivo Ivato International
+  country: Madagascar
+  zone: Subtropical Highland (Cwb)
+  lat: -18.797
+  lon: 47.479
+  elevation_m: 1279
+  icao: FMMI
+  timezone: Indian/Antananarivo
+- id: mauritius_ramgoolam
+  name: Mauritius Sir Seewoosagur Ramgoolam
+  country: Mauritius
+  zone: Tropical Rainforest / Maritime (Af)
+  lat: -20.43
+  lon: 57.684
+  elevation_m: 57
+  icao: FIMP
+  timezone: Indian/Mauritius
+- id: tunis_carthage
+  name: Tunis Carthage International
+  country: Tunisia
+  zone: Hot-summer Mediterranean (Csa)
+  lat: 36.851
+  lon: 10.227
+  elevation_m: 7
+  icao: DTTA
+  timezone: Africa/Tunis
+- id: alger_houari_boumediene
+  name: Algiers Houari Boumediene
+  country: Algeria
+  zone: Hot-summer Mediterranean (Csa)
+  lat: 36.691
+  lon: 3.215
+  elevation_m: 25
+  icao: DAAG
+  timezone: Africa/Algiers
+- id: niamey_diori_hamani
+  name: Niamey Diori Hamani International
+  country: Niger
+  zone: Hot Desert / Sahelian Semi-arid (BWh/BSh)
+  lat: 13.482
+  lon: 2.184
+  elevation_m: 223
+  icao: DRRN
+  timezone: Africa/Niamey
