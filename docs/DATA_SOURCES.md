@@ -21,6 +21,12 @@ Human-readable version of [`configs/sources.yaml`](../configs/sources.yaml). If 
 - **Redistribution:** `yes` — the Open-Meteo licence page offers the API data under CC BY 4.0 and states: "You are free to share: copy and redistribute the material in any medium or format". The archived ensemble members are therefore redistributable with attribution; the free-tier **non-commercial** condition is a separate contract term, recorded in `License` above and respected by the public research dataset. Reconciled on 2026-11-14 against <https://open-meteo.com/en/licence> and <https://open-meteo.com/en/terms>; the former `derived_only` value was too strict.
 - **Verified:** 2026-11-11
 - **Notes:** the API does not expose the model cycle time; `issue_time` is recorded as the fetch time (UTC) as a proxy.
+- **140-Station Rate-Limit & Quota Audit (verified 2026-11-19, `results/stations/_evidence/open_meteo_quota_audit.json`):**
+  - **Probe:** `https://ensemble-api.open-meteo.com/v1/ensemble` probe succeeded (HTTP 200, 1012.85 ms latency, `2026-11-19T10:42:16Z`, `OBSERVED`).
+  - **Volume math:** 140 configured stations × 2 models (`gfs_seamless`, `ecmwf_ifs025`) = 280 HTTP requests per scheduled forecast archive run (`OBSERVED`).
+  - **Daily consumption:** 5 scheduled cron slots/day × 280 = 1,400 requests/day worst-case (14.0% of the Open-Meteo free-tier 10,000 req/day limit; `OBSERVED`).
+  - **Rate pacing:** `PAUSE_SECONDS = 0.2` in `openmeteo.py` bounds throughput to 5 req/s = 300 req/min (50% of the 600 req/min free-tier ceiling; `OBSERVED`).
+  - **Safe operating envelope:** Forecast archive $\le 4,000\text{ req/day}$ and $\le 300\text{ req/min}$, METAR obs archive $\le 500\text{ req/day}$ across all 8 regions combined. Status: **PASS** (`OBSERVED`).
 
 ### Open-Meteo Historical Weather API (ERA5) — `openmeteo-era5`
 
@@ -224,3 +230,16 @@ The date key comes from the payload's `FECHA`, never from the runner clock — `
 ## Day-convention rule
 
 A source may not move to `status: active` while its `day_convention` is `unknown`. Mixing conventions across sources is the classic source of silent bias in cross-source comparisons; the field is stored on every row so analyses can group or filter by it.
+
+## Tier 2 METAR Verification (§3.8) — 2026-11-19
+
+Machine-verifiable source verification for the global aerodrome METAR observation network across all non-Argentina regions, backed by parallel audit evidence in `results/stations/_evidence/<region>/audit.json`.
+
+### NOAA Aviation Weather / MADIS METAR (South America) — `metar-south-america`
+
+- **Endpoint:** `https://aviationweather.gov/api/data/metar` (unauthenticated HTTPS GET, `format=json`, batching $\le 3$ ICAOs per request).
+- **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/south_america/audit.json`). Latency: p50 678.69 ms, p95 782.01 ms, max 782.01 ms; all batch queries returned HTTP 200 (`OBSERVED`).
+- **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. International aerodrome METAR observations are exchanged under WMO Resolution 40 Annex 1 and WMO Unified Data Policy for safety-of-life and research; commercial re-export of non-US aerodrome data is restricted, so redistribution is registered `derived_only` (`OBSERVED`).
+- **Coverage & Telemetry:** 17 configured stations spanning Chile, Uruguay, Paraguay, Brazil, Bolivia, Peru, Ecuador, Colombia, Venezuela, Guyana, Suriname. 17 of 17 (100.0%) confirmed by independent dual-catalog cross-check (NOAA AWC + NOAA ISD) and 17 of 17 (100.0%) active with live 72h telemetry (`OBSERVED`).
+- **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
+

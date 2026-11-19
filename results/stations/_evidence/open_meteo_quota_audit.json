@@ -1,0 +1,27 @@
+{
+  "probe_utc": "2026-11-19T10:42:16.590081+00:00",
+  "probe_status_code": 200,
+  "probe_latency_ms": 1012.85,
+  "total_configured_stations": 140,
+  "models_per_station": 2,
+  "reqs_per_forecast_run": 280,
+  "forecast_archive_slots_per_day": 5,
+  "forecast_reqs_per_day_worst_case": 1400,
+  "forecast_req_rate_per_sec": 5.0,
+  "forecast_req_rate_per_min": 300,
+  "metar_obs_reqs_per_day_batched10": 384,
+  "free_tier_limits": {
+    "max_requests_per_day": 10000,
+    "max_requests_per_hour": 5000,
+    "max_requests_per_minute": 600,
+    "license": "CC BY 4.0 (free tier non-commercial only)"
+  },
+  "safe_envelope": {
+    "max_forecast_reqs_per_day": 4000,
+    "max_forecast_reqs_per_minute": 300,
+    "max_metar_obs_reqs_per_day": 500
+  },
+  "forecast_within_safe_envelope": true,
+  "metar_within_safe_envelope": true,
+  "overall_status": "PASS"
+}

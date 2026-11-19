@@ -184,21 +184,22 @@ sources:
     day_convention: local_calendar
     connector: "metar.MetarSouthAmerica"
     tier: 2
-    status: active
+    status: verification_in_progress
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
     coverage: "South America airport station network (ICAO aerodromes)"
     latency: "hours (hourly to sub-hourly reports)"
     update_frequency: "hourly"
-    license: "US Government / NOAA open data (Public Domain)"
-    redistributable: yes
-    verified_on: "2026-11-17"
+    license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
+    redistributable: derived_only
+    verified_on: null
     notes: >-
       Bridge observation network providing near-real-time observations across South American
-      airports with ICAO codes. Acts as a unified observation backbone while country-specific
-      national connectors (DMC Chile, INMET Brazil, INUMET Uruguay, SENAMHI Peru) are
-      progressively evaluated and added.
+      airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
+      (results/stations/_evidence/south_america/audit.json). All 17 stations verified with
+      active telemetry (100%) and dual-catalog confirmation. Status: verification_in_progress
+      pending full multi-phase vetting review.
 
   - id: metar-north-america
     name: "NOAA Aviation Weather / MADIS METAR (North America)"
