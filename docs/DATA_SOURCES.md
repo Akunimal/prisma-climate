@@ -251,3 +251,11 @@ Machine-verifiable source verification for the global aerodrome METAR observatio
 - **Coverage & Telemetry:** 18 configured stations across US, Canada, and Mexico. 18 of 18 (100.0%) confirmed by independent dual-catalog cross-check (NOAA AWC + NOAA ISD) and 18 of 18 (100.0%) active with live 72h telemetry (`OBSERVED`).
 - **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
 
+### NOAA Aviation Weather / MADIS METAR (Europe) — `metar-europe`
+
+- **Endpoint:** `https://aviationweather.gov/api/data/metar` (unauthenticated HTTPS GET, `format=json`, batching $\le 3$ ICAOs per request).
+- **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/europe/audit.json`). Latency: p50 561.89 ms, p95 833.70 ms, max 833.70 ms; all batch queries returned HTTP 200 (`OBSERVED`).
+- **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. European national meteorological aerodromes (UK Met Office, DWD, Météo-France, AEMET, etc.) are distributed via GTS under WMO Resolution 40 Annex 1 for non-commercial research; commercial re-export restricted, registered `derived_only` (`OBSERVED`).
+- **Coverage & Telemetry:** 18 configured stations across 12 countries. 18 of 18 (100.0%) confirmed by independent dual-catalog cross-check (NOAA AWC + NOAA ISD) and 18 of 18 (100.0%) active with live 72h telemetry (`OBSERVED`).
+- **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
+
