@@ -1,0 +1,53 @@
+# METAR Global observation reference archive.
+#
+# Isolation by construction: this workflow is strictly isolated from
+# ingest.yml (forecast archive) and observations.yml (SMN Argentina archive).
+# Its own schedule, own concurrency group, own failure domain.
+#
+# Storage policy:
+#   - Writes raw METAR records partitioned by:
+#     observations/metar/<region>/<year>/<station_id>.parquet
+#   - Keyed strictly by observation time (obsTime/valid_time), NEVER runner clock.
+#   - No historical backfill beyond the sliding 48-72h AWC window.
+#   - Isolated from SMN paths (never writes to observations/smn/ or observations/daily/).
+#   - Read-only repo permissions: contents: read.
+
+name: Observation archive (METAR Global)
+
+on:
+  schedule:
+    # Daily run at 05:15 UTC (captures rolling 48h sliding METAR window).
+    - cron: "15 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: observations-metar-archive
+  cancel-in-progress: false
+
+env:
+  HF_TOKEN: ${{ secrets.HF_TOKEN }}
+  HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO }}
+
+jobs:
+  archive-metar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+
+      - name: Install project
+        run: uv sync --project backend
+
+      - name: Run isolated METAR observation archiver
+        run: >
+          uv run --project backend python -m prisma.ingest.metar_archive
+          --region all
+          --hours 48

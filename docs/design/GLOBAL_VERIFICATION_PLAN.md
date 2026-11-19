@@ -30,9 +30,14 @@
 - Isolated archive module with timestamp-derived keys (`obsTime`), zero wall-clock dependency, and zero backfill claims.
 
 ### Phase 4 — Daily Archive Audit & Staged Workflow
-- Daily forecast archive audit (`openmeteo-ensemble`).
-- Daily combined request budget: Forecast archive $\le 4,000\text{ req/day}$, METAR obs archive $\le 500\text{ req/day}$.
-- Isolated, staged workflow drafts with per-region failure boundaries.
+- Daily forecast archive audit (`openmeteo-ensemble`):
+  - `OBSERVED`: `.github/workflows/ingest.yml` was upgraded to `--region all` in commit `d11528f` on 2026-11-18.
+  - `OBSERVED`: Hugging Face dataset contains 9 archived issue dates (2026-11-11 through 2026-11-19). However, issue dates 2026-11-11 through 2026-11-17 contain ONLY Argentina stations. Global 140-station forecast archiving began on 2026-11-18 (`results/ingest_status.json` records 551,040 rows for 2026-11-19).
+  - `OBSERVED`: No non-Argentina region has more than 2 days of archived forecast history.
+- Staged METAR observation reference workflow:
+  - Staged `.github/workflows/observations-metar.yml` with daily cron `15 5 * * *` and `workflow_dispatch`.
+  - Runs `backend/src/prisma/ingest/metar_archive.py` with `--region all --hours 48`.
+  - Concurrency group `observations-metar-archive`, read-only permissions, isolated from SMN archive.
 
 ### Phase 5A — Anti-Drift Integrity Tests & Deterministic Promotion Gate
 - Executable anti-drift tests re-computing all metrics from committed evidence JSONs.
@@ -46,13 +51,13 @@
 | Region Slug | Region Name | Phase 1 (Source §3.8) | Phase 2 (Vetting) | Phase 3 (Obs Ref) | Phase 4 (Daily Arch) | Current Status | Vetted / Total Stns |
 |---|---|---|---|---|---|---|---|
 | `argentina` | Argentina | Complete (`OBSERVED`) | Complete (`OBSERVED`) | Complete (SMN, `OBSERVED`) | Complete (`OBSERVED`) | `active` | 19 / 19 |
-| `south_america` | South America | Not started | Not started | Not started | Not started | `not started` | 0 / 17 |
-| `north_america` | North America | Not started | Not started | Not started | Not started | `not started` | 0 / 18 |
-| `europe` | Europe | Not started | Not started | Not started | Not started | `not started` | 0 / 18 |
-| `asia` | Asia | Not started | Not started | Not started | Not started | `not started` | 0 / 19 |
-| `africa` | Africa | Not started | Not started | Not started | Not started | `not started` | 0 / 17 |
-| `oceania` | Oceania & Pacific | Not started | Not started | Not started | Not started | `not started` | 0 / 16 |
-| `middle_east` | Middle East | Not started | Not started | Not started | Not started | `not started` | 0 / 16 |
+| `south_america` | South America | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `ready_for_review` | 17 / 17 |
+| `north_america` | North America | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `ready_for_review` | 18 / 18 |
+| `europe` | Europe | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `ready_for_review` | 18 / 18 |
+| `asia` | Asia | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `ready_for_review` | 18 / 19 |
+| `africa` | Africa | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `ready_for_review` | 14 / 17 |
+| `oceania` | Oceania & Pacific | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `ready_for_review` | 16 / 16 |
+| `middle_east` | Middle East | BLOCKED (`OBSERVED`) | BLOCKED (`OBSERVED`) | BLOCKED (`OBSERVED`) | Staged (`OBSERVED`) | `blocked` | 12 / 16 |
 
 ---
 
