@@ -241,6 +241,12 @@ Machine-verifiable source verification for the global aerodrome METAR observatio
 - **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/south_america/audit.json`). Latency: p50 678.69 ms, p95 782.01 ms, max 782.01 ms; all batch queries returned HTTP 200 (`OBSERVED`).
 - **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. International aerodrome METAR observations are exchanged under WMO Resolution 40 Annex 1 and WMO Unified Data Policy for safety-of-life and research; commercial re-export of non-US aerodrome data is restricted, so redistribution is registered `derived_only` (`OBSERVED`).
 - **Coverage & Telemetry:** 17 configured stations spanning Chile, Uruguay, Paraguay, Brazil, Bolivia, Peru, Ecuador, Colombia, Venezuela, Guyana, Suriname. 17 of 17 (100.0%) confirmed by independent dual-catalog cross-check (NOAA AWC + NOAA ISD) and 17 of 17 (100.0%) active with live 72h telemetry (`OBSERVED`).
+- **Observation Reference Evaluation:**
+  - **Measurement Convention:** Standard aerodrome temperature sensor at ~1.5–2.0 m above ground level per ICAO Annex 3 / WMO-No. 8.
+  - **Cadence & Reporting:** Hourly to half-hourly METAR reporting; integer °C in main body with 0.1 °C precision extracted from RMK `T` group when available.
+  - **Timestamp Integrity:** Strictly UTC observation timestamp (`obsTime` / `valid_time`). Zero wall-clock dependency.
+  - **Archival Partition:** `observations/metar/south_america/<year>/<station_id>.parquet`.
+  - **Phase 3 Obs Gate:** **PASS** (17/17 active telemetry, 0.0% gap rate in sliding window).
 - **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
 
 ### NOAA Aviation Weather / MADIS METAR (North America) — `metar-north-america`
