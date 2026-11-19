@@ -30,6 +30,30 @@ void main() {
       expect(station.lon, closeTo(-65.6, 1e-9));
       expect(latest.stationById('missing'), isNull);
     });
+
+    test('parses optional t2m_max and t2m_min when present, defaults to null', () {
+      final summaryWithTemps = StationSummary.fromJson({
+        'id': 'test_station',
+        'name': 'Test Station',
+        'lat': -34.0,
+        'lon': -58.0,
+        'climate_zone': 'Pampa',
+        't2m_max': 28.5,
+        't2m_min': 15.2,
+      });
+      expect(summaryWithTemps.t2mMax, 28.5);
+      expect(summaryWithTemps.t2mMin, 15.2);
+
+      final summaryNoTemps = StationSummary.fromJson({
+        'id': 'test_station',
+        'name': 'Test Station',
+        'lat': -34.0,
+        'lon': -58.0,
+        'climate_zone': 'Pampa',
+      });
+      expect(summaryNoTemps.t2mMax, isNull);
+      expect(summaryNoTemps.t2mMin, isNull);
+    });
   });
 
   group('stations/<id>.json', () {
@@ -261,6 +285,40 @@ void main() {
         () => AboutDocument.parse('{"generated_at": "2026-11-14T00:00:00Z"}'),
         throwsA(isA<DataException>()),
       );
+    });
+  });
+
+  group('climatology', () {
+    test('ClimatologyRange parses from JSON and serializes to JSON', () {
+      final json = {'low': 15.5, 'high': 28.0, 'median': 21.2};
+      final range = ClimatologyRange.fromJson(json);
+      expect(range.low, 15.5);
+      expect(range.high, 28.0);
+      expect(range.median, 21.2);
+      expect(range.toJson(), json);
+    });
+
+    test('StationDocument parses explicit climatology if present', () {
+      final base = fixture('stations/buenos_aires.json');
+      final withClim = base.replaceFirst(
+        '"forecast": {',
+        '"climatology": {"t2m_max": {"low": 14.0, "high": 27.5, "median": 20.0}}, "forecast": {',
+      );
+      final doc = StationDocument.parse(withClim);
+      final clim = doc.climatologyFor('t2m_max');
+      expect(clim, isNotNull);
+      expect(clim!.low, 14.0);
+      expect(clim.high, 27.5);
+      expect(clim.median, 20.0);
+    });
+
+    test('StationDocument derives climatology range from observed history when absent', () {
+      final doc = StationDocument.parse(fixture('stations/buenos_aires.json'));
+      expect(doc.climatology, isNull);
+      final derived = doc.climatologyFor('t2m_max');
+      expect(derived, isNotNull);
+      expect(derived!.low, lessThan(derived.high));
+      expect(derived.median, isNotNull);
     });
   });
 }

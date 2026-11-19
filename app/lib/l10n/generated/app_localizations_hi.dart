@@ -14,7 +14,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get appTagline =>
-      'Open-Meteo का कच्चा एन्सेम्बल पूर्वानुमान (GFS और ECMWF IFS), अर्जेंटीना के 19 स्टेशनों के लिए।';
+      'Open-Meteo का कच्चा एन्सेम्बल पूर्वानुमान (GFS और ECMWF IFS), दुनिया भर के 140+ स्टेशनों के लिए।';
 
   @override
   String get tabStations => 'स्टेशन';
@@ -81,6 +81,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get legendMedian => 'माध्यिका';
+
+  @override
+  String get legendClimatology => 'सामान्य सीमा';
 
   @override
   String get legendModelsNeverPooled =>
@@ -161,7 +164,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA अर्जेंटीना के 19 स्टेशनों के लिए दो एन्सेम्बल (ECMWF IFS और GFS) का कच्चा संभाव्य पूर्वानुमान 15 दिनों तक, साथ ही पिछले 30 दिनों में SMN द्वारा अवलोकित दैनिक अधिकतम और न्यूनतम तापमान प्रकाशित करता है। ऐप केवल GitHub Pages पर प्रकाशित स्थिर फ़ाइलें पढ़ता है: कोई सर्वर या API नहीं है।';
+      'PRISMA सभी महाद्वीपों के 140+ स्टेशनों के लिए दो एन्सेम्बल (ECMWF IFS और GFS) का कच्चा संभाव्य पूर्वानुमान 15 दिनों तक, साथ ही राष्ट्रीय मौसम विज्ञान सेवाओं और वैश्विक METAR नेटवर्क के अवलोकन प्रकाशित करता है। ऐप केवल GitHub Pages पर प्रकाशित स्थिर फ़ाइलें पढ़ता है: कोई सर्वर या API नहीं है।';
 
   @override
   String get aboutNoSkillTitle => 'संचालन सत्यापन मेट्रिक';

@@ -13,7 +13,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appTitle => 'PRISMA · 按站点预报';
 
   @override
-  String get appTagline => 'Open-Meteo 原始集合预报（GFS 与 ECMWF IFS），覆盖阿根廷 19 个站点。';
+  String get appTagline => 'Open-Meteo 原始集合预报（GFS 与 ECMWF IFS），全球覆盖 140 多个站点。';
 
   @override
   String get tabStations => '观测站';
@@ -80,6 +80,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get legendMedian => '中位数';
+
+  @override
+  String get legendClimatology => '常年范围';
 
   @override
   String get legendModelsNeverPooled => '每个模型保留各自的成员和各自的分位数，绝不混合。';
@@ -155,7 +158,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA 为阿根廷 19 个站点发布两个集合（ECMWF IFS 与 GFS）的原始概率预报，最远 15 天，另加 SMN 最近 30 天观测的日最高、最低气温。本应用只读取发布在 GitHub Pages 上的静态文件：没有服务器，也没有 API。';
+      'PRISMA 为全球所有大洲 140 多个站点发布两个集合（ECMWF IFS 与 GFS）的原始概率预报，最远 15 天，另加国家气象部门与全球 METAR 网络的观测数据。本应用只读取发布在 GitHub Pages 上的静态文件：没有服务器，也没有 API。';
 
   @override
   String get aboutNoSkillTitle => '业务检验指标';

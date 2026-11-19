@@ -146,6 +146,8 @@ class StationSummary {
     required this.lat,
     required this.lon,
     required this.climateZone,
+    this.t2mMax,
+    this.t2mMin,
   });
 
   factory StationSummary.fromJson(Object? value) {
@@ -156,6 +158,8 @@ class StationSummary {
       lat: _doubleOrNull(json, 'lat') ?? 0,
       lon: _doubleOrNull(json, 'lon') ?? 0,
       climateZone: _string(json, 'climate_zone'),
+      t2mMax: _doubleOrNull(json, 't2m_max'),
+      t2mMin: _doubleOrNull(json, 't2m_min'),
     );
   }
 
@@ -164,6 +168,8 @@ class StationSummary {
   final double lat;
   final double lon;
   final String climateZone;
+  final double? t2mMax;
+  final double? t2mMin;
 }
 
 class PlaceRecord {
@@ -434,6 +440,33 @@ class ObservedDay {
   final double? t2mMin;
 }
 
+class ClimatologyRange {
+  const ClimatologyRange({
+    required this.low,
+    required this.high,
+    this.median,
+  });
+
+  factory ClimatologyRange.fromJson(Object? value) {
+    final json = _map(value, 'climatology range');
+    return ClimatologyRange(
+      low: _doubleOrNull(json, 'low') ?? 0.0,
+      high: _doubleOrNull(json, 'high') ?? 0.0,
+      median: _doubleOrNull(json, 'median'),
+    );
+  }
+
+  final double low;
+  final double high;
+  final double? median;
+
+  Map<String, dynamic> toJson() => {
+        'low': low,
+        'high': high,
+        if (median != null) 'median': median,
+      };
+}
+
 class StationDocument {
   const StationDocument({
     required this.schemaVersion,
@@ -444,6 +477,7 @@ class StationDocument {
     required this.station,
     required this.forecast,
     required this.observed,
+    this.climatology,
   });
 
   factory StationDocument.parse(String body, {String document = 'station.json'}) {
@@ -472,6 +506,13 @@ class StationDocument {
       forecast[variable] = models;
     });
 
+    final climatology = <String, ClimatologyRange>{};
+    if (json['climatology'] is Map) {
+      _map(json['climatology'], 'climatology').forEach((key, val) {
+        climatology[key] = ClimatologyRange.fromJson(val);
+      });
+    }
+
     return StationDocument(
       schemaVersion: _string(json, 'schema_version'),
       generatedAt: _string(json, 'generated_at'),
@@ -491,6 +532,7 @@ class StationDocument {
       observed: _list(json['observed'], 'observed')
           .map((value) => ObservedDay.fromJson(value))
           .toList(),
+      climatology: climatology.isEmpty ? null : climatology,
     );
   }
 
@@ -502,6 +544,23 @@ class StationDocument {
   final StationSummary station;
   final Map<String, Map<String, List<ForecastCase>>> forecast;
   final List<ObservedDay> observed;
+  final Map<String, ClimatologyRange>? climatology;
+
+  ClimatologyRange? climatologyFor(String variable) {
+    if (climatology != null && climatology!.containsKey(variable)) {
+      return climatology![variable];
+    }
+    final values = observed
+        .map((o) => variable == 't2m_max' ? o.t2mMax : o.t2mMin)
+        .whereType<double>()
+        .toList();
+    if (values.length < 5) return null;
+    values.sort();
+    final p10 = values[(values.length * 0.1).floor()];
+    final p90 = values[(values.length * 0.9).floor()];
+    final p50 = values[(values.length * 0.5).floor()];
+    return ClimatologyRange(low: p10, high: p90, median: p50);
+  }
 
   List<ForecastCase> casesFor(String variable, String model) =>
       forecast[variable]?[model] ?? const <ForecastCase>[];

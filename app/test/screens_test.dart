@@ -8,9 +8,11 @@ import 'package:http/testing.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:prisma_app/l10n/generated/app_localizations_en.dart';
 import 'package:prisma_app/src/app.dart';
+import 'package:prisma_app/src/data/models.dart';
 import 'package:prisma_app/src/data/repository.dart';
 import 'package:prisma_app/src/location_provider.dart';
 import 'package:prisma_app/src/nearest_station.dart';
+import 'package:prisma_app/src/widgets/band_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String fixture(String name) => File('test/fixtures/$name').readAsStringSync();
@@ -229,6 +231,34 @@ void main() {
     expect(find.byTooltip('Buenos Aires Observatorio'), findsOneWidget);
   });
 
+  testWidgets('the map shows temperature badges when t2mMax is present and toggles',
+      (tester) async {
+    final files = defaultFiles();
+    final customLatest = jsonDecode(files['latest.json']!);
+    customLatest['stations'][0]['t2m_max'] = 22.4;
+    customLatest['stations'][0]['t2m_min'] = 11.2;
+    files['latest.json'] = jsonEncode(customLatest);
+
+    await pumpApp(tester, files: files, tileProvider: BlankTileProvider());
+    await tester.tap(find.text(en.stationsViewMap));
+    await tester.pumpAndSettle();
+
+    // Map temp toggle button is present because station has t2m_max
+    expect(find.byKey(const ValueKey('map_temp_toggle')), findsOneWidget);
+    // Badge shows rounded temperature: 22°
+    expect(find.text('22°'), findsOneWidget);
+
+    // Tapping the toggle turns temperatures off (reverts to circles)
+    await tester.tap(find.byKey(const ValueKey('map_temp_toggle')));
+    await tester.pumpAndSettle();
+    expect(find.text('22°'), findsNothing);
+
+    // Tapping again restores temperature badges
+    await tester.tap(find.byKey(const ValueKey('map_temp_toggle')));
+    await tester.pumpAndSettle();
+    expect(find.text('22°'), findsOneWidget);
+  });
+
   testWidgets('the map shows the user position and its link line',
       (tester) async {
     final provider = FakeLocationProvider(
@@ -442,5 +472,46 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text(en.variableT2mMax), findsOneWidget);
+  });
+
+  testWidgets('forecast chart displays climatological normal legend and renders band',
+      (tester) async {
+    await pumpApp(tester, size: const Size(1200, 3000));
+    await openForecast(tester);
+    expect(find.textContaining(en.legendClimatology), findsWidgets);
+    expect(find.byType(ForecastBandChart), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('ForecastBandChart paints with climatology range without exceptions in dark and light mode',
+      (tester) async {
+    final chart = ForecastBandChart(
+      leads: const [0, 1, 2, 3],
+      series: const [],
+      noDataLabel: 'no data',
+      climatology: const ClimatologyRange(low: 12.0, high: 26.0, median: 19.0),
+      climatologyLabel: 'Normal range',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: ThemeMode.light,
+        home: Scaffold(body: SizedBox(width: 400, height: 300, child: chart)),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+
+    // Switch to dark theme
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: ThemeMode.dark,
+        home: Scaffold(body: SizedBox(width: 400, height: 300, child: chart)),
+      ),
+    );
+    expect(tester.takeException(), isNull);
   });
 }

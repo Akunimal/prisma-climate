@@ -14,7 +14,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get appTagline =>
-      'Сырой ансамбль Open-Meteo (GFS и ECMWF IFS) для 19 станций Аргентины.';
+      'Сырой ансамбль Open-Meteo (GFS и ECMWF IFS) для 140+ станций по всему миру.';
 
   @override
   String get tabStations => 'Станции';
@@ -81,6 +81,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get legendMedian => 'Медиана';
+
+  @override
+  String get legendClimatology => 'Нормальный диапазон';
 
   @override
   String get legendModelsNeverPooled =>
@@ -161,7 +164,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA публикует для 19 станций Аргентины сырой вероятностный прогноз двух ансамблей (ECMWF IFS и GFS) на срок до 15 дней, а также суточные максимальная и минимальная температуры, наблюдавшиеся SMN за последние 30 дней. Приложение читает только статические файлы на GitHub Pages: сервера и API нет.';
+      'PRISMA публикует для более 140 станций на всех континентах сырой вероятностный прогноз двух ансамблей (ECMWF IFS и GFS) на срок до 15 дней, а также наблюдения национальных метеослужб и глобальной сети METAR. Приложение читает только статические файлы на GitHub Pages: сервера и API нет.';
 
   @override
   String get aboutNoSkillTitle => 'Оперативные метрики skill';

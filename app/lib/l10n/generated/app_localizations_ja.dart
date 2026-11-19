@@ -14,7 +14,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get appTagline =>
-      'Open-Meteo の未校正アンサンブル（GFS と ECMWF IFS）、アルゼンチンの 19 観測所。';
+      'Open-Meteo の未校正アンサンブル（GFS と ECMWF IFS）、世界 140 以上の観測所。';
 
   @override
   String get tabStations => '観測所';
@@ -81,6 +81,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get legendMedian => '中央値';
+
+  @override
+  String get legendClimatology => '平年範囲';
 
   @override
   String get legendModelsNeverPooled =>
@@ -158,7 +161,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA は、アルゼンチンの 19 観測所について、2 つのアンサンブル（ECMWF IFS と GFS）の未校正確率予報を最大 15 日先まで、さらに SMN が過去 30 日間に観測した日最高・日最低気温を公開します。アプリは GitHub Pages 上の静的ファイルのみを読み込みます：サーバーも API もありません。';
+      'PRISMA は、全大陸の 140 以上の観測所について、2 つのアンサンブル（ECMWF IFS と GFS）の未校正確率予報を最大 15 日先まで、さらに各国の気象機関および世界規模の METAR ネットワークによる観測値を公開します。アプリは GitHub Pages 上の静的ファイルのみを読み込みます：サーバーも API もありません。';
 
   @override
   String get aboutNoSkillTitle => '運用検証指標';

@@ -19,6 +19,9 @@ class ForecastBandChart extends StatelessWidget {
     required this.series,
     required this.noDataLabel,
     this.dateForLead = const {},
+    this.climatology,
+    this.climatologyByLead,
+    this.climatologyLabel,
   });
 
   final List<int> leads;
@@ -27,6 +30,9 @@ class ForecastBandChart extends StatelessWidget {
   /// Localised `no data` drawn on the canvas when there is nothing to plot.
   final String noDataLabel;
   final Map<int, String> dateForLead;
+  final ClimatologyRange? climatology;
+  final Map<int, ClimatologyRange>? climatologyByLead;
+  final String? climatologyLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +46,9 @@ class ForecastBandChart extends StatelessWidget {
         ink: theme.colorScheme.onSurface,
         muted: theme.colorScheme.onSurfaceVariant,
         grid: theme.colorScheme.outlineVariant,
+        climatology: climatology,
+        climatologyByLead: climatologyByLead,
+        climatologyLabel: climatologyLabel,
       ),
       size: Size.infinite,
     );
@@ -55,6 +64,9 @@ class _BandPainter extends CustomPainter {
     required this.ink,
     required this.muted,
     required this.grid,
+    this.climatology,
+    this.climatologyByLead,
+    this.climatologyLabel,
   });
 
   final List<int> leads;
@@ -64,6 +76,9 @@ class _BandPainter extends CustomPainter {
   final Color ink;
   final Color muted;
   final Color grid;
+  final ClimatologyRange? climatology;
+  final Map<int, ClimatologyRange>? climatologyByLead;
+  final String? climatologyLabel;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -92,6 +107,22 @@ class _BandPainter extends CustomPainter {
           if (high != null) {
             values.add(high);
           }
+        }
+      }
+    }
+    if (climatology != null) {
+      values.add(climatology!.low);
+      values.add(climatology!.high);
+      if (climatology!.median != null) {
+        values.add(climatology!.median!);
+      }
+    }
+    if (climatologyByLead != null) {
+      for (final range in climatologyByLead!.values) {
+        values.add(range.low);
+        values.add(range.high);
+        if (range.median != null) {
+          values.add(range.median!);
         }
       }
     }
@@ -148,6 +179,49 @@ class _BandPainter extends CustomPainter {
         9,
         align: TextAlign.center,
       );
+    }
+
+    if (climatology != null) {
+      final yTop = y(climatology!.high);
+      final yBottom = y(climatology!.low);
+      final climRect = Rect.fromLTRB(plot.left, yTop, plot.right, yBottom);
+      canvas.drawRect(
+        climRect,
+        Paint()..color = muted.withValues(alpha: 0.08),
+      );
+      final boundaryPaint = Paint()
+        ..color = muted.withValues(alpha: 0.4)
+        ..strokeWidth = 0.8
+        ..style = PaintingStyle.stroke;
+      _drawDashedHorizontalLine(canvas, plot.left, plot.right, yTop, boundaryPaint);
+      _drawDashedHorizontalLine(canvas, plot.left, plot.right, yBottom, boundaryPaint);
+      if (climatology!.median != null) {
+        final medianPaint = Paint()
+          ..color = muted.withValues(alpha: 0.3)
+          ..strokeWidth = 0.7
+          ..style = PaintingStyle.stroke;
+        _drawDashedHorizontalLine(
+          canvas,
+          plot.left,
+          plot.right,
+          y(climatology!.median!),
+          medianPaint,
+          dashWidth: 2,
+          dashSpace: 3,
+        );
+      }
+      if (climatologyLabel != null) {
+        _drawText(
+          canvas,
+          climatologyLabel!,
+          Offset(plot.right - 4, yTop + 3),
+          muted.withValues(alpha: 0.65),
+          8,
+          align: TextAlign.right,
+        );
+      }
+    } else if (climatologyByLead != null && climatologyByLead!.isNotEmpty) {
+      _drawClimatologyByLead(canvas, plot, x, y);
     }
 
     for (final item in series) {
@@ -291,9 +365,79 @@ class _BandPainter extends CustomPainter {
     canvas.drawPath(path, Paint()..color = color);
   }
 
+  void _drawDashedHorizontalLine(
+    Canvas canvas,
+    double x1,
+    double x2,
+    double y,
+    Paint paint, {
+    double dashWidth = 4,
+    double dashSpace = 4,
+  }) {
+    var curX = x1;
+    while (curX < x2) {
+      final endX = math.min(curX + dashWidth, x2);
+      canvas.drawLine(Offset(curX, y), Offset(endX, y), paint);
+      curX += dashWidth + dashSpace;
+    }
+  }
+
+  void _drawClimatologyByLead(
+    Canvas canvas,
+    Rect plot,
+    double Function(int) x,
+    double Function(double) y,
+  ) {
+    final path = Path();
+    var first = true;
+    for (var i = 0; i < leads.length; i++) {
+      final lead = leads[i];
+      final range = climatologyByLead![lead];
+      if (range == null) continue;
+      final pt = Offset(x(i), y(range.high));
+      if (first) {
+        path.moveTo(pt.dx, pt.dy);
+        first = false;
+      } else {
+        path.lineTo(pt.dx, pt.dy);
+      }
+    }
+    for (var i = leads.length - 1; i >= 0; i--) {
+      final lead = leads[i];
+      final range = climatologyByLead![lead];
+      if (range == null) continue;
+      path.lineTo(x(i), y(range.low));
+    }
+    path.close();
+    canvas.drawPath(path, Paint()..color = muted.withValues(alpha: 0.08));
+
+    if (climatologyLabel != null) {
+      final lastRange = climatologyByLead![leads.last];
+      if (lastRange != null) {
+        _drawText(
+          canvas,
+          climatologyLabel!,
+          Offset(plot.right - 4, y(lastRange.high) + 3),
+          muted.withValues(alpha: 0.65),
+          8,
+          align: TextAlign.right,
+        );
+      }
+    }
+  }
+
   @override
   bool shouldRepaint(covariant _BandPainter old) =>
-      old.leads != leads || old.series != series;
+      old.leads != leads ||
+      old.series != series ||
+      old.ink != ink ||
+      old.muted != muted ||
+      old.grid != grid ||
+      old.climatology?.low != climatology?.low ||
+      old.climatology?.high != climatology?.high ||
+      old.climatology?.median != climatology?.median ||
+      old.climatologyByLead != climatologyByLead ||
+      old.climatologyLabel != climatologyLabel;
 
   void _drawText(
     Canvas canvas,
@@ -466,5 +610,10 @@ class _ObservedPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _ObservedPainter old) => old.days != days;
+  bool shouldRepaint(covariant _ObservedPainter old) =>
+      old.days != days ||
+      old.maxColor != maxColor ||
+      old.minColor != minColor ||
+      old.muted != muted ||
+      old.grid != grid;
 }

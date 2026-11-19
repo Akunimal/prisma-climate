@@ -123,7 +123,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTagline.
   ///
   /// In en, this message translates to:
-  /// **'Raw Open-Meteo ensemble (GFS and ECMWF IFS) for 19 stations in Argentina.'**
+  /// **'Raw Open-Meteo ensemble (GFS and ECMWF IFS) across 140+ stations globally.'**
   String get appTagline;
 
   /// No description provided for @tabStations.
@@ -257,6 +257,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Median'**
   String get legendMedian;
+
+  /// No description provided for @legendClimatology.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal range'**
+  String get legendClimatology;
 
   /// No description provided for @legendModelsNeverPooled.
   ///
@@ -399,7 +405,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutWhat.
   ///
   /// In en, this message translates to:
-  /// **'PRISMA publishes, for 19 stations in Argentina, the raw probabilistic forecast of two ensembles (ECMWF IFS and GFS) up to 15 days ahead, plus the daily maximum and minimum temperatures observed by SMN over the last 30 days. The app reads only static files published on GitHub Pages: there is no server and no API.'**
+  /// **'PRISMA publishes, for 140+ stations across all continents, the raw probabilistic forecast of two ensembles (ECMWF IFS and GFS) up to 15 days ahead, plus observations from national meteorological services and the global METAR network. The app reads only static files published on GitHub Pages: there is no server and no API.'**
   String get aboutWhat;
 
   /// No description provided for @aboutNoSkillTitle.

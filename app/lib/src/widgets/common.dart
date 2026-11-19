@@ -41,11 +41,12 @@ String describeError(BuildContext context, Object error) {
 
 Color modelColor(BuildContext context, String model) {
   final scheme = Theme.of(context).colorScheme;
+  final isDark = scheme.brightness == Brightness.dark;
   switch (model) {
     case 'ecmwf_ifs025':
       return scheme.primary;
     case 'gfs_seamless':
-      return const Color(0xFFB4531F);
+      return isDark ? const Color(0xFFFB923C) : const Color(0xFFB4531F);
     default:
       return scheme.tertiary;
   }

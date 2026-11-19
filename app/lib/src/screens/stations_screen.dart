@@ -48,6 +48,7 @@ class _StationsScreenState extends State<StationsScreen> {
   String? _selectedMarkerId;
   bool _tilesFailed = false;
   bool _legendExpanded = false;
+  bool _showTemperatures = true;
   String _selectedRegion = 'all';
 
   PlaceDocument? _places;
@@ -671,37 +672,97 @@ class _StationsScreenState extends State<StationsScreen> {
             MarkerLayer(
               markers: mapStations.map((station) {
                 final selected = station.id == _selectedMarkerId;
-                final size = selected ? 26.0 : 18.0;
+                final hasTemp = _showTemperatures && station.t2mMax != null;
+                final width = hasTemp ? (selected ? 60.0 : 52.0) : (selected ? 26.0 : 18.0);
+                final height = hasTemp ? (selected ? 28.0 : 24.0) : (selected ? 26.0 : 18.0);
                 return Marker(
                   point: LatLng(station.lat, station.lon),
-                  width: size,
-                  height: size,
+                  width: width,
+                  height: height,
                   child: Semantics(
-                    label: station.name,
+                    label: hasTemp
+                        ? '${station.name}: ${station.t2mMax!.round()}°'
+                        : station.name,
                     button: true,
                     child: GestureDetector(
                       onTap: () => _openCard(station),
                       child: Tooltip(
-                        message: station.name,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: zoneColors[station.climateZone],
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: selected ? Colors.white : Colors.black87,
-                              width: selected ? 2.5 : 1.2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(
-                                  alpha: selected ? 0.4 : 0.2,
+                        message: hasTemp
+                            ? '${station.name} (${station.t2mMax!.round()}°)'
+                            : station.name,
+                        child: hasTemp
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 3,
+                                  vertical: 1,
                                 ),
-                                blurRadius: selected ? 4 : 2,
-                                offset: const Offset(0, 1),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: selected
+                                        ? theme.colorScheme.primary
+                                        : (zoneColors[station.climateZone] ??
+                                            Colors.black87),
+                                    width: selected ? 2.2 : 1.2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: selected ? 0.4 : 0.2,
+                                      ),
+                                      blurRadius: selected ? 4 : 2,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        color: zoneColors[station.climateZone],
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Flexible(
+                                      child: Text(
+                                        '${station.t2mMax!.round()}°',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.clip,
+                                        style: TextStyle(
+                                          fontSize: selected ? 11 : 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: theme.colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : Container(
+                                decoration: BoxDecoration(
+                                  color: zoneColors[station.climateZone],
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: selected ? Colors.white : Colors.black87,
+                                    width: selected ? 2.5 : 1.2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: selected ? 0.4 : 0.2,
+                                      ),
+                                      blurRadius: selected ? 4 : 2,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
-                          ),
-                        ),
                       ),
                     ),
                   ),
@@ -861,6 +922,48 @@ class _StationsScreenState extends State<StationsScreen> {
                   ),
                 ),
         ),
+        if (mapStations.any((s) => s.t2mMax != null))
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Card(
+              elevation: 2,
+              child: InkWell(
+                key: const ValueKey('map_temp_toggle'),
+                borderRadius: BorderRadius.circular(8),
+                onTap: () =>
+                    setState(() => _showTemperatures = !_showTemperatures),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _showTemperatures
+                            ? Icons.thermostat
+                            : Icons.thermostat_outlined,
+                        size: 16,
+                        color: _showTemperatures
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '°C',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: _showTemperatures
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -892,6 +995,17 @@ class _StationsScreenState extends State<StationsScreen> {
               Text('${l10n.labelClimateZone}: ${station.climateZone}'),
             ],
           ),
+          if (station.t2mMax != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              station.t2mMin != null
+                  ? '${l10n.variableT2mMax}: ${station.t2mMax!.round()}°C · ${l10n.variableT2mMin}: ${station.t2mMin!.round()}°C'
+                  : '${l10n.variableT2mMax}: ${station.t2mMax!.round()}°C',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
           const SizedBox(height: 12),
           FilledButton(
             onPressed: () {

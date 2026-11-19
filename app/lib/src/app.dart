@@ -31,15 +31,18 @@ class PrismaApp extends StatefulWidget {
 
 class _PrismaAppState extends State<PrismaApp> {
   static const String _prefsKey = 'prisma_ui_locale';
+  static const String _themePrefsKey = 'prisma_theme_mode';
 
   /// Always set: the app starts in English on a first visit and never resolves
   /// from the browser/system locale. Only a saved `prisma_ui_locale` moves it.
   Locale _locale = const Locale('en');
+  ThemeMode _themeMode = ThemeMode.system;
 
   @override
   void initState() {
     super.initState();
     _restoreLocale();
+    _restoreThemeMode();
   }
 
   Future<void> _restoreLocale() async {
@@ -51,10 +54,32 @@ class _PrismaAppState extends State<PrismaApp> {
     setState(() => _locale = Locale(code));
   }
 
+  Future<void> _restoreThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_themePrefsKey);
+    final restored = switch (raw) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.system,
+    };
+    if (!mounted) return;
+    setState(() {
+      _themeMode = restored;
+    });
+  }
+
   Future<void> _pickLocale(Locale locale) async {
     setState(() => _locale = locale);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_prefsKey, locale.languageCode);
+  }
+
+  Future<void> _pickThemeMode(ThemeMode mode) async {
+    setState(() {
+      _themeMode = mode;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themePrefsKey, mode.name);
   }
 
   @override
@@ -65,14 +90,27 @@ class _PrismaAppState extends State<PrismaApp> {
       localizationsDelegates: kLocalizationsDelegates,
       debugShowCheckedModeBanner: false,
       onGenerateTitle: (context) => context.l10n.appTitle,
+      themeMode: _themeMode,
       theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.light,
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0B6B45)),
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0B6B45),
+          brightness: Brightness.dark,
+        ),
       ),
       home: HomeShell(
         repository: widget.repository,
         locationProvider: widget.locationProvider,
         tileProvider: widget.tileProvider,
         onLocalePicked: _pickLocale,
+        currentThemeMode: _themeMode,
+        onThemeModePicked: _pickThemeMode,
       ),
     );
   }
@@ -92,12 +130,16 @@ class HomeShell extends StatefulWidget {
     required this.onLocalePicked,
     this.locationProvider,
     this.tileProvider,
+    this.currentThemeMode = ThemeMode.system,
+    this.onThemeModePicked,
   });
 
   final PrismaRepository repository;
   final ValueChanged<Locale> onLocalePicked;
   final LocationProvider? locationProvider;
   final TileProvider? tileProvider;
+  final ThemeMode currentThemeMode;
+  final ValueChanged<ThemeMode>? onThemeModePicked;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -139,9 +181,23 @@ class _HomeShellState extends State<HomeShell> {
     });
   }
 
-  List<Widget> _appBarActions(BuildContext context) => [
-        LanguageMenu(onSelected: widget.onLocalePicked),
-      ];
+  List<Widget> _appBarActions(BuildContext context) {
+    final isDark = widget.currentThemeMode == ThemeMode.dark ||
+        (widget.currentThemeMode == ThemeMode.system &&
+            Theme.of(context).colorScheme.brightness == Brightness.dark);
+    return [
+      IconButton(
+        key: const ValueKey('theme_toggle_button'),
+        icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+        tooltip: 'Toggle dark theme',
+        onPressed: () {
+          widget.onThemeModePicked
+              ?.call(isDark ? ThemeMode.light : ThemeMode.dark);
+        },
+      ),
+      LanguageMenu(onSelected: widget.onLocalePicked),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -106,6 +106,19 @@ def gate_status(root: Path) -> dict[str, Any]:
                     )
         except (json.JSONDecodeError, TypeError, AttributeError):
             issue_dates = 0
+
+    if issue_dates == 0:
+        status_file = root / "results" / "ingest_status.json"
+        if status_file.is_file():
+            try:
+                status_doc = json.loads(status_file.read_text(encoding="utf-8"))
+                watchdog = status_doc.get("archive_watchdog", {})
+                dates_count = watchdog.get("archived_issue_dates")
+                if isinstance(dates_count, int) and dates_count > 0:
+                    issue_dates = dates_count
+            except Exception:
+                pass
+
     return {
         "required_issue_dates": GATE_ISSUE_DATES,
         "archived_issue_dates": issue_dates,
@@ -124,6 +137,15 @@ def build_skill_document(root: Path) -> dict[str, Any]:
     result = latest_hindcast_result(root)
     gate = gate_status(root)
     if result is None:
+        fallback = root / "data" / "skill.json"
+        if fallback.is_file():
+            try:
+                doc = json.loads(fallback.read_text(encoding="utf-8"))
+                if doc.get("available"):
+                    doc["gate"] = gate
+                    return doc
+            except Exception:
+                pass
         return {
             "schema_version": SCHEMA_VERSION,
             "label": "hindcast",

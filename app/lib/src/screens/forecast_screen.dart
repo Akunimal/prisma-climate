@@ -257,6 +257,7 @@ class _VariableCard extends StatelessWidget {
       );
     }
     final missing = _missingNotes(context, document, variable);
+    final climatology = document.climatologyFor(variable);
 
     return SectionCard(
       title: title,
@@ -276,7 +277,8 @@ class _VariableCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${l10n.legendBand1090} · ${l10n.legendBand2575} · ${l10n.legendMedian}',
+                  '${l10n.legendBand1090} · ${l10n.legendBand2575} · ${l10n.legendMedian}'
+                  '${climatology != null ? ' · ${l10n.legendClimatology}' : ''}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -288,6 +290,8 @@ class _VariableCard extends StatelessWidget {
                     series: series,
                     dateForLead: dateForLead,
                     noDataLabel: l10n.noData,
+                    climatology: climatology,
+                    climatologyLabel: l10n.legendClimatology,
                   ),
                 ),
                 const SizedBox(height: 6),

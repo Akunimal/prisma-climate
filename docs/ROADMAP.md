@@ -82,13 +82,42 @@ Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue d
   that session — so it rests on widget tests plus a direct run of the shipped
   gazetteer through the app's Dart code.
 
-### Candidates (undecided, unordered)
+### Dark theme (done, 2026-11-18)
 
-- Forecast values on the map.
-- Verification results on the map (only after the 15-issue-date gate).
-- Android build.
-- Climatological normal range on the forecast chart.
-- Dark theme.
+- Goal: Material 3 dark theme support across the app, persistent via `SharedPreferences`,
+  with an AppBar toggle button, adaptive model line contrast, and responsive canvas repaints.
+- Shipped: `darkTheme` with M3 seed `0xFF0B6B45`, `ThemeMode.system` / `light` / `dark`
+  persistence under key `prisma_theme_mode`, single-tap AppBar toggle button before
+  language selector with automatic brightness detection, and contrast-adapted `modelColor()`
+  for `gfs_seamless` on dark backgrounds.
+- Verified: `flutter analyze` clean, `flutter test` 99/99 passing (including `app/test/theme_test.dart`).
+
+### Next Stages (Ordered Implementation Sequence)
+
+1. **Stage 1 · Web App & Data Polish (Completed, 2026-11-18)**
+   - [x] **Static skill export to Pages:** Publish validated hindcast results (`skill.json`) so the Skill screen displays active CRPSS scores while operational verification remains protected under the 15-issue-date gate.
+   - [x] **Forecast values on map:** Display compact temperature badges ($T_{max}$/$T_{min}$) directly on station markers with toggle button.
+   - [x] **Climatological normal range:** Render normal historical reference range/band on the forecast chart (`band_chart.dart`) with adaptive M3 contrast and localized legends.
+
+2. **Stage 2 · Operational Verification Gate (Upon reaching $\ge 15$ issue dates)**
+   - Accumulate remaining issue dates in the automated archive (currently 8/15).
+   - Generate operational leaderboard script output in `results/` (raw ensemble vs climatology vs persistence).
+   - Visualise station verification metrics directly on the interactive map.
+
+3. **Stage 3 · Progressive National Connectors (Medium term)**
+   - Progressively integrate open-data national services per continent (South America: INMET, DMC; Europe: DWD, AEMET) to complement the global METAR bridge.
+
+4. **Stage 4 · Subseasonal ML & Alerts (Phase 3)**
+   - S2S horizon (2–6 weeks) ML models trained and benchmarked against Phase 2 calibration.
+   - Slow-signal conditioning (ENSO ONI/SAM).
+   - App screens 4–5 (background signals & probabilistic threshold alerts).
+
+5. **Stage 5 · Academic Transfer & Public Good (Phase 4)**
+   - Technical report / preprint with reproducible benchmarks.
+   - Institutional outreach (INTA, CONICET, universities).
+
+6. **Stage 6 (Final) · Mobile Packaging (Android APK)**
+   - Gradle configuration, platform permissions (GPS), release signing, and standalone APK build.
 
 ## Regional expansion (South America)
 

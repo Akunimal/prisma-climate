@@ -14,7 +14,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get appTagline =>
-      'Rohes Open-Meteo-Ensemble (GFS und ECMWF IFS) für 19 Stationen in Argentinien.';
+      'Rohes Open-Meteo-Ensemble (GFS und ECMWF IFS) für mehr als 140 Stationen weltweit.';
 
   @override
   String get tabStations => 'Stationen';
@@ -82,6 +82,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get legendMedian => 'Median';
+
+  @override
+  String get legendClimatology => 'Normalbereich';
 
   @override
   String get legendModelsNeverPooled =>
@@ -162,7 +165,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aboutWhat =>
-      'PRISMA veröffentlicht für 19 Stationen in Argentinien die rohe probabilistische Vorhersage zweier Ensembles (ECMWF IFS und GFS) bis zu 15 Vorhersagetagen sowie die vom SMN in den letzten 30 Tagen beobachteten Höchst- und Tiefsttemperaturen. Die App liest ausschließlich statische Dateien auf GitHub Pages: es gibt keinen Server und keine API.';
+      'PRISMA veröffentlicht für mehr als 140 Stationen auf allen Kontinenten die rohe probabilistische Vorhersage zweier Ensembles (ECMWF IFS und GFS) bis zu 15 Vorhersagetagen sowie Beobachtungen nationaler Wetterdienste und des weltweiten METAR-Netzwerks. Die App liest ausschließlich statische Dateien auf GitHub Pages: es gibt keinen Server und keine API.';
 
   @override
   String get aboutNoSkillTitle => 'Operative Skill-Metriken';
