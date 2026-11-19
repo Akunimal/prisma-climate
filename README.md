@@ -38,22 +38,22 @@ Current gate status: 7 of 15 distinct issue dates archived; no verification numb
 
 PRISMA is designed to scale from Argentina to global coverage under the same verification-before-connector and station-vetting rules (§3.8 of the plan). As of 2026-11-19, the global expansion status in [`configs/sources.yaml`](configs/sources.yaml) is:
 
-| Region | Config file | Stations (vetted / total) | Observation Source | Status |
+| Region | Config file | Stations (vetted / initial) | Observation Source | Status |
 |---|---|---|---|---|
 | Argentina | [`configs/regions/argentina.yaml`](configs/regions/argentina.yaml) | 19 / 19 | `smn` / `ghcn-daily` | `active` |
-| South America | [`configs/regions/south_america.yaml`](configs/regions/south_america.yaml) | 17 / 17 | `metar-south-america` | `ready_for_review` |
-| North America | [`configs/regions/north_america.yaml`](configs/regions/north_america.yaml) | 18 / 18 | `metar-north-america` | `ready_for_review` |
-| Europe | [`configs/regions/europe.yaml`](configs/regions/europe.yaml) | 18 / 18 | `metar-europe` | `ready_for_review` |
-| Asia | [`configs/regions/asia.yaml`](configs/regions/asia.yaml) | 18 / 19 | `metar-asia` | `ready_for_review` |
-| Africa | [`configs/regions/africa.yaml`](configs/regions/africa.yaml) | 14 / 17 | `metar-africa` | `ready_for_review` |
-| Oceania & Pacific | [`configs/regions/oceania.yaml`](configs/regions/oceania.yaml) | 16 / 16 | `metar-oceania` | `ready_for_review` |
-| Middle East | [`configs/regions/middle_east.yaml`](configs/regions/middle_east.yaml) | 12 / 16 | `metar-middle-east` | `blocked` |
+| South America | [`configs/regions/south_america.yaml`](configs/regions/south_america.yaml) | 17 / 17 | `metar-south-america` | `active` |
+| North America | [`configs/regions/north_america.yaml`](configs/regions/north_america.yaml) | 18 / 18 | `metar-north-america` | `active` |
+| Europe | [`configs/regions/europe.yaml`](configs/regions/europe.yaml) | 18 / 18 | `metar-europe` | `active` |
+| Asia | [`configs/regions/asia.yaml`](configs/regions/asia.yaml) | 18 / 19 (1 pruned) | `metar-asia` | `active` |
+| Africa | [`configs/regions/africa.yaml`](configs/regions/africa.yaml) | 14 / 17 (3 pruned) | `metar-africa` | `active` |
+| Oceania & Pacific | [`configs/regions/oceania.yaml`](configs/regions/oceania.yaml) | 16 / 16 | `metar-oceania` | `active` |
+| Middle East | [`configs/regions/middle_east.yaml`](configs/regions/middle_east.yaml) | 12 / 16 active | `metar-middle-east` | `blocked` |
 
-**What `ready_for_review` means and does NOT mean:**
-- **6 regions** (`south_america`, `north_america`, `europe`, `asia`, `africa`, `oceania`) passed source verification (§3.8) and station vetting, and are staged as `ready_for_review` in [`configs/sources.yaml`](configs/sources.yaml).
-- **`middle_east` is blocked** because only 12 of 16 stations (75%) have active telemetry in NOAA AWC, failing the mandatory 80% telemetry threshold.
-- **Explicit boundary:** `ready_for_review` means stations and connectors are vetted (aerodrome coordinates and elevations confirmed against NOAA AWC and NOAA ISD within 5 km, live 72h telemetry verified, and WMO Res 40 licensing terms confirmed) and staged for data collection. It does **NOT** mean operational or verified. Forecast archive history for these regions is 2 days or fewer (global multi-region forecast ingest began 2026-11-18); zero days of METAR observation history are accumulated; no hindcast, calibration, or skill verification exists for any region outside Argentina.
-- **Live verification, calibration, and skill scores remain Argentina-only**, pending weeks to months of archive accumulation, the same empirical process Argentina itself went through. Promotion to `active` is a separate, explicit owner action (`--apply`).
+**What `active` means and does NOT mean for global regions:**
+- **6 regions** (`south_america`, `north_america`, `europe`, `asia`, `africa`, `oceania`) passed source verification (§3.8) and station vetting, and have been promoted to `status: active` in [`configs/sources.yaml`](configs/sources.yaml) on 2026-11-19 under owner authorization.
+- **`middle_east` remains blocked** because only 12 of 16 stations (75.0%) have active telemetry in NOAA AWC, failing the mandatory 80.0% telemetry threshold.
+- **Explicit boundary:** In these 6 global regions, `active` means station coordinates and elevations are catalog-vetted within 5 km against NOAA AWC and NOAA ISD, the METAR connector is verified, and automated daily observation archiving is active. It does **NOT** mean operational forecast verification or hindcast calibration. Forecast archive history for these regions covers 2 days or fewer (global multi-region forecast ingest began 2026-11-18); zero days of historical METAR observations were previously accumulated (collection is starting now); and no hindcast, calibration, or skill verification exists for any region outside Argentina.
+- **Live verification, calibration, and skill scores remain Argentina-only**, pending weeks to months of archive accumulation, the same empirical process Argentina itself went through.
 
 Full machine-verifiable evidence and methodology:
 - Global Verification Plan: [`docs/design/GLOBAL_VERIFICATION_PLAN.md`](docs/design/GLOBAL_VERIFICATION_PLAN.md)
@@ -98,7 +98,7 @@ Every source is registered in [`configs/sources.yaml`](configs/sources.yaml) and
 | NOAA GHCN-Daily | Public domain (NOAA/NCEI) | Yes | active, but **stale at source**: last valid rows 2025-08-24 (~50% daily coverage since 2005) |
 | NOAA ONI / SAM indices | Public domain (NOAA/NWS) | Yes | active |
 | SMN Argentina | CC BY 2.5 AR (PAD_legales.pdf, Infoleg disp25.pdf) | Yes | active — **current station reference for Argentina** |
-| NOAA Aviation Weather / MADIS METAR | Public domain (NOAA); non-US aerodromes under WMO Res 40 | Derived only | ready_for_review (6 regions staged, 1 blocked) — see [Global expansion status](#global-expansion-status) |
+| NOAA Aviation Weather / MADIS METAR | Public domain (NOAA); non-US aerodromes under WMO Res 40 | Derived only | active (6 regions), blocked (Middle East) — see [Global expansion status](#global-expansion-status) |
 | Map tiles (OpenStreetMap) | © OpenStreetMap contributors | Yes | non-data dependency; loaded directly by the app from OpenStreetMap servers |
 | Place names (GeoNames) | CC BY 4.0 | Yes | committed gazetteer `data/places/ar.json`, built by `scripts/build_places.py`; loaded by the app only when a place search starts |
 

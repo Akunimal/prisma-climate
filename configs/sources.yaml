@@ -184,7 +184,7 @@ sources:
     day_convention: local_calendar
     connector: "metar.MetarSouthAmerica"
     tier: 2
-    status: ready_for_review
+    status: active
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
@@ -193,7 +193,7 @@ sources:
     update_frequency: "hourly"
     license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
     redistributable: derived_only
-    verified_on: null
+    verified_on: "2026-11-19"
     notes: >-
       Bridge observation network providing near-real-time observations across South American
       airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
@@ -206,7 +206,7 @@ sources:
     day_convention: local_calendar
     connector: "metar.MetarNorthAmerica"
     tier: 2
-    status: ready_for_review
+    status: active
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
@@ -215,7 +215,7 @@ sources:
     update_frequency: "hourly"
     license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
     redistributable: derived_only
-    verified_on: null
+    verified_on: "2026-11-19"
     notes: >-
       Bridge observation network providing near-real-time observations across North American
       airports with ICAO codes (FAA ASOS/AWOS, Nav Canada, SENEAM Mexico). Section 3.8 source
@@ -228,7 +228,7 @@ sources:
     day_convention: local_calendar
     connector: "metar.MetarEurope"
     tier: 2
-    status: ready_for_review
+    status: active
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
@@ -237,7 +237,7 @@ sources:
     update_frequency: "hourly"
     license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
     redistributable: derived_only
-    verified_on: null
+    verified_on: "2026-11-19"
     notes: >-
       Bridge observation network providing near-real-time observations across European
       airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
@@ -250,7 +250,7 @@ sources:
     day_convention: local_calendar
     connector: "metar.MetarAsia"
     tier: 2
-    status: ready_for_review
+    status: active
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
@@ -259,7 +259,7 @@ sources:
     update_frequency: "hourly"
     license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
     redistributable: derived_only
-    verified_on: null
+    verified_on: "2026-11-19"
     notes: >-
       Bridge observation network providing near-real-time observations across Asian
       airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
@@ -272,7 +272,7 @@ sources:
     day_convention: local_calendar
     connector: "metar.MetarAfrica"
     tier: 2
-    status: ready_for_review
+    status: active
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
@@ -281,7 +281,7 @@ sources:
     update_frequency: "hourly"
     license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
     redistributable: derived_only
-    verified_on: null
+    verified_on: "2026-11-19"
     notes: >-
       Bridge observation network providing near-real-time observations across African
       airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
@@ -294,7 +294,7 @@ sources:
     day_convention: local_calendar
     connector: "metar.MetarOceania"
     tier: 2
-    status: ready_for_review
+    status: active
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
@@ -303,7 +303,7 @@ sources:
     update_frequency: "hourly"
     license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
     redistributable: derived_only
-    verified_on: null
+    verified_on: "2026-11-19"
     notes: >-
       Bridge observation network providing near-real-time observations across Oceania
       and Pacific Island airports with ICAO codes. Section 3.8 source verification completed 2026-11-19

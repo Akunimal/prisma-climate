@@ -70,16 +70,16 @@ Summary: 6 eligible for 'ready_for_review', 1 blocked.
 
 ## 3. Per-Region Verification Status Table
 
-| Region Slug | Region Name | Phase 1 (Source §3.8) | Phase 2 (Vetting) | Phase 3 (Obs Ref) | Phase 4 (Daily Arch) | Current Status | Vetted / Total Stns |
+| Region Slug | Region Name | Phase 1 (Source §3.8) | Phase 2 (Vetting) | Phase 3 (Obs Ref) | Phase 4 (Daily Arch) | Current Status | Vetted / Initial Stns |
 |---|---|---|---|---|---|---|---|
 | `argentina` | Argentina | Complete (`OBSERVED`) | Complete (`OBSERVED`) | Complete (SMN, `OBSERVED`) | Complete (`OBSERVED`) | `active` | 19 / 19 |
-| `south_america` | South America | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `ready_for_review` | 17 / 17 |
-| `north_america` | North America | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `ready_for_review` | 18 / 18 |
-| `europe` | Europe | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `ready_for_review` | 18 / 18 |
-| `asia` | Asia | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `ready_for_review` | 18 / 19 |
-| `africa` | Africa | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `ready_for_review` | 14 / 17 |
-| `oceania` | Oceania & Pacific | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `ready_for_review` | 16 / 16 |
-| `middle_east` | Middle East | BLOCKED (`OBSERVED`) | BLOCKED (`OBSERVED`) | BLOCKED (`OBSERVED`) | Staged (`OBSERVED`) | `blocked` | 12 / 16 |
+| `south_america` | South America | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `active` | 17 / 17 |
+| `north_america` | North America | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `active` | 18 / 18 |
+| `europe` | Europe | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `active` | 18 / 18 |
+| `asia` | Asia | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `active` | 18 / 19 (1 pruned) |
+| `africa` | Africa | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `active` | 14 / 17 (3 pruned) |
+| `oceania` | Oceania & Pacific | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `active` | 16 / 16 |
+| `middle_east` | Middle East | BLOCKED (`OBSERVED`) | BLOCKED (`OBSERVED`) | BLOCKED (`OBSERVED`) | Staged (`OBSERVED`) | `blocked` | 12 / 16 active |
 
 ---
 

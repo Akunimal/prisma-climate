@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -102,11 +103,75 @@ def evaluate_region_readiness(region_slug: str) -> dict[str, Any]:
     }
 
 
+def check_headline_gate(evaluations: list[dict[str, Any]]) -> None:
+    """Ensure README headline is never changed to a global-coverage claim unless 100% of regions pass."""
+    all_active = all(e.get("eligible") for e in evaluations)
+    readme_path = ROOT / "README.md"
+    if not readme_path.exists():
+        return
+    text = readme_path.read_text(encoding="utf-8")
+    if not all_active:
+        conservative = "**Starting with Argentina, designed to scale globally (Empezando por Argentina, diseñado para escalar globalmente).**"
+        if "Global planetary coverage" in text:
+            print("[HEADLINE GATE] middle_east is blocked; enforcing conservative README headline.")
+            text = text.replace(
+                "**Global planetary coverage, open climate forecast verification (Cobertura planetaria global, verificación abierta).**",
+                conservative,
+            )
+            readme_path.write_text(text, encoding="utf-8")
+
+
+def apply_promotions_to_sources_yaml(
+    evaluations: list[dict[str, Any]],
+    target_status: str = "active",
+    verified_date: str = "2026-11-19",
+) -> int:
+    """Apply status and verified_on updates preserving file comments and formatting."""
+    sources_yaml_path = ROOT / "configs" / "sources.yaml"
+    text = sources_yaml_path.read_text(encoding="utf-8")
+
+    changed = 0
+    for ev in evaluations:
+        region_slug = ev["region"]
+        expected_id = f"metar-{region_slug.replace('_', '-')}"
+
+        # Locate the source block
+        pattern = rf"(  - id: {re.escape(expected_id)}\b.*?)(?=\n  - id: |\Z)"
+        match = re.search(pattern, text, flags=re.DOTALL)
+        if not match:
+            continue
+
+        block = match.group(1)
+        original_block = block
+
+        if ev.get("eligible"):
+            # Update status
+            block = re.sub(r"status:\s*[a-zA-Z0-9_-]+", f"status: {target_status}", block, count=1)
+            # Update verified_on
+            if target_status == "active":
+                block = re.sub(r"verified_on:\s*(null|none|~|\"[^\"]*\")?", f'verified_on: "{verified_date}"', block, count=1)
+            print(f"Updated {expected_id}: status -> '{target_status}', verified_on -> '{verified_date}'")
+        else:
+            block = re.sub(r"status:\s*[a-zA-Z0-9_-]+", "status: blocked", block, count=1)
+            block = re.sub(r"verified_on:\s*(null|none|~|\"[^\"]*\")?", "verified_on: null", block, count=1)
+            print(f"Updated {expected_id}: status -> 'blocked', verified_on -> null")
+
+        if block != original_block:
+            text = text[:match.start(1)] + block + text[match.end(1):]
+            changed += 1
+
+    if changed > 0:
+        sources_yaml_path.write_text(text, encoding="utf-8")
+        print(f"\nApplied updates to {changed} sources in {sources_yaml_path.relative_to(ROOT)} (comments preserved).")
+
+    return changed
+
+
 def run_promotion_gate(
     regions: list[str],
     dry_run: bool = True,
     apply: bool = False,
-    target_status: str = "ready_for_review",
+    target_status: str = "active",
 ) -> int:
     evaluations = [evaluate_region_readiness(slug) for slug in regions]
 
@@ -137,38 +202,13 @@ def run_promotion_gate(
     blocked = [e for e in evaluations if not e.get("eligible")]
     print(f"Summary: {len(passing)} eligible for '{target_status}', {len(blocked)} blocked.")
 
+    check_headline_gate(evaluations)
+
     if dry_run or not apply:
         print("\n[DRY RUN] No modifications written to configs/sources.yaml.")
         return 0
 
-    # Apply changes to configs/sources.yaml
-    sources_yaml_path = ROOT / "configs" / "sources.yaml"
-    with open(sources_yaml_path, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-
-    changed = 0
-    for src in data.get("sources", []):
-        src_id = src.get("id", "")
-        for ev in evaluations:
-            region_slug = ev["region"]
-            expected_id = f"metar-{region_slug.replace('_', '-')}"
-            if src_id == expected_id:
-                if ev.get("eligible"):
-                    old_st = src.get("status")
-                    src["status"] = target_status
-                    print(f"Updated {src_id}: status '{old_st}' -> '{target_status}'")
-                    changed += 1
-                else:
-                    old_st = src.get("status")
-                    src["status"] = "blocked"
-                    print(f"Updated {src_id}: status '{old_st}' -> 'blocked'")
-                    changed += 1
-
-    if changed > 0:
-        with open(sources_yaml_path, "w", encoding="utf-8") as f:
-            yaml.safe_dump(data, f, sort_keys=False, allow_unicode=True)
-        print(f"\nApplied updates to {changed} sources in {sources_yaml_path.relative_to(ROOT)}.")
-
+    apply_promotions_to_sources_yaml(evaluations, target_status=target_status, verified_date="2026-11-19")
     return 0
 
 
@@ -183,13 +223,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        default=True,
-        help="Run without modifying configs (default: True)",
+        default=False,
+        help="Run without modifying configs",
     )
     parser.add_argument(
         "--apply",
         action="store_true",
-        help="Apply ready_for_review status updates to configs/sources.yaml",
+        help="Apply active status updates to configs/sources.yaml",
+    )
+    parser.add_argument(
+        "--target-status",
+        default="active",
+        choices=["active", "ready_for_review"],
+        help="Target status for eligible regions (default: active)",
     )
     args = parser.parse_args(argv)
 
@@ -200,7 +246,7 @@ def main(argv: list[str] | None = None) -> int:
         regions=regions,
         dry_run=not is_apply,
         apply=is_apply,
-        target_status="ready_for_review",
+        target_status=args.target_status,
     )
 
 

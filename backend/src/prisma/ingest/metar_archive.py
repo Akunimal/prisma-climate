@@ -26,6 +26,7 @@ from typing import Any
 
 import pandas as pd
 import requests
+import yaml
 
 from prisma.ingest.base import find_repo_root, load_all_regions, load_region
 from prisma.ingest.metar import (
@@ -185,9 +186,40 @@ def archive_metar_region(
 
     validate_target_path(base_out / "observations" / "metar")
 
-    if region_slug == "all":
-        region_cfg = load_all_regions(repo_root)
-        regions_list = [region_cfg]
+    regions_list: list[dict[str, Any]] = []
+    if region_slug in ("all", "active"):
+        sources_cfg = repo_root / "configs" / "sources.yaml"
+        blocked_slugs: set[str] = set()
+        if sources_cfg.exists():
+            with open(sources_cfg, encoding="utf-8") as f:
+                raw_sources = yaml.safe_load(f).get("sources", [])
+            blocked_slugs = {
+                s["id"].replace("metar-", "").replace("-", "_")
+                for s in raw_sources
+                if s.get("status") == "blocked" and s.get("id", "").startswith("metar-")
+            }
+
+        regions_dir = repo_root / "configs" / "regions"
+        for p in sorted(regions_dir.glob("*.yaml")):
+            if p.stem == "argentina":
+                continue  # SMN pipeline handles Argentina observations
+            if p.stem in blocked_slugs:
+                logger.info("Skipping blocked region '%s' from METAR archiving", p.stem)
+                continue
+            reg = load_region(p)
+            for st in reg.get("stations", []):
+                st.setdefault("region", reg.get("id"))
+            regions_list.append(reg)
+    elif "," in region_slug:
+        for slug in region_slug.split(","):
+            slug = slug.strip()
+            path = repo_root / "configs" / "regions" / f"{slug}.yaml"
+            if not path.exists():
+                raise FileNotFoundError(f"Region config not found: {path}")
+            reg = load_region(path)
+            for st in reg.get("stations", []):
+                st.setdefault("region", reg.get("id"))
+            regions_list.append(reg)
     else:
         path = repo_root / "configs" / "regions" / f"{region_slug}.yaml"
         if not path.exists():

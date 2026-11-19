@@ -90,12 +90,12 @@ def test_telemetry_invariant() -> None:
         assert summary.get("phase3_obs_status") in ("PASS", "QUALIFIED"), f"[{slug}] Phase 3 status not PASS/QUALIFIED"
 
 
-def test_anti_drift_unpromoted_invariants() -> None:
-    """Invariant D (Anti-Drift Lock): Zero self-promotion in autonomous runs.
+def test_promotion_invariants_post_apply() -> None:
+    """Post-promotion invariants:
     
-    1. No non-Argentina METAR source may have status: active.
-    2. verified_on MUST be null for all non-Argentina METAR sources.
-    3. metar-middle-east MUST have status: blocked.
+    1. Exactly the 6 vetted regions have status: active and verified_on: '2026-11-19'.
+    2. metar-middle-east MUST remain status: blocked and verified_on: null.
+    3. README headline MUST remain conservative ('Starting with Argentina...').
     """
     sources_yaml = ROOT / "configs" / "sources.yaml"
     with open(sources_yaml, encoding="utf-8") as f:
@@ -104,22 +104,27 @@ def test_anti_drift_unpromoted_invariants() -> None:
     registry = data.get("sources", [])
     sources_by_id = {s["id"]: s for s in registry}
 
-    for source_id in ALL_NON_ARGENTINA_METAR_SOURCES:
+    passing_source_ids = (
+        "metar-south-america",
+        "metar-north-america",
+        "metar-europe",
+        "metar-asia",
+        "metar-africa",
+        "metar-oceania",
+    )
+
+    for source_id in passing_source_ids:
         assert source_id in sources_by_id, f"Source {source_id} missing from configs/sources.yaml"
         src = sources_by_id[source_id]
+        assert src.get("status") == "active", f"Source {source_id} must be 'active', got '{src.get('status')}'"
+        assert str(src.get("verified_on")) == "2026-11-19", f"Source {source_id} verified_on must be '2026-11-19', got '{src.get('verified_on')}'"
 
-        assert src.get("status") != "active", (
-            f"ANTI-DRIFT BREACH: source '{source_id}' was self-promoted to 'active' status!"
-        )
-        assert src.get("verified_on") is None, (
-            f"ANTI-DRIFT BREACH: source '{source_id}' has verified_on set to {src.get('verified_on')}!"
-        )
+    me_src = sources_by_id.get("metar-middle-east")
+    assert me_src is not None
+    assert me_src.get("status") == "blocked", f"metar-middle-east must be 'blocked', got '{me_src.get('status')}'"
+    assert me_src.get("verified_on") is None, f"metar-middle-east verified_on must be None, got '{me_src.get('verified_on')}'"
 
-        if source_id == "metar-middle-east":
-            assert src.get("status") == "blocked", (
-                f"Source 'metar-middle-east' must be 'blocked', found '{src.get('status')}'"
-            )
-        else:
-            assert src.get("status") in ("verification_in_progress", "ready_for_review"), (
-                f"Source '{source_id}' has unexpected status: '{src.get('status')}'"
-            )
+    # Headline check
+    readme_text = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "Starting with Argentina, designed to scale globally" in readme_text
+    assert "**Global planetary coverage, open climate forecast verification" not in readme_text

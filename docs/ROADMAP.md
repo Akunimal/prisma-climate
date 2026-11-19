@@ -30,20 +30,20 @@ Done:
 
 ### Global expansion verification status (as of 2026-11-19)
 
-Per-region status in [`configs/sources.yaml`](../configs/sources.yaml) following Task T-global1 vetting:
+Per-region status in [`configs/sources.yaml`](../configs/sources.yaml) following Task T-global1 vetting and owner-authorized promotion:
 
-| Region | Stations (vetted / configured) | Source ID | Status in sources.yaml | Vetting & Telemetry Gate |
+| Region | Stations (vetted / initial) | Source ID | Status in sources.yaml | Vetting & Telemetry Gate |
 |---|---|---|---|---|
 | Argentina | 19 / 19 | `smn` / `ghcn-daily` | `active` | Complete (`OBSERVED`); Phase 2 calibration exit gate passed |
-| South America | 17 / 17 | `metar-south-america` | `ready_for_review` | PASS (100% confirmed, 100% active telemetry) |
-| North America | 18 / 18 | `metar-north-america` | `ready_for_review` | PASS (100% confirmed, 100% active telemetry) |
-| Europe | 18 / 18 | `metar-europe` | `ready_for_review` | PASS (100% confirmed, 100% active telemetry) |
-| Asia | 18 / 19 | `metar-asia` | `ready_for_review` | PASS (18 retained, UTTT dead & pruned) |
-| Africa | 14 / 17 | `metar-africa` | `ready_for_review` | PASS (14 retained, FZAA/HSSS/GOBD pruned) |
-| Oceania & Pacific | 16 / 16 | `metar-oceania` | `ready_for_review` | PASS (100% confirmed, 100% active telemetry) |
-| Middle East | 12 / 16 | `metar-middle-east` | `blocked` | BLOCKED (75.0% active telemetry < 80.0% threshold) |
+| South America | 17 / 17 | `metar-south-america` | `active` | PASS (100% confirmed, 100% active telemetry) |
+| North America | 18 / 18 | `metar-north-america` | `active` | PASS (100% confirmed, 100% active telemetry) |
+| Europe | 18 / 18 | `metar-europe` | `active` | PASS (100% confirmed, 100% active telemetry) |
+| Asia | 18 / 19 (1 pruned) | `metar-asia` | `active` | PASS (18 retained, UTTT dead & pruned) |
+| Africa | 14 / 17 (3 pruned) | `metar-africa` | `active` | PASS (14 retained, FZAA/HSSS/GOBD pruned) |
+| Oceania & Pacific | 16 / 16 | `metar-oceania` | `active` | PASS (100% confirmed, 100% active telemetry) |
+| Middle East | 12 / 16 active | `metar-middle-east` | `blocked` | BLOCKED (75.0% active telemetry < 80.0% threshold) |
 
-**Next milestone per region:** The next milestone per region is accumulating enough forecast and observation archive history (weeks to months) to even attempt a hindcast, not running one now. Zero days of METAR observation history are accumulated (only the 72h sliding window probe exists) and forecast archive history covers 2 days or fewer (global multi-region ingest began 2026-11-18). No hindcast, calibration, or skill verification exists for any region outside Argentina. Promotion to `active` is a separate, explicit owner action (`--apply`). Details in [`docs/design/GLOBAL_VERIFICATION_PLAN.md`](design/GLOBAL_VERIFICATION_PLAN.md).
+**Next milestone per region:** The next milestone per region is accumulating enough forecast and observation archive history (weeks to months) to even attempt a hindcast or calibration, not running one now. Zero days of historical METAR observation history were previously accumulated (daily archive collection is starting now) and forecast archive history covers 2 days or fewer (global multi-region ingest began 2026-11-18). No hindcast, calibration, or skill verification exists for any region outside Argentina. Details in [`docs/design/GLOBAL_VERIFICATION_PLAN.md`](design/GLOBAL_VERIFICATION_PLAN.md).
 
 Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue dates; 7 archived as of 2026-11-17). There is **no API server this phase** (owner decision 2026-11-15: static data on Pages) — the FastAPI code exists and its endpoints are tested, but it is not deployed. A read-only Flutter **web** app exists (Stations, Forecast, Skill, About / Status, station map, place search and GPS, source comparator); there is **no Android build**; see README.
 
