@@ -25,6 +25,7 @@ Map<String, String> defaultFiles() => {
       'latest.json': fixture('latest.json'),
       'about.json': fixture('about.json'),
       'skill.json': fixture('skill.json'),
+      'leaderboard.json': fixture('leaderboard.json'),
       'stations/la_quiaca.json': fixture('stations/la_quiaca.json'),
       'stations/buenos_aires.json': fixture('stations/buenos_aires.json'),
       'places/index.json': fixture('places/index.json'),
@@ -488,6 +489,16 @@ void main() {
     expect(find.text(en.skillGateClosed), findsOneWidget);
     expect(find.textContaining('3 of 15'), findsOneWidget);
     expect(find.textContaining('operational leaderboard'), findsWidgets);
+  });
+
+  testWidgets('Skill renders operational leaderboard with locked progress indicator',
+      (tester) async {
+    await pumpApp(tester, size: const Size(1200, 1400));
+    await tester.tap(find.text(en.tabSkill));
+    await tester.pumpAndSettle();
+    expect(find.text('Operational verification leaderboard'), findsWidgets);
+    expect(find.textContaining('12 of 15 (3 remaining)'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 
   testWidgets('About / Status shows the app status texts and the attribution links',

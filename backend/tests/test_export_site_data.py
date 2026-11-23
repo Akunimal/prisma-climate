@@ -371,6 +371,7 @@ def test_export_writes_the_tree(export, workspace: Path, tmp_path: Path) -> None
         "estacion_dos.json",
         "estacion_uno.json",
         "latest.json",
+        "leaderboard.json",
         "skill.json",
     ]
 
@@ -532,9 +533,10 @@ def test_main_prints_the_written_count(export, workspace: Path, tmp_path: Path, 
         download=download,
     )
     assert code == 0
-    assert "wrote 5 file(s)" in capsys.readouterr().out
+    assert "wrote 6 file(s)" in capsys.readouterr().out
     assert (out / "stations" / "estacion_uno.json").is_file()
     assert (out / "skill.json").is_file()
+    assert (out / "leaderboard.json").is_file()
 
 
 def test_metar_observed_series_and_listing(export) -> None:

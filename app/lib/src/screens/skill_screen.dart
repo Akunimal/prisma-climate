@@ -16,22 +16,40 @@ class SkillScreen extends StatefulWidget {
   State<SkillScreen> createState() => _SkillScreenState();
 }
 
+class _SkillPayload {
+  const _SkillPayload({required this.skill, this.leaderboard});
+
+  final SkillDocument skill;
+  final LeaderboardDocument? leaderboard;
+}
+
 class _SkillScreenState extends State<SkillScreen> {
-  late Future<SkillDocument> _future;
+  late Future<_SkillPayload> _future;
 
   @override
   void initState() {
     super.initState();
-    _future = widget.repository.loadSkill();
+    _future = _fetch();
+  }
+
+  Future<_SkillPayload> _fetch() async {
+    final skill = await widget.repository.loadSkill();
+    LeaderboardDocument? leaderboard;
+    try {
+      leaderboard = await widget.repository.loadLeaderboard();
+    } catch (_) {
+      // Graceful degradation when leaderboard.json is absent
+    }
+    return _SkillPayload(skill: skill, leaderboard: leaderboard);
   }
 
   void _reload() {
-    setState(() => _future = widget.repository.loadSkill());
+    setState(() => _future = _fetch());
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<SkillDocument>(
+    return FutureBuilder<_SkillPayload>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -44,16 +62,20 @@ class _SkillScreenState extends State<SkillScreen> {
             onRetry: _reload,
           );
         }
-        return _SkillBody(document: snapshot.data!);
+        return _SkillBody(
+          document: snapshot.data!.skill,
+          leaderboard: snapshot.data!.leaderboard,
+        );
       },
     );
   }
 }
 
 class _SkillBody extends StatelessWidget {
-  const _SkillBody({required this.document});
+  const _SkillBody({required this.document, this.leaderboard});
 
   final SkillDocument document;
+  final LeaderboardDocument? leaderboard;
 
   @override
   Widget build(BuildContext context) {
@@ -198,6 +220,8 @@ class _SkillBody extends StatelessWidget {
             ],
           ),
         ),
+        if (leaderboard != null)
+          _OperationalLeaderboardCard(leaderboard: leaderboard!),
         if (document.cells.isNotEmpty)
           SectionCard(
             title: l10n.skillCellsTitle,
@@ -375,6 +399,206 @@ class _CellsTable extends StatelessWidget {
                     textAlign: TextAlign.right,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: !cell.insufficient && (cell.crpssQm ?? 0) < 0
+                          ? theme.colorScheme.error
+                          : null,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _OperationalLeaderboardCard extends StatelessWidget {
+  const _OperationalLeaderboardCard({required this.leaderboard});
+
+  final LeaderboardDocument leaderboard;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final locale = context.localeTag;
+    final gate = leaderboard.gate;
+
+    if (gate.isLocked) {
+      final archived = gate.archivedIssueDates;
+      final required = gate.requiredIssueDates;
+      final remaining = gate.remainingIssueDates;
+      final progress = required > 0 ? (archived / required).clamp(0.0, 1.0) : 0.0;
+
+      return SectionCard(
+        title: 'Operational verification leaderboard',
+        subtitle: 'Raw ensemble vs Climatology vs Persistence · docs/EVALUATION_PROTOCOL.md',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Archived issue dates: $archived of $required ($remaining remaining)',
+              style: theme.textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 6,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.lock_outline, size: 18, color: theme.colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      gate.note,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final summary = leaderboard.summary;
+    return SectionCard(
+      title: 'Operational verification leaderboard',
+      subtitle: 'Raw ensemble vs Climatology vs Persistence',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (summary != null) ...[
+            Wrap(
+              spacing: 16,
+              runSpacing: 8,
+              children: [
+                _MetricChip(
+                  label: 'Mean CRPSS (vs Climatology)',
+                  value: _crpss(summary.meanCrpssVsClimatology, locale: locale),
+                  negative: (summary.meanCrpssVsClimatology ?? 0) <= 0,
+                ),
+                _MetricChip(
+                  label: 'Mean CRPSS (vs Persistence)',
+                  value: _crpss(summary.meanCrpssVsPersistence, locale: locale),
+                  negative: (summary.meanCrpssVsPersistence ?? 0) <= 0,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+          ],
+          if (leaderboard.cells.isNotEmpty)
+            _LeaderboardTable(cells: leaderboard.cells),
+        ],
+      ),
+    );
+  }
+}
+
+class _LeaderboardTable extends StatelessWidget {
+  const _LeaderboardTable({required this.cells});
+
+  final List<LeaderboardCell> cells;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final locale = context.localeTag;
+    final header = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final sorted = [...cells]
+      ..sort((a, b) {
+        final byStation = a.location.compareTo(b.location);
+        if (byStation != 0) return byStation;
+        final byModel = a.model.compareTo(b.model);
+        if (byModel != 0) return byModel;
+        return a.leadDay.compareTo(b.leadDay);
+      });
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(child: Text(l10n.skillCellStation, style: header)),
+            SizedBox(width: 64, child: Text('Model', style: header)),
+            SizedBox(width: 48, child: Text(l10n.legendLeadAxis, style: header)),
+            SizedBox(
+              width: 68,
+              child: Text('vs Clim', style: header, textAlign: TextAlign.right),
+            ),
+            SizedBox(
+              width: 68,
+              child: Text('vs Pers', style: header, textAlign: TextAlign.right),
+            ),
+          ],
+        ),
+        const Divider(height: 10),
+        for (final cell in sorted)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(cell.location, style: theme.textTheme.bodySmall),
+                ),
+                SizedBox(
+                  width: 64,
+                  child: Text(
+                    cell.model == 'gfs_seamless'
+                        ? 'GFS'
+                        : (cell.model == 'ecmwf_ifs025' ? 'ECMWF' : cell.model),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+                SizedBox(
+                  width: 48,
+                  child: Text(
+                    l10n.leadDay(cell.leadDay),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+                SizedBox(
+                  width: 68,
+                  child: Text(
+                    cell.insufficient
+                        ? '—'
+                        : _crpss(cell.crpssVsClimatology, locale: locale),
+                    textAlign: TextAlign.right,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: !cell.insufficient &&
+                              (cell.crpssVsClimatology ?? 0) < 0
+                          ? theme.colorScheme.error
+                          : null,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 68,
+                  child: Text(
+                    cell.insufficient
+                        ? '—'
+                        : _crpss(cell.crpssVsPersistence, locale: locale),
+                    textAlign: TextAlign.right,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: !cell.insufficient &&
+                              (cell.crpssVsPersistence ?? 0) < 0
                           ? theme.colorScheme.error
                           : null,
                     ),

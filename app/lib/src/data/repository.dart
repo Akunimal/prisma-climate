@@ -32,6 +32,11 @@ class PrismaRepository {
   Future<SkillDocument> loadSkill({String document = 'skill.json'}) async =>
       SkillDocument.parse(await _getText(document), document: document);
 
+  Future<LeaderboardDocument> loadLeaderboard({
+    String document = 'leaderboard.json',
+  }) async =>
+      LeaderboardDocument.parse(await _getText(document), document: document);
+
   Future<StationDocument> loadStation(String id) async {
     final document = 'stations/$id.json';
     return StationDocument.parse(await _getText(document), document: document);

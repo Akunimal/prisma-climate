@@ -858,3 +858,200 @@ class SkillCell {
   final double? crpssEmos;
   final double? crpssQm;
 }
+
+/// Operational verification leaderboard from `leaderboard.json` (Phase 1).
+///
+/// Encapsulates raw ensemble verification against climatology and persistence.
+/// Always respects the frozen evaluation protocol gate (15 distinct issue dates).
+class LeaderboardDocument {
+  const LeaderboardDocument({
+    required this.schemaVersion,
+    required this.generatedAt,
+    required this.protocol,
+    required this.gate,
+    this.summary,
+    this.models = const [],
+    this.baselines = const [],
+    this.cells = const [],
+  });
+
+  factory LeaderboardDocument.parse(
+    String body, {
+    String document = 'leaderboard.json',
+  }) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(body);
+    } on FormatException catch (error) {
+      throw DataException(
+        'Invalid JSON in $document: ${error.message}',
+        kind: DataErrorKind.invalidJson,
+        document: document,
+        detail: error.message,
+      );
+    }
+    final json = _map(decoded, document);
+    _checkSchema(json, document);
+
+    final summaryVal = json['summary'];
+    final LeaderboardSummary? summary = summaryVal is Map<String, dynamic>
+        ? LeaderboardSummary.fromJson(summaryVal)
+        : null;
+
+    final models = <String>[
+      if (json['models'] is List)
+        for (final m in json['models'] as List<dynamic>)
+          if (m is String) m,
+    ];
+
+    final baselines = <String>[
+      if (json['baselines'] is List)
+        for (final b in json['baselines'] as List<dynamic>)
+          if (b is String) b,
+    ];
+
+    final cells = <LeaderboardCell>[
+      if (json['cells'] is List)
+        for (final item in json['cells'] as List<dynamic>)
+          LeaderboardCell.fromJson(item),
+    ];
+
+    return LeaderboardDocument(
+      schemaVersion: _string(json, 'schema_version'),
+      generatedAt: json['generated_at'] is String ? json['generated_at'] as String : '',
+      protocol: json['protocol'] is String ? json['protocol'] as String : 'docs/EVALUATION_PROTOCOL.md',
+      gate: LeaderboardGate.fromJson(json['gate']),
+      summary: summary,
+      models: models,
+      baselines: baselines,
+      cells: cells,
+    );
+  }
+
+  final String schemaVersion;
+  final String generatedAt;
+  final String protocol;
+  final LeaderboardGate gate;
+  final LeaderboardSummary? summary;
+  final List<String> models;
+  final List<String> baselines;
+  final List<LeaderboardCell> cells;
+}
+
+class LeaderboardGate {
+  const LeaderboardGate({
+    required this.status,
+    required this.requiredIssueDates,
+    required this.archivedIssueDates,
+    required this.remainingIssueDates,
+    required this.open,
+    required this.operationalLeaderboardPublished,
+    required this.note,
+  });
+
+  factory LeaderboardGate.fromJson(Object? value) {
+    final json = _map(value, 'gate');
+    return LeaderboardGate(
+      status: json['status'] is String ? json['status'] as String : 'locked',
+      requiredIssueDates: _integer(json, 'required_issue_dates'),
+      archivedIssueDates: _integer(json, 'archived_issue_dates'),
+      remainingIssueDates: _integer(json, 'remaining_issue_dates'),
+      open: json['open'] == true,
+      operationalLeaderboardPublished:
+          json['operational_leaderboard_published'] == true,
+      note: _string(json, 'note'),
+    );
+  }
+
+  final String status;
+  final int requiredIssueDates;
+  final int archivedIssueDates;
+  final int remainingIssueDates;
+  final bool open;
+  final bool operationalLeaderboardPublished;
+  final String note;
+
+  bool get isLocked => status == 'locked' || !open;
+  bool get isUnlocked => status == 'unlocked' && open;
+}
+
+class LeaderboardSummary {
+  const LeaderboardSummary({
+    required this.nCells,
+    required this.nSufficient,
+    required this.minSampleThreshold,
+    this.meanCrpssVsClimatology,
+    this.meanCrpssVsPersistence,
+  });
+
+  factory LeaderboardSummary.fromJson(Object? value) {
+    final json = _map(value, 'summary');
+    return LeaderboardSummary(
+      nCells: _integer(json, 'n_cells'),
+      nSufficient: _integer(json, 'n_sufficient'),
+      minSampleThreshold: _integer(json, 'min_sample_threshold'),
+      meanCrpssVsClimatology: _doubleOrNull(json, 'mean_crpss_vs_climatology'),
+      meanCrpssVsPersistence: _doubleOrNull(json, 'mean_crpss_vs_persistence'),
+    );
+  }
+
+  final int nCells;
+  final int nSufficient;
+  final int minSampleThreshold;
+  final double? meanCrpssVsClimatology;
+  final double? meanCrpssVsPersistence;
+}
+
+class LeaderboardCell {
+  const LeaderboardCell({
+    required this.location,
+    required this.variable,
+    required this.model,
+    required this.leadDay,
+    required this.nPairs,
+    required this.nMissing,
+    required this.insufficient,
+    this.nClimatology,
+    this.nPersistence,
+    this.crpsRaw,
+    this.crpsClimatology,
+    this.crpsPersistence,
+    this.crpssVsClimatology,
+    this.crpssVsPersistence,
+  });
+
+  factory LeaderboardCell.fromJson(Object? value) {
+    final json = _map(value, 'leaderboard cell');
+    return LeaderboardCell(
+      location: json['location'] is String ? json['location'] as String : '',
+      variable: json['variable'] is String ? json['variable'] as String : '',
+      model: json['model'] is String ? json['model'] as String : '',
+      leadDay: _integer(json, 'lead_day'),
+      nPairs: _integer(json, 'n_pairs'),
+      nMissing: json['n_missing'] is num ? (json['n_missing'] as num).toInt() : 0,
+      insufficient: json['insufficient'] == true,
+      nClimatology: json['n_climatology'] is num ? (json['n_climatology'] as num).toInt() : null,
+      nPersistence: json['n_persistence'] is num ? (json['n_persistence'] as num).toInt() : null,
+      crpsRaw: _doubleOrNull(json, 'crps_raw'),
+      crpsClimatology: _doubleOrNull(json, 'crps_climatology'),
+      crpsPersistence: _doubleOrNull(json, 'crps_persistence'),
+      crpssVsClimatology: _doubleOrNull(json, 'crpss_vs_climatology'),
+      crpssVsPersistence: _doubleOrNull(json, 'crpss_vs_persistence'),
+    );
+  }
+
+  final String location;
+  final String variable;
+  final String model;
+  final int leadDay;
+  final int nPairs;
+  final int nMissing;
+  final bool insufficient;
+  final int? nClimatology;
+  final int? nPersistence;
+  final double? crpsRaw;
+  final double? crpsClimatology;
+  final double? crpsPersistence;
+  final double? crpssVsClimatology;
+  final double? crpssVsPersistence;
+}

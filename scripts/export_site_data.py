@@ -47,6 +47,7 @@ import numpy as np
 import pandas as pd
 from prisma.calibrate.skill_doc import build_skill_document
 from prisma.ingest.base import find_repo_root, load_all_regions
+from prisma.verify.leaderboard_doc import build_leaderboard_document
 from prisma.verify.run import MEMBER_FRACTION, _parse_payload_zip, load_member_counts
 
 SCHEMA_VERSION = "1.0"
@@ -507,6 +508,7 @@ def export_site_data(
         _write_json(out / "latest.json", latest_document),
         _write_json(out / "about.json", about_document),
         _write_json(out / "skill.json", build_skill_document(root)),
+        _write_json(out / "leaderboard.json", build_leaderboard_document(root)),
     ]
     for station_id, document in station_documents:
         written.append(_write_json(out / "stations" / f"{station_id}.json", document))

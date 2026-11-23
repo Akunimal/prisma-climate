@@ -162,6 +162,84 @@ void main() {
     });
   });
 
+  group('leaderboard.json', () {
+    late LeaderboardDocument leaderboard;
+
+    setUpAll(() {
+      leaderboard = LeaderboardDocument.parse(fixture('leaderboard.json'));
+    });
+
+    test('parses locked state with honest progress metadata', () {
+      expect(leaderboard.schemaVersion, supportedSchemaVersion);
+      expect(leaderboard.protocol, 'docs/EVALUATION_PROTOCOL.md');
+      expect(leaderboard.gate.status, 'locked');
+      expect(leaderboard.gate.isLocked, isTrue);
+      expect(leaderboard.gate.isUnlocked, isFalse);
+      expect(leaderboard.gate.open, isFalse);
+      expect(leaderboard.gate.archivedIssueDates, 12);
+      expect(leaderboard.gate.requiredIssueDates, 15);
+      expect(leaderboard.gate.remainingIssueDates, 3);
+      expect(leaderboard.summary, isNull);
+      expect(leaderboard.cells, isEmpty);
+    });
+
+    test('parses unlocked state with summary and cells', () {
+      const synthetic = '''
+      {
+        "schema_version": "1.0",
+        "generated_at": "2026-11-23T18:00:00Z",
+        "protocol": "docs/EVALUATION_PROTOCOL.md",
+        "gate": {
+          "status": "unlocked",
+          "required_issue_dates": 15,
+          "archived_issue_dates": 15,
+          "remaining_issue_dates": 0,
+          "open": true,
+          "operational_leaderboard_published": true,
+          "note": "unlocked"
+        },
+        "summary": {
+          "n_cells": 1,
+          "n_sufficient": 1,
+          "min_sample_threshold": 10,
+          "mean_crpss_vs_climatology": 0.25,
+          "mean_crpss_vs_persistence": 0.35
+        },
+        "models": ["gfs_seamless"],
+        "baselines": ["climatology", "persistence"],
+        "cells": [
+          {
+            "location": "cordoba",
+            "variable": "t2m_max",
+            "model": "gfs_seamless",
+            "lead_day": 1,
+            "n_pairs": 15,
+            "n_missing": 0,
+            "insufficient": false,
+            "n_climatology": 15,
+            "n_persistence": 15,
+            "crps_raw": 1.5,
+            "crps_climatology": 2.0,
+            "crps_persistence": 2.2,
+            "crpss_vs_climatology": 0.25,
+            "crpss_vs_persistence": 0.35
+          }
+        ]
+      }
+      ''';
+      final doc = LeaderboardDocument.parse(synthetic);
+      expect(doc.gate.isUnlocked, isTrue);
+      expect(doc.gate.isLocked, isFalse);
+      expect(doc.summary, isNotNull);
+      expect(doc.summary!.nCells, 1);
+      expect(doc.summary!.meanCrpssVsClimatology, closeTo(0.25, 1e-9));
+      expect(doc.summary!.meanCrpssVsPersistence, closeTo(0.35, 1e-9));
+      expect(doc.cells, hasLength(1));
+      expect(doc.cells.first.location, 'cordoba');
+      expect(doc.cells.first.crpssVsClimatology, closeTo(0.25, 1e-9));
+    });
+  });
+
   group('about.json', () {
     late AboutDocument about;
 
