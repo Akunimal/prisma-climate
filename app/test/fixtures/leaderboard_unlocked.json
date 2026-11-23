@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-11-23T19:59:32.369257Z",
+  "protocol": "docs/EVALUATION_PROTOCOL.md",
+  "gate": {
+    "status": "unlocked",
+    "required_issue_dates": 15,
+    "archived_issue_dates": 15,
+    "remaining_issue_dates": 0,
+    "open": true,
+    "operational_leaderboard_published": true,
+    "note": "Operational verification leaderboard (raw ensemble vs climatology vs persistence) computed over 15 distinct issue dates in accordance with docs/EVALUATION_PROTOCOL.md."
+  },
+  "summary": {
+    "n_cells": 3,
+    "n_sufficient": 1,
+    "min_sample_threshold": 10,
+    "mean_crpss_vs_climatology": 0.5,
+    "mean_crpss_vs_persistence": 0.75
+  },
+  "models": [
+    "ecmwf_ifs025",
+    "gfs_seamless"
+  ],
+  "baselines": [
+    "climatology",
+    "persistence"
+  ],
+  "cells": [
+    {
+      "location": "Alfa",
+      "variable": "t2m_max",
+      "model": "ecmwf_ifs025",
+      "lead_day": 1,
+      "n_pairs": 0,
+      "n_missing": 15,
+      "insufficient": true,
+      "n_climatology": 0,
+      "n_persistence": 0,
+      "crps_raw": null,
+      "crps_climatology": null,
+      "crps_persistence": null,
+      "crpss_vs_climatology": null,
+      "crpss_vs_persistence": null
+    },
+    {
+      "location": "Alfa",
+      "variable": "t2m_max",
+      "model": "gfs_seamless",
+      "lead_day": 1,
+      "n_pairs": 15,
+      "n_missing": 0,
+      "insufficient": false,
+      "n_climatology": 15,
+      "n_persistence": 15,
+      "crps_raw": 1.0,
+      "crps_climatology": 2.0,
+      "crps_persistence": 4.0,
+      "crpss_vs_climatology": 0.5,
+      "crpss_vs_persistence": 0.75
+    },
+    {
+      "location": "Alfa",
+      "variable": "t2m_max",
+      "model": "gfs_seamless",
+      "lead_day": 2,
+      "n_pairs": 3,
+      "n_missing": 0,
+      "insufficient": true,
+      "n_climatology": 3,
+      "n_persistence": 3,
+      "crps_raw": 1.0,
+      "crps_climatology": 2.0,
+      "crps_persistence": 4.0,
+      "crpss_vs_climatology": null,
+      "crpss_vs_persistence": null
+    }
+  ]
+}

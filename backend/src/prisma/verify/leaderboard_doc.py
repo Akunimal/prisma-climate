@@ -14,6 +14,7 @@ Strict adherence to docs/EVALUATION_PROTOCOL.md and ROADMAP.md Phase 1:
 from __future__ import annotations
 
 import json
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -78,6 +79,31 @@ def resolve_archived_issue_dates(root: Path) -> int:
             archived = watchdog.get("archived_issue_dates")
             if isinstance(archived, int) and archived > 0:
                 return archived
+        except Exception:
+            pass
+
+    # 3. Report in results/verification/leaderboard.md
+    md_path = root / LEADERBOARD_DIR_REL / "leaderboard.md"
+    if md_path.is_file():
+        try:
+            content = md_path.read_text(encoding="utf-8")
+            match = re.search(r"\((\d+)\s+distinct issue dates archived\)", content)
+            if match:
+                return int(match.group(1))
+        except Exception:
+            pass
+
+    # 4. Local forecast directories under forecasts/<YYYY-MM-DD>/
+    forecasts_dir = root / "forecasts"
+    if forecasts_dir.is_dir():
+        try:
+            count = sum(
+                1
+                for p in forecasts_dir.iterdir()
+                if p.is_dir() and len(p.name) == 10 and p.name[4] == "-"
+            )
+            if count > 0:
+                return count
         except Exception:
             pass
 

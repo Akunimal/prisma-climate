@@ -501,6 +501,30 @@ void main() {
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 
+  testWidgets('Skill renders operational leaderboard table when gate is unlocked',
+      (tester) async {
+    final unlockedFiles = {
+      ...defaultFiles(),
+      'leaderboard.json': fixture('leaderboard_unlocked.json'),
+    };
+    await pumpApp(tester, files: unlockedFiles, size: const Size(1200, 1400));
+    await tester.tap(find.text(en.tabSkill));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Operational verification leaderboard'), findsWidgets);
+    // When unlocked, no LinearProgressIndicator is rendered
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+    // Table renders the station and model labels
+    expect(find.text('Alfa'), findsWidgets);
+    expect(find.text('GFS'), findsWidgets);
+    expect(find.text('ECMWF'), findsWidgets);
+    // Valid numbers for sufficient cell and summary chips
+    expect(find.text('0.5000'), findsNWidgets(2));
+    expect(find.text('0.7500'), findsNWidgets(2));
+    // Insufficient dashes
+    expect(find.text('—'), findsWidgets);
+  });
+
   testWidgets('About / Status shows the app status texts and the attribution links',
       (tester) async {
     await pumpApp(tester, size: const Size(1200, 1400));

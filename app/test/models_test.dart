@@ -238,6 +238,46 @@ void main() {
       expect(doc.cells.first.location, 'cordoba');
       expect(doc.cells.first.crpssVsClimatology, closeTo(0.25, 1e-9));
     });
+
+    test('parses real unlocked drill payload from Python pipeline', () {
+      final unlocked = LeaderboardDocument.parse(fixture('leaderboard_unlocked.json'));
+      expect(unlocked.gate.status, 'unlocked');
+      expect(unlocked.gate.isUnlocked, isTrue);
+      expect(unlocked.gate.isLocked, isFalse);
+      expect(unlocked.gate.open, isTrue);
+      expect(unlocked.gate.operationalLeaderboardPublished, isTrue);
+      expect(unlocked.gate.archivedIssueDates, 15);
+      expect(unlocked.gate.remainingIssueDates, 0);
+
+      expect(unlocked.summary, isNotNull);
+      expect(unlocked.summary!.nCells, 3);
+      expect(unlocked.summary!.nSufficient, 1);
+      expect(unlocked.summary!.meanCrpssVsClimatology, closeTo(0.5, 1e-9));
+      expect(unlocked.summary!.meanCrpssVsPersistence, closeTo(0.75, 1e-9));
+
+      expect(unlocked.cells, hasLength(3));
+      final gfs1 = unlocked.cells.firstWhere(
+        (c) => c.model == 'gfs_seamless' && c.leadDay == 1,
+      );
+      expect(gfs1.location, 'Alfa');
+      expect(gfs1.insufficient, isFalse);
+      expect(gfs1.nPairs, 15);
+      expect(gfs1.crpssVsClimatology, closeTo(0.5, 1e-9));
+      expect(gfs1.crpssVsPersistence, closeTo(0.75, 1e-9));
+
+      final gfs2 = unlocked.cells.firstWhere(
+        (c) => c.model == 'gfs_seamless' && c.leadDay == 2,
+      );
+      expect(gfs2.insufficient, isTrue);
+      expect(gfs2.crpssVsClimatology, isNull);
+
+      final ecmwf = unlocked.cells.firstWhere(
+        (c) => c.model == 'ecmwf_ifs025',
+      );
+      expect(ecmwf.insufficient, isTrue);
+      expect(ecmwf.nMissing, 15);
+      expect(ecmwf.crpsRaw, isNull);
+    });
   });
 
   group('about.json', () {
