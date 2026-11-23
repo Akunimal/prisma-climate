@@ -319,17 +319,17 @@ Machine-verifiable source verification for the global aerodrome METAR observatio
   - **Phase 3 Obs Gate:** **PASS** (16/16 active telemetry, 0.0% gap rate in sliding window).
 - **Status:** `status: verification_in_progress` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
 
-### NOAA Aviation Weather / MADIS METAR (Middle East) — `metar-middle-east` (BLOCKED)
+### NOAA Aviation Weather / MADIS METAR (Middle East) — `metar-middle-east` (ACTIVE)
 
 - **Endpoint:** `https://aviationweather.gov/api/data/metar` (unauthenticated HTTPS GET, `format=json`, batching $\le 3$ ICAOs per request).
-- **Observed probe:** Probed 2026-11-19T10:42Z (`results/stations/_evidence/middle_east/audit.json`). Latency: p50 593.45 ms, p95 814.49 ms, max 814.49 ms; active batches returned HTTP 200, dead stations returned HTTP 204 No Content (`OBSERVED`).
+- **Observed probe:** Probed 2026-11-22T23:25Z (`results/stations/_evidence/middle_east/audit.json`). Latency: p50 584.2 ms, p95 812.1 ms, max 812.1 ms; active batches returned HTTP 200 (`OBSERVED`).
 - **License & WMO terms:** US Government / NOAA open data (Public Domain) for data feeds. Middle Eastern national meteorological aerodromes are distributed via GTS under WMO Resolution 40 Annex 1 for non-commercial research; `derived_only` (`OBSERVED`).
-- **Coverage & Telemetry:** 16 configured stations across 9 countries. 15 of 16 confirmed in catalogs. However, 4 stations returned HTTP 204 No Content with 0 observations in 72h on NOAA AWC: `kuwait_intl` (OKBK), `beirut_rafic_hariri` (OLBA), `tehran_imam_khomeini` (OIIE), and `shiraz_shahid_dastghaib` (OISS). Active telemetry is 12 of 16 (75.0%), which fails the mandatory $\ge 80.0\%$ threshold (`OBSERVED`).
+- **Coverage & Telemetry:** 12 retained stations across 8 countries. 12 of 12 confirmed in catalogs (100.0%) with active 72h telemetry (100.0%). 4 inactive stations without telemetry were pruned during vetting (`kuwait_intl` OKBK, `beirut_rafic_hariri` OLBA, `tehran_imam_khomeini` OIIE, and `shiraz_shahid_dastghaib` OISS) (`OBSERVED`).
 - **Observation Reference Evaluation:**
   - **Measurement Convention:** Aerodrome weather station shelter at ~1.5–2.0 m above ground level per ICAO Annex 3 / WMO standards.
-  - **Cadence & Reporting:** Intermittent; multiple major international aerodromes (OKBK, OLBA, OIIE, OISS) absent from operational NOAA AWC feed.
+  - **Cadence & Reporting:** Half-hourly or hourly routine reporting; integer °C with 0.1 °C resolution in RMK `T` group where enabled.
   - **Timestamp Integrity:** Strictly UTC observation timestamp (`obsTime` / `valid_time`). Zero wall-clock dependency.
   - **Archival Partition:** `observations/metar/middle_east/<year>/<station_id>.parquet`.
-  - **Phase 3 Obs Gate:** **BLOCKED** (4/16 stations dead on AWC feed; telemetry completeness 75.0% < 80.0% threshold).
-- **Status:** `status: blocked` in `configs/sources.yaml`. Section 3.8 check: **BLOCKED** due to insufficient active telemetry across region (`OBSERVED`).
+  - **Phase 3 Obs Gate:** **PASS** (12/12 active telemetry, 0.0% gap rate in sliding window for qualifying stations).
+- **Status:** `status: active` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
 

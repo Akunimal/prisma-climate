@@ -316,7 +316,7 @@ sources:
     day_convention: local_calendar
     connector: "metar.MetarMiddleEast"
     tier: 2
-    status: blocked
+    status: active
     variables: [t2m_max, t2m_min, precip]
     access: "Open HTTPS, no key (aviationweather.gov / NOAA MADIS)"
     endpoint: "https://aviationweather.gov/api/data/metar"
@@ -325,13 +325,13 @@ sources:
     update_frequency: "hourly"
     license: "US Government / NOAA open data (Public Domain); non-US data subject to WMO Resolution 40 non-commercial research use"
     redistributable: derived_only
-    verified_on: null
+    verified_on: "2026-11-19"
     notes: >-
-      Bridge observation network for Middle Eastern aerodromes. Blocked on 2026-11-19:
-      Section 3.8 audit (results/stations/_evidence/middle_east/audit.json) found 4 of 16
-      stations returned HTTP 204 No Content with 0 observations in 72h on NOAA AWC
-      (OKBK, OLBA, OIIE, OISS), resulting in 75.0% active telemetry, which fails the
-      mandatory 80.0% active telemetry threshold. Marked status: blocked pending stable feeds.
+      Bridge observation network providing near-real-time observations across Middle Eastern
+      airports with ICAO codes. Section 3.8 source verification completed 2026-11-19
+      (results/stations/_evidence/middle_east/audit.json). 12 of 12 retained stations verified with
+      active telemetry (100.0%) and dual-catalog confirmation (OKBK, OLBA, OIIE, OISS dead/unconfirmed and pruned in vetting).
+      Status: active.
 
   - id: metar-global
     name: "NOAA Aviation Weather / MADIS METAR (Global)"

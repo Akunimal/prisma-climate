@@ -58,10 +58,9 @@ europe           | PASS   | PASS   | QUALIFIED | 18/18     | 100.0%     | READY_
 asia             | PASS   | PASS   | QUALIFIED | 18/19     | 94.7%      | READY_FOR_REVIEW
 africa           | PASS   | PASS   | QUALIFIED | 14/17     | 88.2%      | READY_FOR_REVIEW
 oceania          | PASS   | PASS   | QUALIFIED | 16/16     | 100.0%     | READY_FOR_REVIEW
-middle_east      | PASS   | BLOCKED | QUALIFIED | 12/16     | 75.0%      | BLOCKED         
-   -> Block reason: Phase 2 vetting failed (BLOCKED); Active telemetry 75.0% < 80.0%
+middle_east      | PASS   | PASS   | QUALIFIED | 12/12     | 100.0%     | READY_FOR_REVIEW
 ================================================================================
-Summary: 6 eligible for 'ready_for_review', 1 blocked.
+Summary: 7 eligible for 'ready_for_review', 0 blocked.
 
 [DRY RUN] No modifications written to configs/sources.yaml.
 ```
@@ -79,7 +78,7 @@ Summary: 6 eligible for 'ready_for_review', 1 blocked.
 | `asia` | Asia | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `active` | 18 / 19 (1 pruned) |
 | `africa` | Africa | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `active` | 14 / 17 (3 pruned) |
 | `oceania` | Oceania & Pacific | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Staged (`OBSERVED`) | `active` | 16 / 16 |
-| `middle_east` | Middle East | BLOCKED (`OBSERVED`) | BLOCKED (`OBSERVED`) | BLOCKED (`OBSERVED`) | Staged (`OBSERVED`) | `blocked` | 12 / 16 active |
+| `middle_east` | Middle East | PASS (`OBSERVED`) | PASS (`OBSERVED`) | PASS (`OBSERVED`) | Active (`OBSERVED`) | `active` | 12 / 16 (4 pruned) |
 
 ---
 

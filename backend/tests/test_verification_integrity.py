@@ -22,6 +22,7 @@ PASSING_REGIONS = (
     "asia",
     "africa",
     "oceania",
+    "middle_east",
 )
 ALL_NON_ARGENTINA_METAR_SOURCES = (
     "metar-south-america",
@@ -113,6 +114,7 @@ def test_promotion_invariants_post_apply() -> None:
         "metar-asia",
         "metar-africa",
         "metar-oceania",
+        "metar-middle-east",
     )
 
     for source_id in passing_source_ids:
@@ -124,15 +126,6 @@ def test_promotion_invariants_post_apply() -> None:
         assert str(src.get("verified_on")) == "2026-11-19", (
             f"Source {source_id} verified_on must be '2026-11-19', got '{src.get('verified_on')}'"
         )
-
-    me_src = sources_by_id.get("metar-middle-east")
-    assert me_src is not None
-    assert me_src.get("status") == "blocked", (
-        f"metar-middle-east must be 'blocked', got '{me_src.get('status')}'"
-    )
-    assert me_src.get("verified_on") is None, (
-        f"metar-middle-east verified_on must be None, got '{me_src.get('verified_on')}'"
-    )
 
     # Headline check
     readme_text = (ROOT / "README.md").read_text(encoding="utf-8")

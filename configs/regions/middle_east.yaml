@@ -1,174 +1,114 @@
-# Deployment region: Middle East.
-#
-# Regional expansion covering key Köppen-Geiger climate zones across the Arabian Peninsula,
-# Levant, Mesopotamia, and the Iranian Plateau:
-# BWh (Hyper-arid Hot Desert Gulf & Arabian Interior), BSh/BSk (Semi-arid Steppe),
-# Csa (Mediterranean Levant & Highland Fertile Crescent), BWk (Cold Desert Plateau).
-# Station identifiers carry official ICAO codes and IANA timezones.
-
 id: middle_east
-name: "Middle East"
-description: "Regional configuration covering key climate zones across the Middle East."
+name: Middle East
+description: Regional configuration covering key climate zones across the Middle East.
 timezone: Asia/Dubai
-history_start: "1996-01-01"
-
+history_start: '1996-01-01'
 stations:
-  - id: dubai_intl
-    name: "Dubai International"
-    country: "United Arab Emirates"
-    zone: "Hot Desert (BWh)"
-    lat: 25.253
-    lon: 55.364
-    elevation_m: 19
-    icao: OMDB
-    timezone: Asia/Dubai
-
-  - id: doha_hamad
-    name: "Doha Hamad International"
-    country: "Qatar"
-    zone: "Hot Desert (BWh)"
-    lat: 25.273
-    lon: 51.608
-    elevation_m: 4
-    icao: OTHH
-    timezone: Asia/Qatar
-
-  - id: riyadh_king_khalid
-    name: "Riyadh King Khalid International"
-    country: "Saudi Arabia"
-    zone: "Hot Desert (BWh)"
-    lat: 24.958
-    lon: 46.699
-    elevation_m: 625
-    icao: OERK
-    timezone: Asia/Riyadh
-
-  - id: jeddah_king_abdulaziz
-    name: "Jeddah King Abdulaziz International"
-    country: "Saudi Arabia"
-    zone: "Hot Desert / Coastal (BWh)"
-    lat: 21.679
-    lon: 39.157
-    elevation_m: 15
-    icao: OEJN
-    timezone: Asia/Riyadh
-
-  - id: kuwait_intl
-    name: "Kuwait International"
-    country: "Kuwait"
-    zone: "Hot Desert (BWh)"
-    lat: 29.227
-    lon: 47.969
-    elevation_m: 63
-    icao: OKBK
-    timezone: Asia/Kuwait
-
-  - id: bahrain_intl
-    name: "Bahrain International"
-    country: "Bahrain"
-    zone: "Hot Desert / Island Arid (BWh)"
-    lat: 26.271
-    lon: 50.634
-    elevation_m: 2
-    icao: OBBI
-    timezone: Asia/Bahrain
-
-  - id: muscat_intl
-    name: "Muscat International"
-    country: "Oman"
-    zone: "Hot Desert / Coastal Arid (BWh)"
-    lat: 23.593
-    lon: 58.284
-    elevation_m: 15
-    icao: OOMS
-    timezone: Asia/Muscat
-
-  - id: amman_queen_alia
-    name: "Amman Queen Alia International"
-    country: "Jordan"
-    zone: "Cold Semi-arid / Mediterranean Plateau (BSk/Csa)"
-    lat: 31.723
-    lon: 35.993
-    elevation_m: 730
-    icao: OJAI
-    timezone: Asia/Amman
-
-  - id: beirut_rafic_hariri
-    name: "Beirut Rafic Hariri International"
-    country: "Lebanon"
-    zone: "Hot-summer Mediterranean (Csa)"
-    lat: 33.821
-    lon: 35.488
-    elevation_m: 26
-    icao: OLBA
-    timezone: Asia/Beirut
-
-  - id: tel_aviv_ben_gurion
-    name: "Tel Aviv Ben Gurion"
-    country: "Israel"
-    zone: "Hot-summer Mediterranean (Csa)"
-    lat: 32.009
-    lon: 34.885
-    elevation_m: 41
-    icao: LLBG
-    timezone: Asia/Jerusalem
-
-  - id: baghdad_intl
-    name: "Baghdad International"
-    country: "Iraq"
-    zone: "Hot Desert (BWh)"
-    lat: 33.262
-    lon: 44.234
-    elevation_m: 35
-    icao: ORBI
-    timezone: Asia/Baghdad
-
-  - id: basra_intl
-    name: "Basra International"
-    country: "Iraq"
-    zone: "Hot Desert (BWh)"
-    lat: 30.549
-    lon: 47.662
-    elevation_m: 3
-    icao: ORMM
-    timezone: Asia/Baghdad
-
-  - id: tehran_imam_khomeini
-    name: "Tehran Imam Khomeini International"
-    country: "Iran"
-    zone: "Cold Semi-arid / Highland Steppe (BSk)"
-    lat: 35.416
-    lon: 51.152
-    elevation_m: 1007
-    icao: OIIE
-    timezone: Asia/Tehran
-
-  - id: shiraz_shahid_dastghaib
-    name: "Shiraz Shahid Dastghaib International"
-    country: "Iran"
-    zone: "Cold Semi-arid / Zagros Foothills (BSk)"
-    lat: 29.540
-    lon: 52.590
-    elevation_m: 1500
-    icao: OISS
-    timezone: Asia/Tehran
-
-  - id: damascus_intl
-    name: "Damascus International"
-    country: "Syria"
-    zone: "Cold Desert / Semi-arid (BWk/BSk)"
-    lat: 33.415
-    lon: 36.514
-    elevation_m: 616
-    icao: OSDI
-    timezone: Asia/Damascus
-
-  - id: erbil_intl
-    name: "Erbil International"
-    country: "Iraq"
-    zone: "Hot-summer Mediterranean / Semi-arid (Csa/BSh)"
-    lat: 36.237
-    lon: 43.963
-    elevation_m: 409
-    icao: ORER
-    timezone: Asia/Baghdad
+- id: dubai_intl
+  name: Dubai International
+  country: United Arab Emirates
+  zone: Hot Desert (BWh)
+  lat: 25.253
+  lon: 55.364
+  elevation_m: 19
+  icao: OMDB
+  timezone: Asia/Dubai
+- id: doha_hamad
+  name: Doha Hamad International
+  country: Qatar
+  zone: Hot Desert (BWh)
+  lat: 25.273
+  lon: 51.608
+  elevation_m: 4
+  icao: OTHH
+  timezone: Asia/Qatar
+- id: riyadh_king_khalid
+  name: Riyadh King Khalid International
+  country: Saudi Arabia
+  zone: Hot Desert (BWh)
+  lat: 24.958
+  lon: 46.699
+  elevation_m: 625
+  icao: OERK
+  timezone: Asia/Riyadh
+- id: jeddah_king_abdulaziz
+  name: Jeddah King Abdulaziz International
+  country: Saudi Arabia
+  zone: Hot Desert / Coastal (BWh)
+  lat: 21.679
+  lon: 39.157
+  elevation_m: 15
+  icao: OEJN
+  timezone: Asia/Riyadh
+- id: bahrain_intl
+  name: Bahrain International
+  country: Bahrain
+  zone: Hot Desert / Island Arid (BWh)
+  lat: 26.271
+  lon: 50.634
+  elevation_m: 2
+  icao: OBBI
+  timezone: Asia/Bahrain
+- id: muscat_intl
+  name: Muscat International
+  country: Oman
+  zone: Hot Desert / Coastal Arid (BWh)
+  lat: 23.593
+  lon: 58.284
+  elevation_m: 15
+  icao: OOMS
+  timezone: Asia/Muscat
+- id: amman_queen_alia
+  name: Amman Queen Alia International
+  country: Jordan
+  zone: Cold Semi-arid / Mediterranean Plateau (BSk/Csa)
+  lat: 31.723
+  lon: 35.993
+  elevation_m: 730
+  icao: OJAI
+  timezone: Asia/Amman
+- id: tel_aviv_ben_gurion
+  name: Tel Aviv Ben Gurion
+  country: Israel
+  zone: Hot-summer Mediterranean (Csa)
+  lat: 32.009
+  lon: 34.885
+  elevation_m: 41
+  icao: LLBG
+  timezone: Asia/Jerusalem
+- id: baghdad_intl
+  name: Baghdad International
+  country: Iraq
+  zone: Hot Desert (BWh)
+  lat: 33.262
+  lon: 44.234
+  elevation_m: 35
+  icao: ORBI
+  timezone: Asia/Baghdad
+- id: basra_intl
+  name: Basra International
+  country: Iraq
+  zone: Hot Desert (BWh)
+  lat: 30.549
+  lon: 47.662
+  elevation_m: 3
+  icao: ORMM
+  timezone: Asia/Baghdad
+- id: damascus_intl
+  name: Damascus International
+  country: Syria
+  zone: Cold Desert / Semi-arid (BWk/BSk)
+  lat: 33.415
+  lon: 36.514
+  elevation_m: 616
+  icao: OSDI
+  timezone: Asia/Damascus
+- id: erbil_intl
+  name: Erbil International
+  country: Iraq
+  zone: Hot-summer Mediterranean / Semi-arid (Csa/BSh)
+  lat: 36.237
+  lon: 43.963
+  elevation_m: 409
+  icao: ORER
+  timezone: Asia/Baghdad

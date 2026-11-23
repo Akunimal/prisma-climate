@@ -5,9 +5,9 @@
 # Its own schedule, own concurrency group, own failure domain.
 #
 # Scope & Budget:
-#   - Archives the 6 active non-Argentina regions (south_america, north_america,
-#     europe, asia, africa, oceania). Middle East is blocked and explicitly excluded.
-#   - 101 vetted stations in 3-station batches: ~34 HTTP requests/day (well within
+#   - Archives all 7 active non-Argentina regions (south_america, north_america,
+#     europe, asia, africa, oceania, middle_east).
+#   - 113 vetted stations in 3-station batches: ~38 HTTP requests/day (well within
 #     the pre-authorized <= 500 req/day observation budget).
 #
 # Storage policy:

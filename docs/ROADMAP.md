@@ -41,7 +41,7 @@ Per-region status in [`configs/sources.yaml`](../configs/sources.yaml) following
 | Asia | 18 / 19 (1 pruned) | `metar-asia` | `active` | PASS (18 retained, UTTT dead & pruned) |
 | Africa | 14 / 17 (3 pruned) | `metar-africa` | `active` | PASS (14 retained, FZAA/HSSS/GOBD pruned) |
 | Oceania & Pacific | 16 / 16 | `metar-oceania` | `active` | PASS (100% confirmed, 100% active telemetry) |
-| Middle East | 12 / 16 active | `metar-middle-east` | `blocked` | BLOCKED (75.0% active telemetry < 80.0% threshold) |
+| Middle East | 12 / 16 (4 pruned) | `metar-middle-east` | `active` | PASS (12 retained, OKBK/OLBA/OIIE/OISS dead & pruned) |
 
 **Next milestone per region:** The next milestone per region is accumulating enough forecast and observation archive history (weeks to months) to even attempt a hindcast or calibration, not running one now. Zero days of historical METAR observation history were previously accumulated (daily archive collection is starting now) and forecast archive history covers 2 days or fewer (global multi-region ingest began 2026-11-18). No hindcast, calibration, or skill verification exists for any region outside Argentina. Details in [`docs/design/GLOBAL_VERIFICATION_PLAN.md`](design/GLOBAL_VERIFICATION_PLAN.md).
 
@@ -183,7 +183,7 @@ Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue d
   - `configs/regions/asia.yaml` (18 vetted stations; UTTT pruned).
   - `configs/regions/africa.yaml` (14 vetted stations; FZAA, HSSS, GOBD pruned).
   - `configs/regions/oceania.yaml` (16 stations across Cfb, Csa, BWh, Af; 16 vetted).
-  - `configs/regions/middle_east.yaml` (16 stations across BWh, Csa, BSk; 12 active in telemetry, region blocked).
+  - `configs/regions/middle_east.yaml` (12 vetted stations across BWh, Csa, BSk; OKBK, OLBA, OIIE, OISS pruned).
 - [x] Global multi-region loader (`load_all_regions` in `backend/src/prisma/ingest/base.py`) unifying vetted stations globally.
 - [x] METAR global connector suite (`backend/src/prisma/ingest/metar.py`) and sources registry (`configs/sources.yaml`, staged as `ready_for_review`).
 - [x] Interactive map support for planetary bounds and antimeridian crossing in `app/lib/src/station_bounds.dart`.

@@ -108,7 +108,7 @@ def test_global_regions_validate() -> None:
 def test_load_all_regions_returns_all_global_stations() -> None:
     global_region = load_all_regions(ROOT)
     assert global_region["id"] == "global"
-    assert len(global_region["stations"]) == 136
+    assert len(global_region["stations"]) == 132
     ids = [s["id"] for s in global_region["stations"]]
     assert len(ids) == len(set(ids))
 
@@ -125,7 +125,15 @@ def test_station_vetting_invariants_hold_against_raw_evidence() -> None:
         a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
         return 2 * r * math.asin(math.sqrt(a))
 
-    regions = ("south_america", "north_america", "europe", "asia", "africa", "oceania")
+    regions = (
+        "south_america",
+        "north_america",
+        "europe",
+        "asia",
+        "africa",
+        "oceania",
+        "middle_east",
+    )
     for slug in regions:
         cfg = load_region(ROOT / "configs" / "regions" / f"{slug}.yaml")
         ev_file = ROOT / "results" / "stations" / "_evidence" / slug / "audit.json"
