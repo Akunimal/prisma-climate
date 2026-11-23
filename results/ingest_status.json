@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-11-23T16:57:56",
+  "last_run": "2026-11-23T18:46:30",
   "region": "global",
   "rows": {
     "openmeteo-ensemble": 535296
@@ -7,7 +7,7 @@
   "failures": [],
   "status": "ok",
   "archive_watchdog": {
-    "checked_at": "2026-11-23T18:08:41Z",
+    "checked_at": "2026-11-23T19:46:28Z",
     "since": "2026-11-11",
     "as_of": "2026-11-23",
     "archived_issue_dates": 13,
