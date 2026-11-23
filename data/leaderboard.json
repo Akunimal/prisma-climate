@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-11-23T18:24:41.785166Z",
+  "generated_at": "2026-11-23T20:41:38.126527Z",
   "protocol": "docs/EVALUATION_PROTOCOL.md",
   "gate": {
     "status": "locked",
     "required_issue_dates": 15,
-    "archived_issue_dates": 12,
-    "remaining_issue_dates": 3,
+    "archived_issue_dates": 13,
+    "remaining_issue_dates": 2,
     "open": false,
     "operational_leaderboard_published": false,
     "note": "Operational leaderboard numbers are computed and published only after accumulating at least 15 distinct archived issue dates under forecasts/ in accordance with docs/EVALUATION_PROTOCOL.md."

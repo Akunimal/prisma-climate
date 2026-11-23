@@ -45,7 +45,7 @@ Per-region status in [`configs/sources.yaml`](../configs/sources.yaml) following
 
 **Next milestone per region:** The next milestone per region is accumulating enough forecast and observation archive history (weeks to months) to even attempt a hindcast or calibration, not running one now. Zero days of historical METAR observation history were previously accumulated (daily archive collection is starting now) and forecast archive history covers 2 days or fewer (global multi-region ingest began 2026-11-18). No hindcast, calibration, or skill verification exists for any region outside Argentina. Details in [`docs/design/GLOBAL_VERIFICATION_PLAN.md`](design/GLOBAL_VERIFICATION_PLAN.md).
 
-Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue dates; 7 archived as of 2026-11-17). There is **no API server this phase** (owner decision 2026-11-15: static data on Pages) — the FastAPI code exists and its endpoints are tested, but it is not deployed. A read-only Flutter **web** app exists (Stations, Forecast, Skill, About / Status, station map, place search and GPS, source comparator); there is **no Android build**; see README.
+Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue dates; 13 archived as of 2026-11-23, 2 remaining). Static export contract (`data/leaderboard.json`), locked UI card with progress indicator, and offline E2E unlock drill are fully implemented. There is **no API server this phase** (owner decision 2026-11-15: static data on Pages) — the FastAPI code exists and its endpoints are tested, but it is not deployed. A read-only Flutter **web** app exists (Stations, Forecast, Skill, About / Status, station map, place search and GPS, source comparator); there is **no Android build**; see README.
 
 ## Phase 1 checklist
 
@@ -119,8 +119,9 @@ Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue d
    - [x] **NASA GIBS NRT satellite layer:** Real-time global satellite imagery layer (VIIRS SNPP TrueColor) with automated deterministic UTC logic, 30-hour safety offset, floating map toggle, and dynamic attribution.
 
 2. **Stage 2 · Operational Verification Gate (Upon reaching $\ge 15$ issue dates)**
-   - Accumulate remaining issue dates in the automated archive (currently 8/15).
-   - Generate operational leaderboard script output in `results/` (raw ensemble vs climatology vs persistence).
+   - Accumulate remaining issue dates in the automated archive (currently 13/15, 2 remaining).
+   - Operational leaderboard static export contract (`data/leaderboard.json`), locked UI progress indicator, and E2E gate unlock drill verified offline.
+   - Upon reaching 15 dates: generate operational leaderboard script output in `results/` (raw ensemble vs climatology vs persistence) and auto-unlock UI table.
    - Visualise station verification metrics directly on the interactive map.
 
 3. **Stage 3 · Progressive National Connectors (Medium term)**

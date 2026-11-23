@@ -35,6 +35,7 @@ def _write_region(root: Path) -> None:
     region = {
         "id": "argentina",
         "name": "Argentina",
+        "timezone": "America/Argentina/Cordoba",
         "stations": [
             {"id": "ba", "name": "Buenos Aires", "lat": -34.6, "lon": -58.4},
             {"id": "rob", "name": "Rosario", "lat": -32.9, "lon": -60.7},
@@ -278,3 +279,103 @@ def test_enso_el_nino_state(tmp_path: Path) -> None:
     assert oni_state(1.2) == "el_nino"
     assert oni_state(-0.9) == "la_nina"
     assert oni_state(0.1) == "neutral"
+
+
+def test_leaderboard_endpoint_locked(client: TestClient) -> None:
+    resp = client.get("/leaderboard")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["schema_version"] == "1.0"
+    assert body["gate"]["status"] == "locked"
+    assert body["gate"]["open"] is False
+    assert body["gate"]["operational_leaderboard_published"] is False
+    assert body["cells"] == []
+    assert body["summary"] is None
+
+
+def test_leaderboard_endpoint_unlocked(tmp_path: Path) -> None:
+    _write_region(tmp_path)
+    _write_sources(tmp_path)
+    _write_forecast(tmp_path)
+
+    # Provide manifest with >= 15 dates
+    manifest = tmp_path / "data" / "raw" / "_manifest.json"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(json.dumps([f"2026-11-{i:02d}" for i in range(1, 16)]), encoding="utf-8")
+
+    # Provide leaderboard.csv
+    v_dir = tmp_path / "results" / "verification"
+    v_dir.mkdir(parents=True, exist_ok=True)
+    csv_content = (
+        "location,variable,model,lead_day,n_pairs,n_missing,insufficient,"
+        "n_climatology,n_persistence,crps_raw,crps_climatology,crps_persistence,"
+        "crpss_vs_climatology,crpss_vs_persistence\n"
+        "ba,t2m_max,gfs_seamless,1,15,0,False,15,15,1.0,2.0,4.0,0.5,0.75\n"
+    )
+    (v_dir / "leaderboard.csv").write_text(csv_content, encoding="utf-8")
+
+    client = TestClient(create_app(root=tmp_path))
+    resp = client.get("/leaderboard")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["gate"]["status"] == "unlocked"
+    assert body["gate"]["open"] is True
+    assert body["gate"]["operational_leaderboard_published"] is True
+    assert body["summary"]["n_cells"] == 1
+    assert body["summary"]["mean_crpss_vs_climatology"] == 0.5
+    assert len(body["cells"]) == 1
+    assert body["cells"][0]["location"] == "ba"
+
+
+def test_forecast_with_region_filter(client: TestClient, tmp_path: Path) -> None:
+    # Add an extra region file
+    extra_region = {
+        "id": "europe",
+        "name": "Europe",
+        "timezone": "Europe/Madrid",
+        "stations": [
+            {"id": "mad", "name": "Madrid", "lat": 40.4, "lon": -3.7},
+        ],
+    }
+    (tmp_path / "configs" / "regions" / "europe.yaml").write_text(
+        yaml.safe_dump(extra_region), encoding="utf-8"
+    )
+
+    resp_default = client.get("/forecast")
+    assert resp_default.status_code == 200
+    stations_default = [s["id"] for s in resp_default.json()["stations"]]
+    assert "ba" in stations_default
+    assert "mad" not in stations_default
+
+    resp_eu = client.get("/forecast", params={"region": "europe"})
+    assert resp_eu.status_code == 200
+    body_eu = resp_eu.json()
+    assert body_eu["region"] == "europe"
+    stations_eu = [s["id"] for s in body_eu["stations"]]
+    assert stations_eu == ["mad"]
+
+
+def test_forecast_unknown_region(client: TestClient) -> None:
+    resp = client.get("/forecast", params={"region": "atlantis"})
+    assert resp.status_code == 404
+    assert "unknown region atlantis" in resp.json()["detail"]
+
+
+def test_forecast_global_region(client: TestClient, tmp_path: Path) -> None:
+    extra_region = {
+        "id": "oceania",
+        "name": "Oceania",
+        "timezone": "Australia/Sydney",
+        "stations": [
+            {"id": "syd", "name": "Sydney", "lat": -33.8, "lon": 151.2},
+        ],
+    }
+    (tmp_path / "configs" / "regions" / "oceania.yaml").write_text(
+        yaml.safe_dump(extra_region), encoding="utf-8"
+    )
+
+    resp_global = client.get("/forecast", params={"region": "global"})
+    assert resp_global.status_code == 200
+    st_ids = [s["id"] for s in resp_global.json()["stations"]]
+    assert "ba" in st_ids
+    assert "syd" in st_ids

@@ -176,9 +176,9 @@ void main() {
       expect(leaderboard.gate.isLocked, isTrue);
       expect(leaderboard.gate.isUnlocked, isFalse);
       expect(leaderboard.gate.open, isFalse);
-      expect(leaderboard.gate.archivedIssueDates, 12);
+      expect(leaderboard.gate.archivedIssueDates, 13);
       expect(leaderboard.gate.requiredIssueDates, 15);
-      expect(leaderboard.gate.remainingIssueDates, 3);
+      expect(leaderboard.gate.remainingIssueDates, 2);
       expect(leaderboard.summary, isNull);
       expect(leaderboard.cells, isEmpty);
     });

@@ -25,7 +25,9 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from ..calibrate.skill_doc import build_skill_document
-from ..ingest.base import find_repo_root
+from ..ingest.base import find_repo_root, load_all_regions
+from ..ingest.base import load_region as _load_region_file
+from ..verify.leaderboard_doc import build_leaderboard_document
 from ..verify.run import MEMBER_FRACTION
 
 SCHEMA_VERSION = "1.0"
@@ -170,25 +172,42 @@ def create_app(root: Path | None = None) -> FastAPI:
     @app.get("/forecast")
     def forecast(
         station_id: str | None = Query(None, description="station id from the region file"),
+        region: str | None = Query(
+            None, description="region id (e.g. argentina, middle_east, global); default: argentina"
+        ),
     ) -> dict[str, Any]:
         frame = load_forecast_frame(repo_root)
         issue_date, issue_time = latest_issue(frame)
         latest = frame.loc[frame["issue_time"].eq(frame["issue_time"].max())]
-        region = load_region(repo_root)
-        stations = region.get("stations", [])
+
+        if region is None or region.lower() == "argentina":
+            region_config = load_region(repo_root)
+        elif region.lower() in ("global", "all"):
+            region_config = load_all_regions(repo_root)
+        else:
+            norm_reg = region.lower().replace("-", "_")
+            candidate = repo_root / "configs" / "regions" / f"{norm_reg}.yaml"
+            if not candidate.is_file():
+                raise HTTPException(status_code=404, detail=f"unknown region {region}")
+            region_config = _load_region_file(candidate)
+
+        stations = region_config.get("stations", [])
         member_counts = load_member_counts(repo_root)
         models = sorted(str(m) for m in latest["model"].dropna().unique())
 
         def station_payload(station: dict[str, Any]) -> dict[str, Any]:
             sid = str(station["id"])
             sub = latest.loc[latest["location"].astype(str).eq(str(station["name"]))]
-            return {
+            st_res: dict[str, Any] = {
                 "id": sid,
                 "name": station["name"],
                 "lat": station["lat"],
                 "lon": station["lon"],
                 "forecast": forecast_cases(sub, models, member_counts),
             }
+            if "region" in station:
+                st_res["region"] = station["region"]
+            return st_res
 
         if station_id is not None:
             match = [s for s in stations if str(s["id"]) == station_id]
@@ -198,7 +217,7 @@ def create_app(root: Path | None = None) -> FastAPI:
         else:
             payload_stations = [station_payload(s) for s in stations]
 
-        return {
+        out: dict[str, Any] = {
             "schema_version": SCHEMA_VERSION,
             "issue_date": issue_date,
             "issue_time": _iso_utc(issue_time),
@@ -207,6 +226,13 @@ def create_app(root: Path | None = None) -> FastAPI:
             "note": "raw ensemble member statistics; models are never pooled",
             "stations": payload_stations,
         }
+        if region is not None:
+            out["region"] = str(region_config.get("id", region))
+        return out
+
+    @app.get("/leaderboard")
+    def leaderboard() -> dict[str, Any]:
+        return build_leaderboard_document(repo_root)
 
     @app.get("/skill")
     def skill() -> dict[str, Any]:

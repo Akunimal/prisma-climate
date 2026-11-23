@@ -292,7 +292,7 @@
   },
   "gate": {
     "required_issue_dates": 15,
-    "archived_issue_dates": 8,
+    "archived_issue_dates": 13,
     "open": false,
     "operational_leaderboard_published": false,
     "note": "Operational verification numbers are not published before 15 distinct archived issue dates. Skill shown here is hindcast-labelled only."

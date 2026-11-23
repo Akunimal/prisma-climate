@@ -487,7 +487,7 @@ void main() {
     expect(find.textContaining(en.skillCellsCount(19, 19)), findsOneWidget);
     expect(find.textContaining(en.skillDidNotBeat), findsOneWidget);
     expect(find.text(en.skillGateClosed), findsOneWidget);
-    expect(find.textContaining('3 of 15'), findsOneWidget);
+    expect(find.text(en.skillGateArchived(3, 15)), findsOneWidget);
     expect(find.textContaining('operational leaderboard'), findsWidgets);
   });
 
@@ -497,7 +497,7 @@ void main() {
     await tester.tap(find.text(en.tabSkill));
     await tester.pumpAndSettle();
     expect(find.text('Operational verification leaderboard'), findsWidgets);
-    expect(find.textContaining('12 of 15 (3 remaining)'), findsOneWidget);
+    expect(find.textContaining('13 of 15 (2 remaining)'), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 
