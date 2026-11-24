@@ -36,6 +36,7 @@ on:
       - "app/**"
       - "site/**"
       - "data/places/**"
+      - "backend/src/prisma/verify/**"
       - "scripts/export_site_data.py"
       - "scripts/build_places.py"
       - ".github/workflows/site.yml"

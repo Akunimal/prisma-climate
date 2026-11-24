@@ -47,8 +47,18 @@ import numpy as np
 import pandas as pd
 from prisma.calibrate.skill_doc import build_skill_document
 from prisma.ingest.base import find_repo_root, load_all_regions
-from prisma.verify.leaderboard_doc import build_leaderboard_document
-from prisma.verify.run import MEMBER_FRACTION, _parse_payload_zip, load_member_counts
+from prisma.verify.leaderboard_doc import (
+    build_leaderboard_document,
+    resolve_archived_issue_dates,
+)
+from prisma.verify.run import (
+    GATE_ISSUE_DATES,
+    MEMBER_FRACTION,
+    _parse_payload_zip,
+    count_issue_dates,
+    load_member_counts,
+    run_above_gate,
+)
 
 SCHEMA_VERSION = "1.0"
 DEFAULT_REPO = "Akunimal/prisma-climate"
@@ -378,6 +388,8 @@ def export_site_data(
     download: Callable[[str, str], Path] | None = None,
     out_dir: Path,
     generated_at: Any | None = None,
+    skip_verify: bool = False,
+    run_verify: Callable[[int], int] | None = None,
 ) -> list[Path]:
     """Run the export; ``list_files``/``download``/``root`` are injectable."""
     root = Path(root) if root is not None else find_repo_root()
@@ -393,6 +405,31 @@ def export_site_data(
         fetch_file = fetch
     else:
         fetch_file = download
+
+    listing_dates = count_issue_dates(listing)
+    if listing_dates > 0:
+        archived_dates = listing_dates
+    else:
+        archived_dates = resolve_archived_issue_dates(root)
+
+    verify_succeeded = True
+    if not skip_verify and archived_dates >= GATE_ISSUE_DATES:
+        try:
+            if run_verify is not None:
+                code = run_verify(archived_dates)
+            else:
+                code = run_above_gate(
+                    archived_dates,
+                    list_files=lambda: listing,
+                    download=fetch_file,
+                    root=root,
+                )
+            if code != 0:
+                print(f"warning: operational verification failed with exit code {code}")
+                verify_succeeded = False
+        except Exception as exc:  # noqa: BLE001 - resilience: verification failure must not crash site export
+            print(f"warning: operational verification raised exception: {exc}")
+            verify_succeeded = False
 
     issue_date, forecast_path = latest_forecast(listing)
     regtemp_date, regtemp_path = latest_regtemp(listing)
@@ -503,12 +540,23 @@ def export_site_data(
         },
     }
 
+    if verify_succeeded:
+        leaderboard_document = build_leaderboard_document(
+            root, override_issue_dates=archived_dates
+        )
+    else:
+        leaderboard_document = build_leaderboard_document(
+            root,
+            override_issue_dates=archived_dates,
+            override_csv_path=root / "non_existent_leaderboard.csv",
+        )
+
     out = Path(out_dir)
     written = [
         _write_json(out / "latest.json", latest_document),
         _write_json(out / "about.json", about_document),
         _write_json(out / "skill.json", build_skill_document(root)),
-        _write_json(out / "leaderboard.json", build_leaderboard_document(root)),
+        _write_json(out / "leaderboard.json", leaderboard_document),
     ]
     for station_id, document in station_documents:
         written.append(_write_json(out / "stations" / f"{station_id}.json", document))
@@ -534,6 +582,12 @@ def main(
         default=None,
         help="output directory (default: <root>/data)",
     )
+    parser.add_argument(
+        "--skip-verify",
+        action="store_true",
+        default=False,
+        help="skip operational verification even if gate is open",
+    )
     args = parser.parse_args(argv)
     root = args.root if args.root is not None else find_repo_root()
     out_dir = args.out_dir if args.out_dir is not None else Path(root) / "data"
@@ -542,6 +596,7 @@ def main(
         list_files=list_files,
         download=download,
         out_dir=out_dir,
+        skip_verify=args.skip_verify,
     )
     print(f"wrote {len(written)} file(s) under {out_dir}")
     return 0
