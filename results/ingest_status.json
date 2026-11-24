@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-11-23T23:49:42",
+  "last_run": "2026-11-24T01:53:53",
   "region": "global",
   "rows": {
     "openmeteo-ensemble": 519552
@@ -7,10 +7,10 @@
   "failures": [],
   "status": "ok",
   "archive_watchdog": {
-    "checked_at": "2026-11-23T23:55:53Z",
+    "checked_at": "2026-11-24T02:02:26Z",
     "since": "2026-11-11",
-    "as_of": "2026-11-23",
-    "archived_issue_dates": 13,
+    "as_of": "2026-11-24",
+    "archived_issue_dates": 14,
     "missing_issue_dates": [],
     "note": "visibility only; no repair is performed by this check; the HF listing can be cache-prone, so a missing day may be a false positive \u2014 verify against the dataset before acting"
   }
