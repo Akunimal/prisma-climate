@@ -12,11 +12,44 @@ Live app: https://akunimal.github.io/prisma-climate/ · Dataset: https://hugging
 
 PRISMA is an open, cross-platform project that cross-references real-time weather and climate data, verifies forecasts against observations, and will show calibrated probabilities instead of single numbers.
 
+## Probabilistic Verification & Benchmark Results
+
+PRISMA prioritises empirical verification against established climatology and persistence baselines over unverified model outputs.
+
+### Phase 2 Hindcast Calibration Benchmarks (Frozen Gate)
+
+Evaluated across the 19 meteorological stations in Argentina against NOAA GEFS reforecasts (lead day 1, rolling 45-day window, anti-leakage rule, published under [`v0.1.0`](https://github.com/Akunimal/prisma-climate/releases/tag/v0.1.0) and [`data/skill.json`](data/skill.json)):
+
+| Calibration Method | Target | Horizon | Test Stations | Mean CRPSS vs Raw | Skill Gain vs Raw | Stations Improved | Statistical Significance |
+|---|---|---|---|---|---|---|---|
+| **Raw GEFS Ensemble** | $T_{max}$ | Lead 1d | 19 stations | 0.0000 | Baseline | — | — |
+| **Quantile Mapping (QM)** | $T_{max}$ | Lead 1d | 19 stations | **+0.0943** | **+9.4%** | 9 / 19 (47.4%) | 95% Bootstrap CI > 0 |
+| **EMOS (Ensemble MOS)** | $T_{max}$ | Lead 1d | 19 stations | **+0.2187** | **+21.9%** | **12 / 19 (63.2%)** | **95% Bootstrap CI > 0 (PASS)** |
+
+*Representative Station Results ($T_{max}$ Continuous Ranked Probability Score):*
+- **La Quiaca:** Raw CRPS: 2.18 °C $\rightarrow$ EMOS: 1.47 °C (**CRPSS: +0.323**), QM: 0.62 °C (**CRPSS: +0.714**).
+- **Salta:** Raw CRPS: 1.82 °C $\rightarrow$ EMOS: 1.32 °C (**CRPSS: +0.274**), QM: 1.66 °C (**CRPSS: +0.086**).
+- **Tucumán:** Raw CRPS: 2.05 °C $\rightarrow$ EMOS: 1.39 °C (**CRPSS: +0.322**), QM: 1.45 °C (**CRPSS: +0.293**).
+
+### Operational Verification Gate Contract (docs/EVALUATION_PROTOCOL.md)
+
+In strict adherence to the frozen scientific protocol, operational verification metrics are published only after accumulating at least 15 distinct archived forecast issue dates:
+
+> **Current Gate Status:** **14 of 15** distinct issue dates archived under `forecasts/` on Hugging Face (**1 date remaining** until automated gate unlock in ~12–16h).
+
+When the 15th issue date is archived, the automated verification pipeline pre-wired in `scripts/export_site_data.py` (commit `f2ac65b`) will execute `prisma.verify.cli` during static export, computing and publishing:
+- **Continuous Ranked Probability Score (CRPS)** for raw multi-model ensemble forecasts (`gfs_seamless`, `ecmwf_ifs025`) across all lead days (1–16).
+- **Continuous Ranked Probability Skill Score (CRPSS)** evaluated strictly against two competitive baselines:
+  1. **Climatology Baseline:** 30-year station-day reference climatology.
+  2. **Persistence Baseline:** Last completed local-calendar observation before forecast issue time.
+- **Brier Score & Reliability Diagrams** for probabilistic exceedance thresholds (e.g. precipitation $\ge 1\text{ mm}$, $\ge 10\text{ mm}$).
+- **Spread-Error / Spread-Skill Ratio** to evaluate ensemble under/over-dispersion.
+
 ## Status
 
 Early-stage independent research. Be precise about what exists today:
 
-Current gate status: 7 of 15 distinct issue dates archived; no verification number published.
+Current gate status: 14 of 15 distinct issue dates archived (1 remaining until Day 15 gate unlock); no operational verification numbers published prior to gate opening per docs/EVALUATION_PROTOCOL.md.
 
 **Works today:**
 
@@ -36,24 +69,24 @@ Current gate status: 7 of 15 distinct issue dates archived; no verification numb
 
 ## Global expansion status
 
-PRISMA is designed to scale from Argentina to global coverage under the same verification-before-connector and station-vetting rules (§3.8 of the plan). As of 2026-11-19, the global expansion status in [`configs/sources.yaml`](configs/sources.yaml) is:
+PRISMA is designed to scale from Argentina to global coverage under the same verification-before-connector and station-vetting rules (§3.8 of the plan). As of 2026-11-24, the active global network across 8 regions encompasses **132 stations**:
 
 | Region | Config file | Stations (vetted / initial) | Observation Source | Status |
 |---|---|---|---|---|
-| Argentina | [`configs/regions/argentina.yaml`](configs/regions/argentina.yaml) | 19 / 19 | `smn` / `ghcn-daily` | `active` |
-| South America | [`configs/regions/south_america.yaml`](configs/regions/south_america.yaml) | 17 / 17 | `metar-south-america` | `active` |
-| North America | [`configs/regions/north_america.yaml`](configs/regions/north_america.yaml) | 18 / 18 | `metar-north-america` | `active` |
-| Europe | [`configs/regions/europe.yaml`](configs/regions/europe.yaml) | 18 / 18 | `metar-europe` | `active` |
-| Asia | [`configs/regions/asia.yaml`](configs/regions/asia.yaml) | 18 / 19 (1 pruned) | `metar-asia` | `active` |
-| Africa | [`configs/regions/africa.yaml`](configs/regions/africa.yaml) | 14 / 17 (3 pruned) | `metar-africa` | `active` |
-| Oceania & Pacific | [`configs/regions/oceania.yaml`](configs/regions/oceania.yaml) | 16 / 16 | `metar-oceania` | `active` |
-| Middle East | [`configs/regions/middle_east.yaml`](configs/regions/middle_east.yaml) | 12 / 16 active | `metar-middle-east` | `blocked` |
+| **Argentina** | [`configs/regions/argentina.yaml`](configs/regions/argentina.yaml) | 19 / 19 | SMN / `ghcn-daily` | `active` |
+| **South America** | [`configs/regions/south_america.yaml`](configs/regions/south_america.yaml) | 17 / 17 | `metar-south-america` | `active` |
+| **North America** | [`configs/regions/north_america.yaml`](configs/regions/north_america.yaml) | 18 / 18 | `metar-north-america` | `active` |
+| **Europe** | [`configs/regions/europe.yaml`](configs/regions/europe.yaml) | 18 / 18 | `metar-europe` | `active` |
+| **Asia** | [`configs/regions/asia.yaml`](configs/regions/asia.yaml) | 18 / 18 (1 pruned: UTTT) | `metar-asia` | `active` |
+| **Africa** | [`configs/regions/africa.yaml`](configs/regions/africa.yaml) | 14 / 14 (3 pruned: FZAA, HSSS, GOBD) | `metar-africa` | `active` |
+| **Oceania & Pacific** | [`configs/regions/oceania.yaml`](configs/regions/oceania.yaml) | 16 / 16 | `metar-oceania` | `active` |
+| **Middle East** | [`configs/regions/middle_east.yaml`](configs/regions/middle_east.yaml) | 12 / 12 (4 pruned: OKBK, OLBA, OIIE, OISS) | `metar-middle-east` | `active` |
+| **Total Global** | **8 regions** | **132 stations** | **SMN + Global METAR Network** | **`active` (100%)** |
 
 **What `active` means and does NOT mean for global regions:**
-- **6 regions** (`south_america`, `north_america`, `europe`, `asia`, `africa`, `oceania`) passed source verification (§3.8) and station vetting, and have been promoted to `status: active` in [`configs/sources.yaml`](configs/sources.yaml) on 2026-11-19 under owner authorization.
-- **`middle_east` remains blocked** because only 12 of 16 stations (75.0%) have active telemetry in NOAA AWC, failing the mandatory 80.0% telemetry threshold.
-- **Explicit boundary:** In these 6 global regions, `active` means station coordinates and elevations are catalog-vetted within 5 km against NOAA AWC and NOAA ISD, the METAR connector is verified, and automated daily observation archiving is active. It does **NOT** mean operational forecast verification or hindcast calibration. Forecast archive history for these regions covers 2 days or fewer (global multi-region forecast ingest began 2026-11-18); zero days of historical METAR observations were previously accumulated (collection is starting now); and no hindcast, calibration, or skill verification exists for any region outside Argentina.
-- **Live verification, calibration, and skill scores remain Argentina-only**, pending weeks to months of archive accumulation, the same empirical process Argentina itself went through.
+- **All 8 regions** (`argentina`, `south_america`, `north_america`, `europe`, `asia`, `africa`, `oceania`, `middle_east`) have passed source verification (§3.8) and station vetting, and have been promoted to `status: active` in [`configs/sources.yaml`](configs/sources.yaml).
+- **Explicit boundary:** In the 7 non-Argentina regions, `active` means all 113 station coordinates and elevations are catalog-vetted within 5 km against NOAA AWC and NOAA ISD with verified 4-letter ICAO aerodrome identifiers, the METAR connector (`prisma.ingest.metar`) is verified, and automated daily observation archiving is running on Hugging Face (since 2026-11-18). It does **NOT** mean operational forecast verification or hindcast calibration yet. Forecast archive history for these regions is accumulating daily, and historical ERA5 batch ingestion is engineered (`prisma.ingest.era5_batch`) for execution post-Day 15 gate unlock.
+- **Live operational verification and hindcast calibration scores currently apply to the 19 Argentina stations**, with global evaluation unlocking progressively as METAR archives mature.
 
 Full machine-verifiable evidence and methodology:
 - Global Verification Plan: [`docs/design/GLOBAL_VERIFICATION_PLAN.md`](docs/design/GLOBAL_VERIFICATION_PLAN.md)
@@ -98,7 +131,7 @@ Every source is registered in [`configs/sources.yaml`](configs/sources.yaml) and
 | NOAA GHCN-Daily | Public domain (NOAA/NCEI) | Yes | active, but **stale at source**: last valid rows 2025-08-24 (~50% daily coverage since 2005) |
 | NOAA ONI / SAM indices | Public domain (NOAA/NWS) | Yes | active |
 | SMN Argentina | CC BY 2.5 AR (PAD_legales.pdf, Infoleg disp25.pdf) | Yes | active — **current station reference for Argentina** |
-| NOAA Aviation Weather / MADIS METAR | Public domain (NOAA); non-US aerodromes under WMO Res 40 | Derived only | active (6 regions), blocked (Middle East) — see [Global expansion status](#global-expansion-status) |
+| NOAA Aviation Weather / MADIS METAR | Public domain (NOAA); non-US aerodromes under WMO Res 40 | Derived only | active (7 global regions, 113 vetted aerodromes; 132 stations total) — see [Global expansion status](#global-expansion-status) |
 | Map tiles (OpenStreetMap) | © OpenStreetMap contributors | Yes | non-data dependency; loaded directly by the app from OpenStreetMap servers |
 | Place names (GeoNames) | CC BY 4.0 | Yes | committed gazetteer `data/places/ar.json`, built by `scripts/build_places.py`; loaded by the app only when a place search starts |
 
