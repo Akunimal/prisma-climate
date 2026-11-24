@@ -333,3 +333,36 @@ Machine-verifiable source verification for the global aerodrome METAR observatio
   - **Phase 3 Obs Gate:** **PASS** (12/12 active telemetry, 0.0% gap rate in sliding window for qualifying stations).
 - **Status:** `status: active` in `configs/sources.yaml`. Section 3.8 check: **PASS** (`OBSERVED`).
 
+## Observational Discrepancy Framework & Network Reconciliation (Horizon 2)
+
+### Station Universe Reconciliation (132 Total Active Stations)
+The active station network configured across `configs/regions/*.yaml` encompasses exactly **132 stations** in 8 active regions:
+- **Argentina (`smn-argentina`):** 19 stations, observed via SMN daily surface reports. Baseline discrepancy against ERA5 reanalysis is documented in `results/discrepancies/smn_vs_era5.csv`.
+- **Global Regions (`metar-*`):** 113 stations across 7 regions, observed via NOAA Aviation Weather METAR reports using validated 4-letter ICAO aerodrome identifiers:
+  - South America: 17 stations
+  - North America: 18 stations
+  - Europe: 18 stations
+  - Asia: 18 stations (1 pruned)
+  - Africa: 14 stations (3 pruned)
+  - Oceania & Pacific: 16 stations
+  - Middle East: 12 stations (4 pruned)
+
+### METAR vs ERA5 Discrepancy Diagnostics (`prisma.report.metar_discrepancies`)
+Implemented in `backend/src/prisma/report/metar_discrepancies.py` with full offline unit testing in `backend/tests/test_metar_discrepancies.py`. The module computes:
+- Inner join on `(location, variable, time)` between METAR and ERA5 daily observations.
+- Station metrics: bias ($\text{METAR} - \text{ERA5}$), MAE, RMSE, Pearson correlation, 95th percentile absolute differences.
+- Automated quality flags:
+  - $|bias| \ge 3.0^\circ\text{C}$ (flagged for microclimate / runway heat island or complex topography).
+  - $corr < 0.90$ (flagged for anomalous sensor drift or coastal marine layer effects).
+  - $n_{days} < 5$ (flagged for insufficient sample size).
+- Structured artifact generation under `results/discrepancies/`:
+  - `metar_vs_era5.csv`: Station-level metrics and flags.
+  - `metar_vs_era5_summary.json`: Machine-readable regional and global aggregates.
+  - `metar_vs_era5.md`: Markdown report detailing regional statistics, flagged stations, and physical meteorological mechanisms.
+
+### Data Availability & Strategic Transition Plan
+- **Live METAR Observation Archive:** Daily snapshots are archived on Hugging Face (`observations/metar/YYYY-MM-DD.parquet`) starting 2026-11-18.
+- **ERA5 Reanalysis Baseline:** `data/raw/openmeteo-era5.parquet` currently contains the 19 Argentina stations with data ending 2026-11-05.
+- **Batch Ingest Post-Day 15:** To avoid Open-Meteo API rate-limit contention during the ongoing 14/15 operational daily cron runs, ingestion of the historical ERA5 baseline for the 113 global stations will be executed via a dedicated batch job immediately following the Day 15 operational gate unlock.
+
+
