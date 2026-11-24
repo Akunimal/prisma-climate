@@ -367,3 +367,88 @@ def test_auto_wire_skip_verify_flag(tmp_path: Path) -> None:
     assert doc["cells"] == []
 
 
+def test_resolve_archived_issue_dates_type_safety(tmp_path: Path) -> None:
+    """Type safety: numeric strings and floats in ingest_status.json parse safely."""
+    from prisma.verify.leaderboard_doc import resolve_archived_issue_dates
+
+    # 1. Clean root with no status files -> 0
+    assert resolve_archived_issue_dates(tmp_path) == 0
+
+    # 2. String-encoded integer in watchdog
+    status_file = tmp_path / "results" / "ingest_status.json"
+    status_file.parent.mkdir(parents=True, exist_ok=True)
+    status_file.write_text(
+        json.dumps({"archive_watchdog": {"archived_issue_dates": "15"}}),
+        encoding="utf-8",
+    )
+    assert resolve_archived_issue_dates(tmp_path) == 15
+
+    # 3. Float in watchdog
+    status_file.write_text(
+        json.dumps({"archive_watchdog": {"archived_issue_dates": 15.0}}),
+        encoding="utf-8",
+    )
+    assert resolve_archived_issue_dates(tmp_path) == 15
+
+    # 4. Invalid / corrupt watchdog value falls back safely to 0
+    status_file.write_text(
+        json.dumps({"archive_watchdog": {"archived_issue_dates": "not-a-number"}}),
+        encoding="utf-8",
+    )
+    assert resolve_archived_issue_dates(tmp_path) == 0
+
+
+def test_build_leaderboard_document_handles_empty_or_corrupt_csv(tmp_path: Path) -> None:
+    """Defensive fail-safe: 0-byte or corrupted CSV degrades safely to unpublished state."""
+    from prisma.verify.leaderboard_doc import build_leaderboard_document
+
+    csv_dir = tmp_path / "results" / "verification"
+    csv_dir.mkdir(parents=True, exist_ok=True)
+    csv_file = csv_dir / "leaderboard.csv"
+
+    # 1. 0-byte empty file
+    csv_file.write_bytes(b"")
+    doc = build_leaderboard_document(tmp_path, override_issue_dates=15)
+    assert doc["gate"]["status"] == "unlocked"
+    assert doc["gate"]["open"] is True
+    assert doc["gate"]["operational_leaderboard_published"] is False
+    assert doc["summary"] is None
+    assert doc["cells"] == []
+    assert "failed to read verification CSV" in doc["gate"]["note"]
+
+    # 2. Corrupt binary garbage
+    csv_file.write_bytes(b"\x00\xff\xfe\x00\x01\x02\x03")
+    doc_corrupt = build_leaderboard_document(tmp_path, override_issue_dates=15)
+    assert doc_corrupt["gate"]["status"] == "unlocked"
+    assert doc_corrupt["gate"]["open"] is True
+    assert doc_corrupt["gate"]["operational_leaderboard_published"] is False
+    assert doc_corrupt["summary"] is None
+    assert doc_corrupt["cells"] == []
+
+
+def test_build_leaderboard_document_boundary_14_vs_15(tmp_path: Path) -> None:
+    """Exact boundary condition: 14 dates strictly locked, 15 dates unlocked."""
+    from prisma.verify.leaderboard_doc import build_leaderboard_document
+
+    # 14 dates: strictly locked, open=False
+    doc14 = build_leaderboard_document(tmp_path, override_issue_dates=14)
+    assert doc14["gate"]["status"] == "locked"
+    assert doc14["gate"]["open"] is False
+    assert doc14["gate"]["archived_issue_dates"] == 14
+    assert doc14["gate"]["remaining_issue_dates"] == 1
+    assert doc14["gate"]["operational_leaderboard_published"] is False
+    assert doc14["summary"] is None
+    assert doc14["cells"] == []
+
+    # 15 dates (no CSV yet): unlocked, open=True, remaining=0, published=False
+    doc15 = build_leaderboard_document(tmp_path, override_issue_dates=15)
+    assert doc15["gate"]["status"] == "unlocked"
+    assert doc15["gate"]["open"] is True
+    assert doc15["gate"]["archived_issue_dates"] == 15
+    assert doc15["gate"]["remaining_issue_dates"] == 0
+    assert doc15["gate"]["operational_leaderboard_published"] is False
+    assert doc15["summary"] is None
+    assert doc15["cells"] == []
+
+
+

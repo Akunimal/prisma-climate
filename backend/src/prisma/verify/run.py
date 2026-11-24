@@ -113,7 +113,7 @@ def list_forecast_paths() -> list[str]:
     from huggingface_hub import list_repo_files
 
     repo = os.environ.get("HF_DATASET_REPO", DEFAULT_REPO)
-    return list(list_repo_files(repo, repo_type="dataset"))
+    return list(list_repo_files(repo, repo_type="dataset", token=False))
 
 
 def _payload_kind(repo_path: str) -> str | None:
@@ -691,7 +691,9 @@ def run_above_gate(
         from huggingface_hub import hf_hub_download
 
         def _hf_download(repo_id: str, repo_path: str) -> Path:
-            return Path(hf_hub_download(repo_id, repo_path, repo_type="dataset"))
+            return Path(
+                hf_hub_download(repo_id, repo_path, repo_type="dataset", token=False)
+            )
 
         fetch = _hf_download
     else:

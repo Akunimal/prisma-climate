@@ -77,8 +77,13 @@ def resolve_archived_issue_dates(root: Path) -> int:
             status_data = json.loads(status_path.read_text(encoding="utf-8"))
             watchdog = status_data.get("archive_watchdog", {})
             archived = watchdog.get("archived_issue_dates")
-            if isinstance(archived, int) and archived > 0:
-                return archived
+            if archived is not None:
+                try:
+                    val = int(archived)
+                    if val > 0:
+                        return val
+                except (ValueError, TypeError):
+                    pass
         except Exception:
             pass
 
@@ -163,7 +168,31 @@ def build_leaderboard_document(
         }
 
     # Above gate and CSV present: load and normalize cells
-    df = pd.read_csv(csv_path)
+    try:
+        df = pd.read_csv(csv_path)
+    except Exception as exc:
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "generated_at": now_iso,
+            "protocol": "docs/EVALUATION_PROTOCOL.md",
+            "gate": {
+                "status": "unlocked",
+                "required_issue_dates": GATE_ISSUE_DATES,
+                "archived_issue_dates": issue_dates,
+                "remaining_issue_dates": 0,
+                "open": True,
+                "operational_leaderboard_published": False,
+                "note": (
+                    "Operational verification leaderboard withheld: "
+                    f"failed to read verification CSV ({exc})."
+                ),
+            },
+            "summary": None,
+            "models": ["gfs_seamless", "ecmwf_ifs025"],
+            "baselines": ["climatology", "persistence"],
+            "cells": [],
+        }
+
     clean_cells: list[dict[str, Any]] = []
 
     for row in df.to_dict(orient="records"):
