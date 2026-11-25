@@ -1,6 +1,6 @@
 [project]
 name = "prisma-climate"
-version = "0.2.0"
+version = "0.3.0"
 description = "Open climate forecast verification, global coverage"
 requires-python = ">=3.11,<3.13"
 license = { text = "Apache-2.0" }

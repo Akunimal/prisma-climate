@@ -35,7 +35,7 @@ ROOT = Path(__file__).resolve().parents[2]
 EVIDENCE_DIR = ROOT / "results" / "stations" / "_evidence"
 CONFIGS_REGIONS = ROOT / "configs" / "regions"
 
-USER_AGENT = "PRISMA-Climate/0.2.0 (+https://github.com/Akunimal/prisma-climate)"
+USER_AGENT = "PRISMA-Climate/0.3.0 (+https://github.com/Akunimal/prisma-climate)"
 TEMP_DIR = Path(tempfile.gettempdir()) / "t_global1_evidence"
 
 CATALOG_URLS = {

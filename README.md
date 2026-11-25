@@ -31,25 +31,39 @@ Evaluated across the 19 meteorological stations in Argentina against NOAA GEFS r
 - **Salta:** Raw CRPS: 1.82 °C $\rightarrow$ EMOS: 1.32 °C (**CRPSS: +0.274**), QM: 1.66 °C (**CRPSS: +0.086**).
 - **Tucumán:** Raw CRPS: 2.05 °C $\rightarrow$ EMOS: 1.39 °C (**CRPSS: +0.322**), QM: 1.45 °C (**CRPSS: +0.293**).
 
-### Operational Verification Gate Contract (docs/EVALUATION_PROTOCOL.md)
+### Operational Verification Leaderboard (Phase 1 Gate Unlocked)
 
-In strict adherence to the frozen scientific protocol, operational verification metrics are published only after accumulating at least 15 distinct archived forecast issue dates:
+In accordance with [`docs/EVALUATION_PROTOCOL.md`](docs/EVALUATION_PROTOCOL.md), the 15-issue-date operational archive gate is **OFFICIALLY UNLOCKED** (15 distinct archived forecast issue dates, 2026-11-11 through 2026-11-25; 285,114 paired member forecasts evaluated against ground-truth station observations).
 
-> **Current Gate Status:** **14 of 15** distinct issue dates archived under `forecasts/` on Hugging Face (**1 date remaining** until automated gate unlock in ~12–16h).
+All forecasts are scored against two competitive baselines: **Climatology** (30-year station-day reference) and **Persistence** (last completed local observation):
 
-When the 15th issue date is archived, the automated verification pipeline pre-wired in `scripts/export_site_data.py` (commit `f2ac65b`) will execute `prisma.verify.cli` during static export, computing and publishing:
-- **Continuous Ranked Probability Score (CRPS)** for raw multi-model ensemble forecasts (`gfs_seamless`, `ecmwf_ifs025`) across all lead days (1–16).
-- **Continuous Ranked Probability Skill Score (CRPSS)** evaluated strictly against two competitive baselines:
-  1. **Climatology Baseline:** 30-year station-day reference climatology.
-  2. **Persistence Baseline:** Last completed local-calendar observation before forecast issue time.
-- **Brier Score & Reliability Diagrams** for probabilistic exceedance thresholds (e.g. precipitation $\ge 1\text{ mm}$, $\ge 10\text{ mm}$).
-- **Spread-Error / Spread-Skill Ratio** to evaluate ensemble under/over-dispersion.
+- **Mean Operational CRPSS vs. Climatology:** **+0.2197 (+22.0% skill gain over climatology)** across 296 evaluated station-variable-lead cells ($n \ge 10$).
+- **Mean Operational CRPSS vs. Persistence:** **+0.4280 (+42.8% skill gain over persistence)**.
+- **Unbiased Ground-Truth Verification:** Evaluated across the 19 SMN stations in Argentina. 0 cases recorded as missing members; 0 regtemp/observaciones discrepancies out of 443 overlapping paired observations.
+
+#### Model Performance vs Baselines
+
+| Model | Raw CRPS (°C) | Mean CRPSS vs Climatology | Skill vs Climatology | Mean CRPSS vs Persistence | Skill vs Persistence |
+|---|---|---|---|---|---|
+| **ECMWF IFS 0.25°** (`ecmwf_ifs025`) | **1.282 °C** | **+0.3297** | **+33.0%** | **+0.5156** | **+51.6%** |
+| **GFS Seamless** (`gfs_seamless`) | **1.675 °C** | **+0.1097** | **+11.0%** | **+0.3405** | **+34.0%** |
+
+#### Operational Skill by Lead Day (Pooled Multi-Model)
+
+| Forecast Horizon | Raw CRPS (°C) | Mean CRPSS vs Climatology | Mean CRPSS vs Persistence | Evaluated Cells ($n \ge 10$) |
+|---|---|---|---|---|
+| **Lead Day 0** | 1.428 °C | **+0.2570 (+25.7%)** | **+0.3364 (+33.6%)** | 76 cells |
+| **Lead Day 1** | 1.515 °C | **+0.2088 (+20.9%)** | **+0.4221 (+42.2%)** | 76 cells |
+| **Lead Day 2** | 1.467 °C | **+0.2227 (+22.3%)** | **+0.4934 (+49.3%)** | 72 cells |
+| **Lead Day 3** | 1.504 °C | **+0.1902 (+19.0%)** | **+0.4603 (+46.0%)** | 72 cells |
+
+*Full station-level, lead-level, and variable-level records are published in [`results/verification/leaderboard.csv`](results/verification/leaderboard.csv) and live in the web app via [`data/leaderboard.json`](data/leaderboard.json).*
 
 ## Status
 
 Early-stage independent research. Be precise about what exists today:
 
-Current gate status: 14 of 15 distinct issue dates archived (1 remaining until Day 15 gate unlock); no operational verification numbers published prior to gate opening per docs/EVALUATION_PROTOCOL.md.
+Current gate status: **UNLOCKED** (15 of 15 distinct issue dates archived). Operational verification leaderboard published in compliance with [`docs/EVALUATION_PROTOCOL.md`](docs/EVALUATION_PROTOCOL.md).
 
 **Works today:**
 
@@ -65,7 +79,7 @@ Current gate status: 14 of 15 distinct issue dates archived (1 remaining until D
 - Calibration modules (EMOS and quantile mapping) with unit tests under [`backend/src/prisma/calibrate/`](backend/src/prisma/calibrate/). The full hindcast CRPSS evaluation (Run B, rolling-45 window, anti-leakage rule) passed the Phase 2 exit gate: 12 of 19 stations improved (63.2% $\ge$ 60% threshold, 7-day block bootstrap 95% CI > 0; EMOS cell mean CRPSS: +0.2187, QM: +0.0943), formally approved and released under [`v0.1.0`](https://github.com/Akunimal/prisma-climate/releases/tag/v0.1.0).
 - Regional configuration files (`configs/regions/`) covering representative aerodrome stations across 8 regions with ICAO identifiers, local IANA timezones, and diverse Köppen-Geiger zones, staged under evaluation (see [Global expansion status](#global-expansion-status)).
 
-**Does not exist yet:** published operational leaderboard numbers (awaiting the $\ge 15$ issue dates gate), SMN precipitation (no field in the open-data payloads; see [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)), an API server (none is offered this phase — see above), an Android build, and a published skill document: the live Skill screen shows "not available" until hindcast results are committed to Pages and the operational gate opens. Nothing in `results/` was produced by anything other than a script in this repository.
+**Does not exist yet:** SMN precipitation (no field in the open-data payloads; see [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)), an API server (none is offered this phase — see above), and an Android build. Nothing in `results/` was produced by anything other than a script in this repository.
 
 ## Global expansion status
 
@@ -174,8 +188,8 @@ Adding a data source means one new connector under `backend/src/prisma/ingest/` 
 
 If you use PRISMA Climate in your research, forecasts, or software, please cite it using [`CITATION.cff`](CITATION.cff):
 
-- **Release:** `v0.1.0 — frozen evaluation protocol`
-- **DOI (v0.1.0):** [10.5281/zenodo.24309947](https://doi.org/10.5281/zenodo.24309947)
+- **Release:** `v0.3.0 — operational verification and global 132-station expansion`
+- **DOI (v0.1.0):** [10.5281/zenodo.24309947](https://doi.org/10.5281/zenodo.24309947) *(v0.3.0 version DOI will be minted upon GitHub Release publication)*
 - **Concept DOI (all versions):** [10.5281/zenodo.24309946](https://doi.org/10.5281/zenodo.24309946)
 - **Evaluation Protocol:** [`docs/EVALUATION_PROTOCOL.md`](docs/EVALUATION_PROTOCOL.md)
 - **AI Use Disclosure:** [`docs/AI_USE.md`](docs/AI_USE.md)

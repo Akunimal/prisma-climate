@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 AWC_BASE_URL = "https://aviationweather.gov/api/data/metar"
 IEM_BASE_URL = "https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py"
 
-USER_AGENT = "PRISMA-Climate/0.2.0 (+https://github.com/Akunimal/prisma-climate)"
+USER_AGENT = "PRISMA-Climate/0.3.0 (+https://github.com/Akunimal/prisma-climate)"
 AWC_MAX_BATCH = 10
 DEFAULT_TIMEOUT = 30
 
