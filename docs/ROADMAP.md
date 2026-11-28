@@ -10,7 +10,7 @@ Phases with exit gates. A gate that does not pass is documented as a negative re
 | **3 · Subseasonal + alerts** | 2–4 months | 2–6 week horizon with ML, ENSO conditioning, screens 4–5, iOS/Windows | ML model beats the Phase 2 calibration on at least one lead time, or that is documented |
 | **4 · Public good + partners** | 4–6 months | Dataset and models with DOI (Zenodo), preprint or technical report, contact with university / CONICET / INTA | At least one institutional partner interested (requirement for grants) |
 
-## Current status (Phase 1 in progress)
+## Current status (Phase 1 operational gate unlocked)
 
 Done:
 
@@ -45,7 +45,7 @@ Per-region status in [`configs/sources.yaml`](../configs/sources.yaml) following
 
 **Next milestone per region:** The next milestone per region is accumulating enough forecast and observation archive history (weeks to months) to even attempt a hindcast or calibration, not running one now. Zero days of historical METAR observation history were previously accumulated (daily archive collection is starting now) and forecast archive history covers 2 days or fewer (global multi-region ingest began 2026-11-18). No hindcast, calibration, or skill verification exists for any region outside Argentina. Details in [`docs/design/GLOBAL_VERIFICATION_PLAN.md`](design/GLOBAL_VERIFICATION_PLAN.md).
 
-Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue dates; 14 archived as of 2026-11-24, 1 remaining). Static export contract (`data/leaderboard.json`), locked UI card with progress indicator, and offline E2E unlock drill are fully implemented. There is **no API server this phase** (owner decision 2026-11-15: static data on Pages) — the FastAPI code exists and its endpoints are tested, but it is not deployed. A read-only Flutter **web** app exists (Stations, Forecast, Skill, About / Status, station map, place search and GPS, source comparator); there is **no Android build**; see README.
+Completed / Unlocked: operational leaderboard numbers (achieved 15-issue-date gate on 2026-11-25; 18 archived issue dates as of 2026-11-28, with 285,114 paired member forecasts evaluated against ground-truth station observations under v0.3.0). Static export contract (`data/leaderboard.json`), live UI verification card, and automatic leaderboard generation are fully operational. There is **no API server this phase** (owner decision 2026-11-15: static data on Pages) — the FastAPI code exists and its endpoints are tested, but it is not deployed. A read-only Flutter **web** app exists (Stations, Forecast, Skill, About / Status, station map, place search and GPS, source comparator); there is **no Android build**; see README.
 
 ## Phase 1 checklist
 
@@ -54,8 +54,8 @@ Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue d
 - [x] Source-discrepancy report script (ERA5 vs GHCN) → `results/discrepancies/`.
 - [x] SMN leg of the discrepancy report (regtemp capture via catalogue NRO; connector not required — the leg reads the gitignored capture only).
 - [x] Verification metrics (CRPS, Brier, reliability) per `EVALUATION_PROTOCOL.md` (code + tests; no numbers published yet).
-- [ ] Leaderboard generated into `results/` by script — blocked until ≥ 15 archived issue dates (protocol amendment 2026-11-11).
-- [ ] 30 consecutive days of unattended daily ingest. Counted from the first day whose canonical archive is produced by a scheduled run with no human dispatch; 2026-11-11 and 2026-11-12 were archived by manual dispatch and do not count (earliest day 1: 2026-11-13).
+- [x] Leaderboard generated into `results/` by script — officially unlocked on 2026-11-25 after reaching 15 archived issue dates (protocol amendment 2026-11-11; published in `results/verification/leaderboard.csv` and `data/leaderboard.json`).
+- [ ] 30 consecutive days of unattended daily ingest. Counted from the first day whose canonical archive is produced by a scheduled run with no human dispatch; 2026-11-11 and 2026-11-12 were archived by manual dispatch and do not count (earliest day 1: 2026-11-13; currently 16 consecutive scheduled days as of 2026-11-28, 18 total archived issue dates).
 
 ## Phase 2 checklist
 
@@ -118,8 +118,8 @@ Not started (by design): leaderboard numbers (awaiting $\ge 15$ archived issue d
    - [x] **Climatological normal range:** Render normal historical reference range/band on the forecast chart (`band_chart.dart`) with adaptive M3 contrast and localized legends.
    - [x] **NASA GIBS NRT satellite layer:** Real-time global satellite imagery layer (VIIRS SNPP TrueColor) with automated deterministic UTC logic, 30-hour safety offset, floating map toggle, and dynamic attribution.
 
-2. **Stage 2 · Operational Verification Gate (Upon reaching $\ge 15$ issue dates)**
-   - Accumulate remaining issue dates in the automated archive (currently 14/15, 1 remaining).
+2. **Stage 2 · Operational Verification Gate (Completed 2026-11-25 at $\ge 15$ issue dates, v0.3.0)**
+   - [x] Accumulate 15 issue dates in the automated archive (gate officially unlocked on 2026-11-25; 18 archived dates as of 2026-11-28).
    - **Horizon 1 · Automatic Verification Pre-Wiring (Completed 2026-11-23, commit `f2ac65b`):** Operational leaderboard static export contract (`data/leaderboard.json`), locked UI progress indicator, E2E gate unlock drill, and automatic verification pre-wiring in `scripts/export_site_data.py` fully verified offline. Upon reaching 15 dates, `site.yml` automatically executes the verification pipeline in site export to generate `results/verification/leaderboard.csv` and auto-unlock the published UI leaderboard table with zero manual intervention.
    - **Horizon 2 · METAR vs ERA5 Observational Diagnostics (Completed 2026-11-24, commit `4b9c522`):** Implemented standalone diagnostic module `backend/src/prisma/report/metar_discrepancies.py` and 6 offline tests in `backend/tests/test_metar_discrepancies.py`. Reconciled 132-station active network (19 SMN Argentina + 113 METAR global). Computes station-level bias (METAR − ERA5), MAE, RMSE, Pearson correlation, p95 differences, automated quality flags ($|bias| \ge 3.0^\circ\text{C}$, $corr < 0.90$, $n_{days} < 5$), regional/global aggregation, and structured Markdown report (`results/discrepancies/metar_vs_era5.md`) with physical meteorological commentary. Global ERA5 baseline acquisition for the 113 global stations is scheduled for post-Day 15 batch ingest to prevent API rate competition during the operational ingest window.
    - Visualise station verification metrics directly on the interactive map.

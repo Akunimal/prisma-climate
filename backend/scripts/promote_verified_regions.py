@@ -17,8 +17,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 ROOT = Path(__file__).resolve().parents[2]
 NON_ARGENTINA_REGIONS = [
     "south_america",
@@ -44,7 +42,6 @@ def evaluate_region_readiness(region_slug: str) -> dict[str, Any]:
         data = json.load(f)
 
     summary = data.get("summary", {})
-    stations = data.get("stations", [])
 
     # Check 1: §3.8 Source probe status
     p1_val = summary.get("phase1_source_status") or summary.get("phase1_probe_status") or "UNKNOWN"
@@ -65,14 +62,7 @@ def evaluate_region_readiness(region_slug: str) -> dict[str, Any]:
     confirmed_pct = summary.get("confirmed_second_source_pct", 0.0)
     confirmed_ok = confirmed_pct >= 80.0
 
-    eligible = (
-        p1_status
-        and p2_status
-        and p3_status
-        and count_ok
-        and telemetry_ok
-        and confirmed_ok
-    )
+    eligible = p1_status and p2_status and p3_status and count_ok and telemetry_ok and confirmed_ok
 
     reasons: list[str] = []
     if not p1_status:
@@ -149,20 +139,31 @@ def apply_promotions_to_sources_yaml(
             block = re.sub(r"status:\s*[a-zA-Z0-9_-]+", f"status: {target_status}", block, count=1)
             # Update verified_on
             if target_status == "active":
-                block = re.sub(r"verified_on:\s*(null|none|~|\"[^\"]*\")?", f'verified_on: "{verified_date}"', block, count=1)
-            print(f"Updated {expected_id}: status -> '{target_status}', verified_on -> '{verified_date}'")
+                block = re.sub(
+                    r"verified_on:\s*(null|none|~|\"[^\"]*\")?",
+                    f'verified_on: "{verified_date}"',
+                    block,
+                    count=1,
+                )
+            print(
+                f"Updated {expected_id}: status -> '{target_status}', verified_on -> '{verified_date}'"
+            )
         else:
             block = re.sub(r"status:\s*[a-zA-Z0-9_-]+", "status: blocked", block, count=1)
-            block = re.sub(r"verified_on:\s*(null|none|~|\"[^\"]*\")?", "verified_on: null", block, count=1)
+            block = re.sub(
+                r"verified_on:\s*(null|none|~|\"[^\"]*\")?", "verified_on: null", block, count=1
+            )
             print(f"Updated {expected_id}: status -> 'blocked', verified_on -> null")
 
         if block != original_block:
-            text = text[:match.start(1)] + block + text[match.end(1):]
+            text = text[: match.start(1)] + block + text[match.end(1) :]
             changed += 1
 
     if changed > 0:
         sources_yaml_path.write_text(text, encoding="utf-8")
-        print(f"\nApplied updates to {changed} sources in {sources_yaml_path.relative_to(ROOT)} (comments preserved).")
+        print(
+            f"\nApplied updates to {changed} sources in {sources_yaml_path.relative_to(ROOT)} (comments preserved)."
+        )
 
     return changed
 
@@ -208,7 +209,9 @@ def run_promotion_gate(
         print("\n[DRY RUN] No modifications written to configs/sources.yaml.")
         return 0
 
-    apply_promotions_to_sources_yaml(evaluations, target_status=target_status, verified_date="2026-11-19")
+    apply_promotions_to_sources_yaml(
+        evaluations, target_status=target_status, verified_date="2026-11-19"
+    )
     return 0
 
 

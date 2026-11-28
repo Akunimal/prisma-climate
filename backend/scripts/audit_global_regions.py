@@ -17,7 +17,6 @@ import hashlib
 import io
 import json
 import math
-import os
 import sys
 import tempfile
 import time
@@ -25,7 +24,7 @@ import urllib.parse
 import urllib.request
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -70,10 +69,7 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
     dlambda = math.radians(lon2 - lon1)
-    a = (
-        math.sin(dphi / 2.0) ** 2
-        + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2.0) ** 2
-    )
+    a = math.sin(dphi / 2.0) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2.0) ** 2
     c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
     return r * c
 
@@ -120,7 +116,7 @@ def ensure_catalogs() -> dict[str, dict[str, Any]]:
             data = target.read_bytes()
 
         sha256 = hashlib.sha256(data).hexdigest()
-        mtime = datetime.fromtimestamp(target.stat().st_mtime, tz=timezone.utc).isoformat()
+        mtime = datetime.fromtimestamp(target.stat().st_mtime, tz=UTC).isoformat()
         metadata[name] = {
             "url": url,
             "filename": filename,
@@ -150,7 +146,9 @@ def load_awc_catalog(meta: dict[str, Any]) -> dict[str, dict[str, Any]]:
                 "site": item.get("site", ""),
                 "lat": float(item.get("lat", 0.0)),
                 "lon": float(item.get("lon", 0.0)),
-                "elevation_m": float(item.get("elev", 0.0)) if item.get("elev") is not None else None,
+                "elevation_m": float(item.get("elev", 0.0))
+                if item.get("elev") is not None
+                else None,
                 "country": item.get("country", ""),
                 "state": item.get("state", ""),
                 "wmoId": item.get("wmoId"),
@@ -158,12 +156,14 @@ def load_awc_catalog(meta: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return lookup
 
 
-def load_isd_catalog(meta: dict[str, Any]) -> tuple[dict[str, list[dict[str, Any]]], dict[str, dict[str, Any]]]:
+def load_isd_catalog(
+    meta: dict[str, Any],
+) -> tuple[dict[str, list[dict[str, Any]]], dict[str, dict[str, Any]]]:
     """Load NOAA ISD station history into ICAO-keyed and USAF-keyed lookups."""
     target = Path(meta["noaa_isd"]["local_path"])
     text = target.read_bytes().decode("utf-8", errors="ignore")
     reader = csv.reader(io.StringIO(text))
-    header = next(reader)
+    next(reader)
     icao_lookup = defaultdict(list)
     usaf_lookup = {}
     for row in reader:
@@ -267,18 +267,20 @@ def audit_region(
     for i in range(0, len(icaos), batch_size):
         batch = icaos[i : i + batch_size]
         reps, lat_ms, code, url = probe_awc_metar_batch(batch, hours=72)
-        http_probes.append({
-            "batch_icaos": batch,
-            "url": url,
-            "status_code": code,
-            "latency_ms": round(lat_ms, 2),
-            "reports_count": len(reps),
-        })
+        http_probes.append(
+            {
+                "batch_icaos": batch,
+                "url": url,
+                "status_code": code,
+                "latency_ms": round(lat_ms, 2),
+                "reports_count": len(reps),
+            }
+        )
         latencies.append(lat_ms)
         all_reports.extend(reps)
         time.sleep(0.2)
 
-    now_utc = datetime.now(timezone.utc)
+    now_utc = datetime.now(UTC)
 
     # Group reports by ICAO
     reports_by_icao = defaultdict(list)
@@ -316,7 +318,11 @@ def audit_region(
                     awc_match = awc_cat[alias]
                     break
 
-        awc_dist = haversine_km(cfg_lat, cfg_lon, awc_match["lat"], awc_match["lon"]) if awc_match else None
+        awc_dist = (
+            haversine_km(cfg_lat, cfg_lon, awc_match["lat"], awc_match["lon"])
+            if awc_match
+            else None
+        )
         awc_elev = awc_match.get("elevation_m") if awc_match else None
         awc_delta_elev = (cfg_elev - awc_elev) if (awc_match and awc_elev is not None) else None
 
@@ -337,7 +343,9 @@ def audit_region(
             isd_matches_sorted = sorted(isd_matches, key=lambda x: x.get("end", ""), reverse=True)
             isd_best = isd_matches_sorted[0]
 
-        isd_dist = haversine_km(cfg_lat, cfg_lon, isd_best["lat"], isd_best["lon"]) if isd_best else None
+        isd_dist = (
+            haversine_km(cfg_lat, cfg_lon, isd_best["lat"], isd_best["lon"]) if isd_best else None
+        )
         isd_elev = isd_best.get("elevation_m") if isd_best else None
         isd_delta_elev = (cfg_elev - isd_elev) if (isd_best and isd_elev is not None) else None
 
@@ -356,7 +364,7 @@ def audit_region(
             if t is not None and r.get("temp") is not None:
                 valid_temp_count += 1
                 try:
-                    dt = datetime.fromtimestamp(t, tz=timezone.utc)
+                    dt = datetime.fromtimestamp(t, tz=UTC)
                     age_h = int((now_utc - dt).total_seconds() // 3600)
                     if 0 <= age_h < 72:
                         hourly_bins[age_h] += 1
@@ -366,7 +374,9 @@ def audit_region(
         missing_hours = hourly_bins.count(0)
         gap_rate_pct = round((missing_hours / 72.0) * 100.0, 2)
         obs_per_day = round(obs_72h / 3.0, 2)
-        temp_completeness_pct = round((valid_temp_count / obs_72h * 100.0) if obs_72h > 0 else 0.0, 2)
+        temp_completeness_pct = round(
+            (valid_temp_count / obs_72h * 100.0) if obs_72h > 0 else 0.0, 2
+        )
         mean_interval_h = round(72.0 / max(1, valid_temp_count), 2)
 
         telemetry_active = obs_72h > 0
@@ -403,7 +413,9 @@ def audit_region(
             resolved_coords = {
                 "lat": awc_match["lat"],
                 "lon": awc_match["lon"],
-                "elevation_m": int(round(awc_match["elevation_m"])) if awc_match.get("elevation_m") is not None else cfg_elev,
+                "elevation_m": int(round(awc_match["elevation_m"]))
+                if awc_match.get("elevation_m") is not None
+                else cfg_elev,
             }
             auto_resolved_count += 1
             passed_vetting_count += 1
@@ -412,42 +424,48 @@ def audit_region(
             vetting_action = "remove"
             removed_count += 1
 
-        vetted_stations.append({
-            "id": st_id,
-            "name": st_name,
-            "country": st.get("country", ""),
-            "icao": icao,
-            "config_lat": cfg_lat,
-            "config_lon": cfg_lon,
-            "config_elevation_m": cfg_elev,
-            "ghcn_id": ghcn_id,
-            "awc_match": bool(awc_match),
-            "awc_site": awc_match.get("site") if awc_match else None,
-            "awc_lat": awc_match.get("lat") if awc_match else None,
-            "awc_lon": awc_match.get("lon") if awc_match else None,
-            "awc_elevation_m": awc_elev,
-            "haversine_awc_km": round(awc_dist, 3) if awc_dist is not None else None,
-            "delta_elev_awc_m": round(awc_delta_elev, 1) if awc_delta_elev is not None else None,
-            "isd_match": bool(isd_best),
-            "isd_station_name": isd_best.get("station_name") if isd_best else None,
-            "isd_lat": isd_best.get("lat") if isd_best else None,
-            "isd_lon": isd_best.get("lon") if isd_best else None,
-            "isd_elevation_m": isd_elev,
-            "haversine_isd_km": round(isd_dist, 3) if isd_dist is not None else None,
-            "delta_elev_isd_m": round(isd_delta_elev, 1) if isd_delta_elev is not None else None,
-            "ghcn_match": bool(ghcn_match),
-            "obs_72h_count": obs_72h,
-            "obs_per_day": obs_per_day,
-            "valid_temp_count": valid_temp_count,
-            "temp_completeness_pct": temp_completeness_pct,
-            "mean_interval_hours": mean_interval_h,
-            "gap_rate_pct": gap_rate_pct,
-            "telemetry_active": telemetry_active,
-            "second_source_confirmed": second_source_confirmed,
-            "vetting_status": vetting_status,
-            "vetting_action": vetting_action,
-            "resolved_coords": resolved_coords,
-        })
+        vetted_stations.append(
+            {
+                "id": st_id,
+                "name": st_name,
+                "country": st.get("country", ""),
+                "icao": icao,
+                "config_lat": cfg_lat,
+                "config_lon": cfg_lon,
+                "config_elevation_m": cfg_elev,
+                "ghcn_id": ghcn_id,
+                "awc_match": bool(awc_match),
+                "awc_site": awc_match.get("site") if awc_match else None,
+                "awc_lat": awc_match.get("lat") if awc_match else None,
+                "awc_lon": awc_match.get("lon") if awc_match else None,
+                "awc_elevation_m": awc_elev,
+                "haversine_awc_km": round(awc_dist, 3) if awc_dist is not None else None,
+                "delta_elev_awc_m": round(awc_delta_elev, 1)
+                if awc_delta_elev is not None
+                else None,
+                "isd_match": bool(isd_best),
+                "isd_station_name": isd_best.get("station_name") if isd_best else None,
+                "isd_lat": isd_best.get("lat") if isd_best else None,
+                "isd_lon": isd_best.get("lon") if isd_best else None,
+                "isd_elevation_m": isd_elev,
+                "haversine_isd_km": round(isd_dist, 3) if isd_dist is not None else None,
+                "delta_elev_isd_m": round(isd_delta_elev, 1)
+                if isd_delta_elev is not None
+                else None,
+                "ghcn_match": bool(ghcn_match),
+                "obs_72h_count": obs_72h,
+                "obs_per_day": obs_per_day,
+                "valid_temp_count": valid_temp_count,
+                "temp_completeness_pct": temp_completeness_pct,
+                "mean_interval_hours": mean_interval_h,
+                "gap_rate_pct": gap_rate_pct,
+                "telemetry_active": telemetry_active,
+                "second_source_confirmed": second_source_confirmed,
+                "vetting_status": vetting_status,
+                "vetting_action": vetting_action,
+                "resolved_coords": resolved_coords,
+            }
+        )
 
     # Latency percentiles
     sorted_lats = sorted(latencies)
@@ -459,8 +477,12 @@ def audit_region(
 
     total_stations = len(stations)
     retained_count = total_stations - removed_count
-    confirmed_pct = round(confirmed_second_source_count / total_stations * 100.0, 1) if total_stations else 0.0
-    active_pct = round(active_telemetry_count / total_stations * 100.0, 1) if total_stations else 0.0
+    confirmed_pct = (
+        round(confirmed_second_source_count / total_stations * 100.0, 1) if total_stations else 0.0
+    )
+    active_pct = (
+        round(active_telemetry_count / total_stations * 100.0, 1) if total_stations else 0.0
+    )
     vetting_pct = round(passed_vetting_count / total_stations * 100.0, 1) if total_stations else 0.0
 
     # Decision C Gate: >= 80% confirmed by 2nd source & active telemetry, >= 5 stations
@@ -472,19 +494,20 @@ def audit_region(
 
     # Decision E Gate: >= 80% vetted stations report >= 12 obs/day, mean interval <= 2h, < 15% gap
     qualifying_obs_stations = [
-        st for st in vetted_stations
+        st
+        for st in vetted_stations
         if st["vetting_action"] != "remove"
         and st["obs_per_day"] >= 12.0
         and st["mean_interval_hours"] <= 2.0
         and st["gap_rate_pct"] < 15.0
     ]
     obs_ref_pct = round(len(qualifying_obs_stations) / max(1, retained_count) * 100.0, 1)
-    phase3_qualifies = (obs_ref_pct >= 80.0)
+    phase3_qualifies = obs_ref_pct >= 80.0
 
     summary = {
         "region_slug": region_slug,
         "region_name": region_cfg.get("name", region_slug),
-        "audit_utc": datetime.now(timezone.utc).isoformat(),
+        "audit_utc": datetime.now(UTC).isoformat(),
         "total_stations": total_stations,
         "retained_count": retained_count,
         "auto_resolved_count": auto_resolved_count,
@@ -500,7 +523,9 @@ def audit_region(
         "phase1_source_status": "PASS",
         "phase2_vetting_status": "PASS" if phase2_pass else "BLOCKED",
         "phase3_obs_status": "QUALIFIED" if phase3_qualifies else "NONE_YET",
-        "suggested_source_status": "ready_for_review" if (phase2_pass and phase3_qualifies) else "blocked",
+        "suggested_source_status": "ready_for_review"
+        if (phase2_pass and phase3_qualifies)
+        else "blocked",
         "latency_summary_ms": {
             "p50": round(p50, 2),
             "p95": round(p95, 2),
@@ -522,7 +547,9 @@ def audit_region(
     evidence_out.mkdir(parents=True, exist_ok=True)
     json_path = evidence_out / "audit.json"
     json_path.write_text(json.dumps(audit_payload, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"[{region_slug}] Audit written to {json_path} (retained: {retained_count}/{total_stations}, vetting: {summary['phase2_vetting_status']}, obs: {summary['phase3_obs_status']})")
+    print(
+        f"[{region_slug}] Audit written to {json_path} (retained: {retained_count}/{total_stations}, vetting: {summary['phase2_vetting_status']}, obs: {summary['phase3_obs_status']})"
+    )
 
     write_vetting_markdown(region_slug, audit_payload)
     return audit_payload
@@ -568,11 +595,13 @@ def write_vetting_markdown(region_slug: str, audit_payload: dict[str, Any]) -> P
         )
         lines.append(row)
 
-    lines.extend([
-        "",
-        "## Flags and Removals",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Flags and Removals",
+            "",
+        ]
+    )
 
     flagged = [st for st in stations if st["vetting_status"] != "PASS"]
     if not flagged:
@@ -595,7 +624,11 @@ def apply_vetting_pruning(region_slug: str, audit_payload: dict[str, Any]) -> bo
     """Apply Decision C pruning/auto-resolution directly to configs/regions/<region>.yaml."""
     stations = audit_payload["stations"]
     remove_icaos = {st["icao"] for st in stations if st["vetting_action"] == "remove"}
-    resolve_coords = {st["icao"]: st["resolved_coords"] for st in stations if st["vetting_action"] == "auto_resolved_coords"}
+    resolve_coords = {
+        st["icao"]: st["resolved_coords"]
+        for st in stations
+        if st["vetting_action"] == "auto_resolved_coords"
+    }
 
     if not remove_icaos and not resolve_coords:
         return False
@@ -613,7 +646,9 @@ def apply_vetting_pruning(region_slug: str, audit_payload: dict[str, Any]) -> bo
             continue
         if icao in resolve_coords and resolve_coords[icao]:
             coords = resolve_coords[icao]
-            print(f"[{region_slug}] Auto-resolving coords for {st.get('id')} ({icao}): {st.get('lat')},{st.get('lon')} -> {coords['lat']},{coords['lon']}")
+            print(
+                f"[{region_slug}] Auto-resolving coords for {st.get('id')} ({icao}): {st.get('lat')},{st.get('lon')} -> {coords['lat']},{coords['lon']}"
+            )
             st["lat"] = coords["lat"]
             st["lon"] = coords["lon"]
             st["elevation_m"] = coords["elevation_m"]
@@ -623,7 +658,9 @@ def apply_vetting_pruning(region_slug: str, audit_payload: dict[str, Any]) -> bo
     with open(region_path, "w", encoding="utf-8") as f:
         yaml.safe_dump(cfg, f, sort_keys=False, allow_unicode=True)
 
-    print(f"[{region_slug}] Pruned {original_count - len(new_stations)} stations. New count: {len(new_stations)}")
+    print(
+        f"[{region_slug}] Pruned {original_count - len(new_stations)} stations. New count: {len(new_stations)}"
+    )
     return True
 
 
@@ -638,15 +675,12 @@ def audit_open_meteo_quota() -> dict[str, Any]:
     headers = {"User-Agent": USER_AGENT}
     req = urllib.request.Request(probe_url, headers=headers)
     status_code = 0
-    resp_headers = {}
     try:
         with urllib.request.urlopen(req, timeout=20) as resp:
             status_code = resp.status
-            resp_headers = dict(resp.headers)
             resp.read()
     except urllib.error.HTTPError as exc:
         status_code = exc.code
-        resp_headers = dict(exc.headers)
     lat_ms = (time.perf_counter() - t0) * 1000.0
 
     all_stations_count = 0
@@ -678,15 +712,11 @@ def audit_open_meteo_quota() -> dict[str, Any]:
         "max_metar_obs_reqs_per_day": 500,
     }
 
-    forecast_pass = (
-        forecast_reqs_per_day_worst_case <= safe_envelope["max_forecast_reqs_per_day"]
-    )
-    metar_pass = (
-        metar_reqs_per_day_batched10 <= safe_envelope["max_metar_obs_reqs_per_day"]
-    )
+    forecast_pass = forecast_reqs_per_day_worst_case <= safe_envelope["max_forecast_reqs_per_day"]
+    metar_pass = metar_reqs_per_day_batched10 <= safe_envelope["max_metar_obs_reqs_per_day"]
 
     result = {
-        "probe_utc": datetime.now(timezone.utc).isoformat(),
+        "probe_utc": datetime.now(UTC).isoformat(),
         "probe_status_code": status_code,
         "probe_latency_ms": round(lat_ms, 2),
         "total_configured_stations": all_stations_count,
@@ -707,7 +737,9 @@ def audit_open_meteo_quota() -> dict[str, Any]:
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     out_file = EVIDENCE_DIR / "open_meteo_quota_audit.json"
     out_file.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"Open-Meteo quota audit written to {out_file} (forecast daily reqs: {forecast_reqs_per_day_worst_case}, status: {result['overall_status']})")
+    print(
+        f"Open-Meteo quota audit written to {out_file} (forecast daily reqs: {forecast_reqs_per_day_worst_case}, status: {result['overall_status']})"
+    )
     return result
 
 
